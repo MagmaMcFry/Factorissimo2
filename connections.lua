@@ -209,7 +209,7 @@ local function update()
 		if delay then
 			-- Reinsert connection after delay
 			-- Not checking for inappropriate delays, so keep your delays civil
-			local queue_pos = (current_pos + delay) % CYCLIC_BUFFER_SIZE + 1
+			local queue_pos = (current_pos + delay - 1) % CYCLIC_BUFFER_SIZE + 1
 			local new_slot = connections[queue_pos]
 			new_slot[1+#new_slot] = conn
 		elseif conn._valid then
