@@ -7,7 +7,7 @@ end
 Updates.run = function()
 	if global.update_version <= 1 then
 		-- Remove all factory port markers because they're placed wrong
-		for _, factory in global.factories do
+		for _, factory in pairs(global.factories) do
 			for _, entity in pairs(factory.outside_port_markers) do entity.destroy() end
 			factory.outside_port_markers = {}
 		end
