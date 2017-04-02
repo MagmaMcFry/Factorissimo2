@@ -16,6 +16,25 @@ local function make_tile(tinfo)
 				u_transition = { picture = F.."/graphics/nothing.png", count = 0 },
 				o_transition = { picture = F.."/graphics/nothing.png", count = 0 },
 			},
+			walking_speed_modifier = 1.3,
+			walking_sound = {
+				{
+					filename = "__base__/sound/walking/concrete-01.ogg",
+					volume = 1.2
+				},
+				{
+					filename = "__base__/sound/walking/concrete-02.ogg",
+					volume = 1.2
+				},
+				{
+					filename = "__base__/sound/walking/concrete-03.ogg",
+					volume = 1.2
+				},
+				{
+					filename = "__base__/sound/walking/concrete-04.ogg",
+					volume = 1.2
+				}
+			},
 			map_color = tinfo.map_color or {r = 1},
 			ageing = 0.0006,
 		},
@@ -148,7 +167,7 @@ make_tile{
 make_tile{
 	name = "factory-wall-1",
 	collision_mask = edge_mask(),
-	layer = 70,
+	layer = 30,
 	pictures = pictures_fw(1),
 	map_color = f1wc(),
 }
