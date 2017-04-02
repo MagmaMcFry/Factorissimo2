@@ -9,7 +9,7 @@ local blacklisted = {}
 for _, name in pairs(blacklist) do blacklisted[name] = true end
 
 Chest.connect = function(factory, cid, cpos, outside_entity, inside_entity)
-	if blacklist[outside_entity.name] or blacklist[inside_entity.name] then return nil end
+	if blacklisted[outside_entity.name] or blacklisted[inside_entity.name] then return nil end
 	-- Connection mode: 0 for balance, 1 for inwards, 2 for outwards 
 	return {outside = outside_entity, inside = inside_entity}
 end
