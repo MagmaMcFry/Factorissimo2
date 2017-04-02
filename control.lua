@@ -540,10 +540,12 @@ end
 
 -- FACTORY SAVING AND LOADING --
 
+local SAVE_NAMES = {} -- Set of all valid factory save names
 local SAVE_ITEMS = {}
 for _,f in ipairs({"factory-1", "factory-2", "factory-3"}) do
 	SAVE_ITEMS[f] = {}
 	for n = 10,99 do
+		SAVE_NAMES[f .. "-s" .. n] = true
 		SAVE_ITEMS[f][n] = f .. "-s" .. n
 	end
 end
@@ -558,6 +560,10 @@ local function save_factory(factory)
 	end
 	--game.print("Could not save factory!")
 	return nil
+end
+
+local function is_invalid_save_slot(name)
+	return SAVE_NAMES[name] and not global.saved_factories[name]
 end
 
 local function init_factory_requester_chest(entity)
@@ -650,6 +656,9 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
 			create_factory_exterior(factory, newbuilding)
 			entity.destroy()
 		end
+	elseif is_invalid_save_slot(entity.name) then
+		entity.surface.create_entity{name="flying-text", position=entity.position, text={"factory-connection-text.invalid-factory-data"}}
+		entity.destroy()
 	elseif entity.name == "factory-requester-chest" then
 		init_factory_requester_chest(entity)
 	elseif Connections.is_connectable(entity) then
