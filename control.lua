@@ -509,7 +509,7 @@ local function toggle_port_markers(factory)
 	if #(factory.outside_port_markers) == 0 then
 		for id, cpos in pairs(factory.layout.connections) do
 			local marker = factory.outside_surface.create_entity{name = "factory-port-marker", position = {
-			factory.outside_x + cpos.outside_x, factory.outside_y + cpos.outside_y}, force = factory.force, direction = cpos.direction_in}
+			factory.outside_x + cpos.outside_x-cpos.indicator_dx, factory.outside_y + cpos.outside_y-cpos.indicator_dy}, force = factory.force, direction = cpos.direction_out}
 			marker.destructible = false
 			marker.operable = false
 			marker.rotatable = false

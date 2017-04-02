@@ -6,6 +6,11 @@ end
 
 Updates.run = function()
 	if global.update_version <= 1 then
+		-- Remove all factory port markers because they're placed wrong
+		for _, factory in global.factories do
+			for _, entity in pairs(factory.outside_port_markers) do entity.destroy() end
+			factory.outside_port_markers = {}
+		end
 		-- Issue where deconstructing factory building Mk3s would return a factory building Mk1
 		-- Is fixed, but we gotta give players back their lost factories
 		local player = game.players[1]
