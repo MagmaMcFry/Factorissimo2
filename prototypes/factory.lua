@@ -135,7 +135,7 @@ end
 
 local factory_3 = function(suffix, result_suffix, visible, count, sprite)
 	local name = "factory-3" .. suffix
-	local result_name = "factory-1" .. result_suffix
+	local result_name = "factory-3" .. result_suffix
 	local item_flags
 	if visible then item_flags = {"goes-to-quickbar"} else item_flags = {"hidden"} end
 	return {
