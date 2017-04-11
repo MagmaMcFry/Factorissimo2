@@ -306,12 +306,21 @@ local function create_factory_position()
 	if (global.next_factory_surface > Config.max_surfaces) then
 		global.next_factory_surface = 1
 	end
-	local surface_name = "Factory floor " .. global.next_factory_surface;
-	local surface = game.surfaces[surface_name];
+	local surface_name = "Factory floor " .. global.next_factory_surface
+	local surface = game.surfaces[surface_name]
 	if surface == nil then
-		surface = game.create_surface(surface_name, {width = 2, height = 2})
-		surface.daytime = 0.5
-		surface.freeze_daytime(true)
+		if #(game.surfaces) < 256 then
+			surface = game.create_surface(surface_name, {width = 2, height = 2})
+			surface.daytime = 0.5
+			surface.freeze_daytime(true)
+		else
+			global.next_factory_surface = 1
+			surface_name = "Factory floor 1"
+			surface = game.surfaces[surface_name]
+			if surface == nil then
+				error("Unfortunately you have no available surfaces left for Factorissimo2. You cannot use Factorissimo2 on this map.")
+			end
+		end
 	end
 	local n = global.surface_factory_counters[surface_name] or 0
 	global.surface_factory_counters[surface_name] = n+1
