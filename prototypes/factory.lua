@@ -28,7 +28,7 @@ local factory_1 = function(suffix, result_suffix, visible, count, sprite)
 			name = name,
 			icon = F.."/graphics/icon/factory-1.png",
 			flags = {
-				"placeable-player", "player-creation",
+				"placeable-player", "player-creation", "not-blueprintable",
 			},
 			minable = {mining_time = 5, result = result_name, count = count},
 			max_health = 2000,
@@ -86,7 +86,7 @@ local factory_2 = function(suffix, result_suffix, visible, count, sprite)
 			name = name,
 			icon = F.."/graphics/icon/factory-2.png",
 			flags = {
-				"placeable-player", "player-creation",
+				"placeable-player", "player-creation", "not-blueprintable",
 			},
 			minable = {mining_time = 5, result = result_name, count = count},
 			max_health = 3500,
@@ -144,7 +144,7 @@ local factory_3 = function(suffix, result_suffix, visible, count, sprite)
 			name = name,
 			icon = F.."/graphics/icon/factory-3.png",
 			flags = {
-				"placeable-player", "player-creation",
+				"placeable-player", "player-creation", "not-blueprintable",
 			},
 			minable = {mining_time = 5, result = result_name, count = count},
 			max_health = 5000,
