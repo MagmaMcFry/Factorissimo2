@@ -288,12 +288,14 @@ local function update_overlay(factory)
 		-- Do it this way because the controllers might not exist yet
 		for id, controller in pairs(factory.inside_overlay_controllers) do
 			local display = factory.outside_overlay_displays[id]
-			local controller_inv = controller.get_inventory(defines.inventory.chest)
-			local display_inv = display.get_inventory(defines.inventory.chest)
-			display_inv.clear()
-			for i =1,4 do
-				local slot = controller_inv[i]
-				if slot.valid_for_read then display_inv.insert(slot) end
+			if controller.valid and display and display.valid then
+				local controller_inv = controller.get_inventory(defines.inventory.chest)
+				local display_inv = display.get_inventory(defines.inventory.chest)
+				display_inv.clear()
+				for i =1,4 do
+					local slot = controller_inv[i]
+					if slot.valid_for_read then display_inv.insert(slot) end
+				end
 			end
 		end
 	end
