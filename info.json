@@ -1,9 +1,9 @@
 {
   "name": "Factorissimo2",
-  "version": "2.0.4",
+  "version": "2.1.0",
   "title": "Factorissimo2",
   "author": "MagmaMcFry",
   "description": "The official, improved rewrite of Factorissimo. Place down factory buildings, walk in, build your factories inside!",
-  "factorio_version": "0.14",
-  "dependencies": ["base >= 0.14.15"]
+  "factorio_version": "0.15",
+  "dependencies": ["base >= 0.15.0"]
 }
