@@ -444,7 +444,7 @@ local function create_factory_interior(layout, force)
 		factory.inside_fluid_dummy_connectors[id] = connector
 	end
 	
-	factory.transfer_rate = 10 -- MW
+	factory.transfer_rate = factory.layout.default_power_transfer_rate or 10 -- MW
 	factory.transfers_outside = false
 	
 	factory.connections = {}

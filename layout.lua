@@ -26,6 +26,7 @@ local layout_generators = {
 		return {
 			name = "factory-1",
 			tier = 1,
+			default_power_transfer_rate = 10,
 			inside_door_x = 0,
 			inside_door_y = 16,
 			outside_door_x = 0,
@@ -119,6 +120,7 @@ local layout_generators = {
 		return {
 			name = "factory-2",
 			tier = 2,
+			default_power_transfer_rate = 20,
 			inside_door_x = 0,
 			inside_door_y = 24,
 			outside_door_x = 0,
@@ -244,6 +246,7 @@ local layout_generators = {
 		return {
 			name = "factory-3",
 			tier = 3,
+			default_power_transfer_rate = 50,
 			inside_door_x = 0,
 			inside_door_y = 31,
 			outside_door_x = 0,
