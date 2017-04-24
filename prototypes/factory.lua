@@ -14,6 +14,16 @@ local function blank()
 		height = 1,
 	}
 end
+local function ablank()
+	return {
+		filename = F.."/graphics/nothing.png",
+		priority = "high",
+		width = 1,
+		height = 1,
+		frame_count = 1,
+	}
+end
+
 
 
 
@@ -49,6 +59,7 @@ local factory_1 = function(suffix, result_suffix, visible, count, sprite)
 				fluid_background = blank(),
 				window_background = blank(),
 				flow_sprite = blank(),
+				gas_flow = ablank(),
 			},
 			window_bounding_box = {{0,0},{0,0}},
 			fluid_box = {
@@ -107,6 +118,7 @@ local factory_2 = function(suffix, result_suffix, visible, count, sprite)
 				fluid_background = blank(),
 				window_background = blank(),
 				flow_sprite = blank(),
+				gas_flow = ablank(),
 			},
 			window_bounding_box = {{0,0},{0,0}},
 			fluid_box = {
@@ -165,6 +177,7 @@ local factory_3 = function(suffix, result_suffix, visible, count, sprite)
 				fluid_background = blank(),
 				window_background = blank(),
 				flow_sprite = blank(),
+				gas_flow = ablank(),
 			},
 			window_bounding_box = {{0,0},{0,0}},
 			fluid_box = {

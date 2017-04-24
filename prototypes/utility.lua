@@ -63,6 +63,13 @@ local function factory_pipe(name, height, order)
 					priority = "extra-high",
 					width = 0,
 					height = 0
+				},
+				gas_flow = {
+					filename = "__base__/graphics/entity/pipe/fluid-flow-low-temperature.png",
+					priority = "extra-high",
+					width = 0,
+					height = 0,
+					frame_count = 1,
 				}
 			},
 			flow_length_in_ticks = 1,

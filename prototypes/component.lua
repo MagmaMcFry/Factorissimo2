@@ -63,7 +63,8 @@ local function blankpipepictures()
 		fluid_background = blank(),
 		low_temperature_flow = blank(),
 		middle_temperature_flow = blank(),
-		high_temperature_flow = blank()
+		high_temperature_flow = blank(),
+		gas_flow = ablank(),
 	}
 end
 
@@ -92,7 +93,8 @@ local function southpipepictures()
 		fluid_background = blank(),
 		low_temperature_flow = blank(),
 		middle_temperature_flow = blank(),
-		high_temperature_flow = blank()
+		high_temperature_flow = blank(),
+		gas_flow = ablank(),
 	}
 end
 
@@ -190,6 +192,7 @@ local function create_indicator(ctype, suffix, image)
 				fluid_background = blank(),
 				window_background = blank(),
 				flow_sprite = blank(),
+				gas_flow = ablank(),
 			},
 			flow_length_in_ticks = 100,
 			vehicle_impact_sound = {filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65},
@@ -314,15 +317,7 @@ data:extend({
 		glow_color_intensity = 0.135,
 		picture_off = blank(),
 		picture_on = blank(),
-		signal_to_color_mapping =
-		{
-			{signal="signal-red", color={r=1,g=0,b=0}},
-			{signal="signal-green", color={r=0,g=1,b=0}},
-			{signal="signal-blue", color={r=0,g=0,b=1}},
-			{signal="signal-yellow", color={r=1,g=1,b=0}},
-			{signal="signal-pink", color={r=1,g=0,b=1}},
-			{signal="signal-cyan", color={r=0,g=1,b=1}},
-		},
+		signal_to_color_mapping = {},
 
 		circuit_wire_connection_point = cwc0(),
 		circuit_connector_sprites = cc0(),
