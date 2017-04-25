@@ -167,7 +167,7 @@ data:extend({
 		name = "factory-recursion-t1",
 		icon = F.."/graphics/technology/factory-recursion-1.png",
 		icon_size = 128,
-		prerequisites = {"factory-architecture-t2", "logistics-3"},
+		prerequisites = {"factory-architecture-t2", "logistics-2"},
 		effects = {},
 		unit = {
 			count = easy_research and 200 or 2000,
