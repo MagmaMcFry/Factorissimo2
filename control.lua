@@ -595,6 +595,32 @@ local function init_factory_requester_chest(entity)
 	end
 end
 
+commands.add_command("give-lost-factory-buildings", {"command-help-message.give-lost-factory-buildings"}, function(event)
+	--game.print(serpent.line(event))
+	local player = game.players[event.player_index]
+	if not (player and player.connected and player.admin) then return end
+	if event.parameter == "destroyed" then
+		for _,factory in pairs(global.factories) do
+			local saved_or_built = factory.built
+			for _,saved_factory in pairs(global.saved_factories) do
+				if saved_factory.id == factory.id then
+					saved_or_built = true
+					break
+				end
+			end
+			if not saved_or_built then
+				save_factory(factory)
+			end
+		end
+	end
+	local main_inventory = player.get_inventory(defines.inventory.player_main)
+	local quickbar = player.get_inventory(defines.inventory.player_quickbar)
+	for save_name,_ in pairs(global.saved_factories) do
+		if main_inventory.get_item_count(save_name) + quickbar.get_item_count(save_name) == 0 and not (player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.name == save_name) then
+			player.insert{name = save_name, count = 1}
+		end
+	end
+end)
 -- FACTORY PLACEMENT AND DESTRUCTION --
 
 local function can_place_factory_here(tier, surface, position)
