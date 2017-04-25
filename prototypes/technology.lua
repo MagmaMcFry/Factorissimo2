@@ -1,5 +1,8 @@
 local F = "__Factorissimo2__"
 local pf = "p-q-"
+local easy_research = settings.startup["Factorissimo2.easy-research"].value
+
+
 data:extend({
 	-- Factory buildings
 	{
@@ -12,7 +15,7 @@ data:extend({
 			{type = "unlock-recipe", recipe = "factory-1"},
 		},
 		unit = {
-			count = 200,
+			count = easy_research and 30 or 200,
 			ingredients = {{"science-pack-1", 1}},
 			time = 30
 		},
@@ -31,7 +34,7 @@ data:extend({
 			}
 		},
 		unit = {
-			count = 600,
+			count = easy_research and 100 or 600,
 			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1}},
 			time = 45
 		},
@@ -50,7 +53,7 @@ data:extend({
 			}
 		},
 		unit = {
-			count = 2000,
+			count = easy_research and 300 or 2000,
 			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1},{"science-pack-3", 1}},
 			time = 60
 		},
@@ -69,7 +72,7 @@ data:extend({
 			{type = "unlock-recipe", recipe = "factory-output-pipe"},
 		},
 		unit = {
-			count = 100,
+			count = easy_research and 10 or 100,
 			ingredients = {{"science-pack-1", 1}},
 			time = 30
 		},
@@ -83,7 +86,7 @@ data:extend({
 		prerequisites = {"factory-architecture-t1", "logistics-2"},
 		effects = {},
 		unit = {
-			count = 200,
+			count = easy_research and 20 or 200,
 			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1}},
 			time = 30
 		},
@@ -100,7 +103,7 @@ data:extend({
 			{type = "unlock-recipe", recipe = "factory-circuit-output"},
 		},
 		unit = {
-			count = 300,
+			count = easy_research and 30 or 300,
 			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1},{"science-pack-3", 1}},
 			time = 30
 		},
@@ -117,7 +120,7 @@ data:extend({
 		prerequisites = {"factory-architecture-t1", "optics"},
 		effects = {},
 		unit = {
-			count = 50,
+			count = easy_research and 5 or 50,
 			ingredients = {{"science-pack-1", 1}},
 			time = 30
 		},
@@ -131,7 +134,7 @@ data:extend({
 		prerequisites = {"factory-architecture-t1", "optics"},
 		effects = {},
 		unit = {
-			count = 100,
+			count = easy_research and 10 or 100,
 			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1}},
 			time = 30
 		},
@@ -150,7 +153,7 @@ data:extend({
 			{type = "unlock-recipe", recipe = "factory-requester-chest"},
 		},
 		unit = {
-			count = 100,
+			count = easy_research and 20 or 100,
 			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1},{"science-pack-3", 1}},
 			time = 30
 		},
@@ -167,7 +170,7 @@ data:extend({
 		prerequisites = {"factory-architecture-t2", "logistics-3"},
 		effects = {},
 		unit = {
-			count = 2000,
+			count = easy_research and 200 or 2000,
 			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1}},
 			time = 60
 		},
@@ -181,7 +184,7 @@ data:extend({
 		prerequisites = {"factory-recursion-t1", "factory-architecture-t3"},
 		effects = {},
 		unit = {
-			count = 5000,
+			count = easy_research and 500 or 5000,
 			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1},{"science-pack-3", 1}},
 			time = 60
 		},

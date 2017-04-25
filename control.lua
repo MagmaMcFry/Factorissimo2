@@ -594,14 +594,15 @@ local function init_factory_requester_chest(entity)
 		entity.clear_request_slot(j)
 	end
 end
+
 -- FACTORY PLACEMENT AND DESTRUCTION --
 
 local function can_place_factory_here(tier, surface, position)
 	local factory = find_surrounding_factory(surface, position)
 	if not factory then return true end
 	local outer_tier = factory.layout.tier
-	if outer_tier > tier and factory.force.technologies["factory-recursion-t1"].researched then return true end
-	if outer_tier >= tier and factory.force.technologies["factory-recursion-t2"].researched then return true end
+	if outer_tier > tier and (factory.force.technologies["factory-recursion-t1"].researched or settings.global["Factorissimo2.free-recursion"].value) then return true end
+	if outer_tier >= tier and (factory.force.technologies["factory-recursion-t2"].researched or settings.global["Factorissimo2.free-recursion"].value) then return true end
 	if outer_tier > tier then
 		surface.create_entity{name="flying-text", position=position, text={"factory-connection-text.invalid-placement-recursion-1"}}
 	elseif outer_tier >= tier then
@@ -689,10 +690,11 @@ script.on_event(defines.events.on_preplayer_mined_item, function(event)
 			if save then
 				cleanup_factory_exterior(factory, entity)
 				local player = game.players[event.player_index]
-				if player.can_insert{name = save} then
+				if player.can_insert{name = save, count = 1} then
 					player.insert{name = save, count = 1}
 				else
-					player.surface.spill_item_stack(player.position, {name = save, count = 1})
+					player.print{"inventory-restriction.player-inventory-full", {"entity-name."..save}}
+					player.surface.spill_item_stack({x=factory.outside_x, y=factory.outside_y}, {name = save, count = 1})
 				end
 			else
 				local newbuilding = entity.surface.create_entity{name=entity.name, position=entity.position, force=factory.force}
