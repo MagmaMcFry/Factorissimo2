@@ -17,41 +17,30 @@ local DY = {
 	[defines.direction.west] = 0,
 }
 
--- This manual data is a temporary placeholder because of holes in the Factorio API.
--- It will be replaced when you can read fluidbox prototype data from entities.
--- Until then, only the entities listed here are supported for fluid connections.
--- If you want your modded entities to be supported, send me a pull request on Github!
-local FLUIDBOX_DATA = {
-	-- Vanilla
-	["pipe"] = {base_area = 1, connections = {{x=0,y=-1},{x=1,y=0},{x=0,y=1},{x=-1,y=0}}},
-	["pipe-to-ground"] = {base_area = 1, connections = {{x=0,y=-1}}},
-	["storage-tank"] = {base_area = 250, connections = {{x=-1,y=-2},{x=2,y=1},{x=1,y=2},{x=-2,y=-1}}},
-	-- Factorissimo2
-	["factory-input-pipe"] = {base_area = 25, connections = {{x=0,y=-1},{x=1,y=0},{x=0,y=1},{x=-1,y=0}}},
-	["factory-output-pipe"] = {base_area = 25, connections = {{x=0,y=-1},{x=0,y=1}}},
-
-}
+local blacklist = {"factory-fluid-dummy-connector", "factory-fluid-dummy-connector-south"}
+local blacklisted = {}
+for _,name in pairs(blacklist) do blacklisted[name] = true end
 
 local function is_inside_connected(factory, cid, entity)
-	if entity.name == "factory-fluid-dummy-connector" then return false end
+	if blacklisted[entity.name] then return false end
 	for _, e2 in pairs(factory.inside_fluid_dummy_connectors[cid].neighbours) do
 		if e2.unit_number == entity.unit_number then return true end
 	end
 end
 
 local function is_outside_connected(factory, cid, entity)
-	if entity.name == "factory-fluid-dummy-connector" then return false end
+	if blacklisted[entity.name] then return false end
 	for _, e2 in pairs(factory.outside_fluid_dummy_connectors[cid].neighbours) do
 		if e2.unit_number == entity.unit_number then return true end
 	end
 end
 
 Fluid.connect = function(factory, cid, cpos, outside_entity, inside_entity)	
-	if FLUIDBOX_DATA[inside_entity.name] and FLUIDBOX_DATA[outside_entity.name] and is_inside_connected(factory, cid, inside_entity) and is_outside_connected(factory, cid, outside_entity) then
+	if is_inside_connected(factory, cid, inside_entity) and is_outside_connected(factory, cid, outside_entity) and outside_entity.fluidbox.get_capacity(1) > 0 and inside_entity.fluidbox.get_capacity(1) > 0 then
 		return {
 			outside = outside_entity, inside = inside_entity,
-			outside_base_area = FLUIDBOX_DATA[outside_entity.name].base_area,
-			inside_base_area = FLUIDBOX_DATA[inside_entity.name].base_area,
+			outside_capacity = outside_entity.fluidbox.get_capacity(1),
+			inside_capacity = inside_entity.fluidbox.get_capacity(1),
 		}
 	end
 	return nil
@@ -202,8 +191,8 @@ end
 Fluid.tick = function(conn)
 	local outside = conn.outside
 	local inside = conn.inside
-	local outside_cap = conn.outside_base_area*10 -- Change this to 100 for 0.15, or make it better anyway
-	local inside_cap = conn.inside_base_area*10
+	local outside_cap = conn.outside_capacity
+	local inside_cap = conn.inside_capacity
 	if outside.valid and inside.valid then
 		local mode = conn._settings.mode or 0
 		if mode == 0 then

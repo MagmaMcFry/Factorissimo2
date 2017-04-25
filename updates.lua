@@ -1,7 +1,7 @@
 Updates = {}
 
 Updates.init = function()
-	global.update_version = 2
+	global.update_version = 3
 end
 
 Updates.run = function()
@@ -23,6 +23,24 @@ Updates.run = function()
 			end
 		end
 	end
-	-- Version 1. Nothing to do yet
-	global.update_version = 2
+	if global.update_version <= 2 then
+		-- Change fluid connection base_area to capacity
+		for _, tick_conns in pairs(global.connections) do
+			for _, conn in pairs(tick_conns) do
+			if conn and conn._type == "fluid" then
+					if conn.outside.valid then conn.outside_capacity = conn.outside.fluidbox.get_capacity(1) end
+					if conn.inside.valid then conn.inside_capacity = conn.inside.fluidbox.get_capacity(1) end
+				end
+			end
+		end
+		for _, factory in pairs(global.factories) do
+			for _, conn in pairs(factory.connections) do
+				if conn and conn._type == "fluid" then
+					if conn.outside.valid then conn.outside_capacity = conn.outside.fluidbox.get_capacity(1) end
+					if conn.inside.valid then conn.inside_capacity = conn.inside.fluidbox.get_capacity(1) end
+				end
+			end
+		end
+	end
+	global.update_version = 3
 end
