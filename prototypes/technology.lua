@@ -1,6 +1,6 @@
 local F = "__Factorissimo2__"
 local pf = "p-q-"
-local easy_research = settings.startup["Factorissimo2.easy-research"].value
+local easy_research = settings.startup["Factorissimo2-easy-research"].value
 
 
 data:extend({
