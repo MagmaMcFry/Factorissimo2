@@ -366,6 +366,7 @@ data:extend({
 		collision_mask = {},
 		selection_box = {{-2, -2}, {2, 2}},
 		selectable_in_game = false,
+		scale_info_icons = true,
 		inventory_size = 4,
 		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
 		picture = blank(),
