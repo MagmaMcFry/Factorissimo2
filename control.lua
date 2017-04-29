@@ -1109,6 +1109,7 @@ end)
 -- MISC --
 
 script.on_event(defines.events.on_research_finished, function(event)
+	if not global.factories then return end -- In case any mod or scenario script calls LuaForce.research_all_technologies() during its on_init
 	local research = event.research
 	local name = research.name
 	if name == "factory-connection-type-fluid" or name == "factory-connection-type-chest" or name == "factory-connection-type-circuit" then
