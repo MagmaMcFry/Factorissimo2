@@ -152,7 +152,7 @@ function make_energy_interfaces(size,passive_input,passive_output,icon)
 		},
 	})
 end
-make_energy_interfaces(2,false,false,"__base__/graphics/icons/substation.png")
+make_energy_interfaces(2,true,true,"__base__/graphics/icons/substation.png")
 -- true,false would be optimal, but due to a bug it doesn't work. Maybe it'll be fixed.
 -- In the meantime we'll have to settle for true,true because that's how Factorissimo1 worked.
 
