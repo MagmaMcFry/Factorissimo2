@@ -822,7 +822,11 @@ end)
 
 local function get_camera_parent(player)
 	local parent = player.gui.top.factory_camera_placeholder
-	return parent or player.gui.top.add{type="flow", name="factory_camera_placeholder"}
+	if not parent then
+		parent = player.gui.top.add{type="flow", name="factory_camera_placeholder"}
+		parent.style.visible = false
+	end
+	return parent
 end
 
 -- prepare_gui was declared waaay above
@@ -859,6 +863,7 @@ local function set_camera(player, factory, inside)
 		camera.surface_index = surface_index
 		camera.zoom = zoom
 	else
+		gui.style.visible = true
 		local camera_frame = gui.add{type = "frame", name = "factory_camera_frame", style = "captionless_frame_style"}
 		local camera = camera_frame.add{type = "camera", name = "factory_camera", position = position, surface_index = surface_index, zoom = zoom}
 		camera.style.minimal_width = preview_size
@@ -871,6 +876,7 @@ local function unset_camera(player)
 	local camera_frame = gui.factory_camera_frame
 	if camera_frame then
 		camera_frame.destroy()
+		gui.style.visible = false
 	end
 end
 
