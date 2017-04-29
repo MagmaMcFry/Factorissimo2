@@ -263,7 +263,7 @@ create_indicator("energy", "d100000", "yellow-dir")
 
 -- Other auxiliary entities
 
-local j = 0.9;
+local j = 0.99;
 data:extend({
 	{
 		type = "electric-pole",

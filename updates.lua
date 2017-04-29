@@ -1,7 +1,7 @@
 Updates = {}
 
 Updates.init = function()
-	global.update_version = 3
+	global.update_version = 4
 end
 
 Updates.run = function()
@@ -42,5 +42,23 @@ Updates.run = function()
 			end
 		end
 	end
-	global.update_version = 3
+	if global.update_version <= 3 then
+		for _, factory in pairs(global.factories) do
+			local layout = factory.layout
+			if layout.name == "factory-1" then
+				layout.inside_size = 30
+				layout.outside_size = 8
+			elseif layout.name == "factory-2" then
+				layout.inside_size = 46
+				layout.outside_size = 12
+			elseif layout.name == "factory-3" then
+				layout.inside_size = 60
+				layout.outside_size = 16
+			else -- Some other factory, maybe someone fiddled with the mod
+				layout.inside_size = 30
+				layout.outside_size = 8
+			end
+		end
+	end
+	global.update_version = 4
 end

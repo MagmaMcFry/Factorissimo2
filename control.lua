@@ -2,6 +2,8 @@ require("config")
 local Config = GetConfigs()
 
 require("layout")
+local HasLayout = HasLayout
+
 require("connections")
 local Connections = Connections
 
@@ -78,15 +80,25 @@ local function init_globals()
 	global.last_player_teleport = global.last_player_teleport or {}
 end
 
+local prepare_gui = 0  -- Will be set to a function lower in the file
+
+local function init_gui()
+	for _, player in pairs(game.players) do
+		prepare_gui(player)
+	end
+end
+
 script.on_init(function()
 	init_globals()
 	Connections.init_data_structure()
 	Updates.init()
+	init_gui()
 end)
 
 script.on_configuration_changed(function(config_changed_data)
 	init_globals()
 	Updates.run()
+	init_gui()
 end)
 
 -- DATA MANAGEMENT --
@@ -806,16 +818,100 @@ script.on_event(defines.events.on_entity_died, function(event)
 	end
 end)
 
+-- GUI --
+
+local function get_camera_parent(player)
+	local parent = player.gui.top.factory_camera_placeholder
+	return parent or player.gui.top.add{type="flow", name="factory_camera_placeholder"}
+end
+
+-- prepare_gui was declared waaay above
+prepare_gui = function(player)
+	get_camera_parent(player)
+end
+
+local function set_camera(player, factory, inside)
+	if not player.force.technologies["factory-preview"].researched then return end
+
+	local ps = settings.get_player_settings(player)
+	local ps_preview_enabled = ps["Factorissimo2-preview-enabled"]
+	if ps_preview_enabled and not ps_preview_enabled.value then return end
+
+	local ps_preview_size = ps["Factorissimo2-preview-size"]
+	local preview_size = ps_preview_size and ps_preview_size.value or 300
+	local ps_preview_zoom = ps["Factorissimo2-preview-zoom"]
+	local preview_zoom = ps_preview_zoom and ps_preview_zoom.value or 1
+	local position, surface_index, zoom
+	if not inside then
+		position = {x = factory.outside_x, y = factory.outside_y}
+		surface_index = factory.outside_surface.index
+		zoom = math.min(1,(preview_size/(32*preview_zoom))/(8+factory.layout.outside_size))
+	else
+		position = {x = factory.inside_x, y = factory.inside_y}
+		surface_index = factory.inside_surface.index
+		zoom = math.min(1,(preview_size/(32*preview_zoom))/(5+factory.layout.inside_size))
+	end
+	local gui = get_camera_parent(player)
+	local camera_frame = gui.factory_camera_frame
+	if camera_frame then
+		local camera = camera_frame.factory_camera
+		camera.position = position
+		camera.surface_index = surface_index
+		camera.zoom = zoom
+	else
+		local camera_frame = gui.add{type = "frame", name = "factory_camera_frame", style = "captionless_frame_style"}
+		local camera = camera_frame.add{type = "camera", name = "factory_camera", position = position, surface_index = surface_index, zoom = zoom}
+		camera.style.minimal_width = preview_size
+		camera.style.minimal_height = preview_size
+	end
+end
+
+local function unset_camera(player)
+	local gui = get_camera_parent(player)
+	local camera_frame = gui.factory_camera_frame
+	if camera_frame then
+		camera_frame.destroy()
+	end
+end
+
+local function update_camera(player)
+	local selected = player.selected
+	if selected then
+		local factory = get_factory_by_entity(player.selected)
+		if factory then
+			set_camera(player, factory, true)
+			return
+		elseif selected.name == "factory-power-pole" then
+			local factory = find_surrounding_factory(player.surface, player.position)
+			if factory then
+				set_camera(player, factory, false)
+				return
+			end
+		end
+	end
+	unset_camera(player)
+end
+
+script.on_event(defines.events.on_selected_entity_changed, function(event)
+	update_camera(game.players[event.player_index])
+end)
+
+script.on_event(defines.events.on_player_created, function(event)
+	prepare_gui(game.players[event.player_index])
+end)
+
 -- TRAVEL --
 
 local function enter_factory(player, factory)
 	player.teleport({factory.inside_door_x, factory.inside_door_y},factory.inside_surface)
 	global.last_player_teleport[player.index] = game.tick
+	update_camera(player)
 end
 
 local function leave_factory(player, factory)
 	player.teleport({factory.outside_door_x, factory.outside_door_y},factory.outside_surface)
 	global.last_player_teleport[player.index] = game.tick
+	update_camera(player)
 	update_overlay(factory)
 end
 
@@ -922,7 +1018,7 @@ script.on_event(defines.events.on_tick, function(event)
 	teleport_players() -- What did you expect
 end)
 
--- GUI --
+-- CONNECTION SETTINGS --
 
 local CONNECTION_INDICATOR_NAMES = {}
 for _,name in pairs(Connections.indicator_names) do

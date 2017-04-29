@@ -140,10 +140,23 @@ data:extend({
 		},
 		order = pf.."c-b",
 	},
-	
 	-- Misc utilities
 	
 	{
+		type = "technology",
+		name = "factory-preview",
+		icon = F.."/graphics/technology/factory-preview.png",
+		icon_size = 128,
+		prerequisites = {"factory-interior-upgrade-lights"},
+		effects = {},
+		unit = {
+			count = easy_research and 20 or 200,
+			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1}},
+			time = 30
+		},
+		order = pf.."d-a",
+	},
+		{
 		type = "technology",
 		name = "factory-requester-chest",
 		icon = F.."/graphics/technology/factory-requester-chest.png",
@@ -157,7 +170,7 @@ data:extend({
 			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1},{"science-pack-3", 1}},
 			time = 30
 		},
-		order = pf.."d-a",
+		order = pf.."d-b",
 	},
 	
 	-- Recursion!
