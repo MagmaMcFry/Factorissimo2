@@ -1,7 +1,7 @@
 Updates = {}
 
 Updates.init = function()
-	global.update_version = 4
+	global.update_version = 5
 end
 
 Updates.run = function()
@@ -60,5 +60,17 @@ Updates.run = function()
 			end
 		end
 	end
-	global.update_version = 4
+	if global.update_version <= 4 then
+		for _,player in pairs(game.players) do
+			local gui = player.gui.top.factory_camera_placeholder
+			if gui then
+				local camera_frame = gui.factory_camera_frame
+				if camera_frame then
+					camera_frame.destroy()
+					gui.style.visible = false
+				end
+			end
+		end
+	end
+	global.update_version = 5
 end

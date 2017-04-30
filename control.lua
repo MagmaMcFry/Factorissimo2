@@ -881,6 +881,7 @@ local function unset_camera(player)
 end
 
 local function update_camera(player)
+	return -- Disable this for now, camera desyncs
 	local selected = player.selected
 	if selected then
 		local factory = get_factory_by_entity(player.selected)
