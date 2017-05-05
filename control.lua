@@ -1123,6 +1123,23 @@ end)
 
 -- MISC --
 
+script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
+	local setting = event.setting
+	if setting == "Factorissimo2-hide-recursion" then
+		if settings.global["Factorissimo2-hide-recursion"] and settings.global["Factorissimo2-hide-recursion"].value then
+			for _, force in pairs(game.forces) do
+				force.technologies["factory-recursion-t1"].enabled = false
+				force.technologies["factory-recursion-t2"].enabled = false
+			end
+		else
+			for _, force in pairs(game.forces) do
+				force.technologies["factory-recursion-t1"].enabled = true
+				force.technologies["factory-recursion-t2"].enabled = true
+			end
+		end
+	end
+end)
+
 script.on_event(defines.events.on_research_finished, function(event)
 	if not global.factories then return end -- In case any mod or scenario script calls LuaForce.research_all_technologies() during its on_init
 	local research = event.research
