@@ -1,0 +1,63 @@
+### 2.1.4:
+
+- Updated to Factorio 0.15.7 (Won't load in older Factorio versions, so UPDATE FACTORIO)
+- Reenabled previews! Additionally, you can now preview the item in your hand!
+- Added mod setting to hide the recursion technologies
+
+### 2.1.3:
+
+- DISABLED THE PREVIEW FEATURE, it was causing instant desyncs in multiplayer.
+
+### 2.1.2:
+
+- Updated to Factorio 0.15.4 (Won't load in older Factorio versions, so UPDATE FACTORIO)
+- Added preview feature! Hover over a factory building to see what's inside, hover over a factory power monitor to see what's outside. Of course you need to research the new technology first.
+- Fixed energy output mode not leaving enough power for the machines inside!
+- Fixed tiny external overlay icons
+- Fixed issue loading wave defense scenario
+
+### 2.1.1:
+
+- Fixed crash on loading in 0.15.3
+- Added Russian translation (thanks Apriori!)
+- Changed tech requirements for Recursion 1
+
+### 2.1.0:
+
+- Updated to Factorio 0.15.2 (Won't load in Factorio 0.15.0 and 0.15.1!)
+- Added /give-lost-factory-buildings custom command to get back your factory buildings
+- Added some mod settings you can change in the Options->Mods menu:
+-- Easy Research: Makes this mod's research a lot cheaper
+-- Free Recursion: Allows recursion even without the Recursion technologies
+- Modded pipes/pipes-to-ground/storage-tanks can now connect to factory buildings
+
+### 2.0.4:
+
+- Changed the default power transfer rate for higher-tier factory buildings
+- Added Polish translation (thanks Tomirad!)
+
+### 2.0.3:
+
+- **Factory buildings are no longer blueprintable and ghost-placeable!** (Factorio will occasionally crash *to desktop* when you roboplace a new factory building, so blueprinting them has been disabled until this crash has been resolved, maybe in 0.15)
+- Prevented crash when running out of surfaces
+- Prevented crash with missing overlay controllers
+- Updated minimal version requirements (thanks, jsmirnov!)
+- Renamed factory input/output pipes to factory bulk transfer pipes
+- Added German translation (sorry, Erdbeerbaer!)
+
+### 2.0.2:
+
+- Fixed crash bug with 2.0.1 update script
+- Fixed bug with chest connections and overlay displays
+
+### 2.0.1:
+
+- Fixed picking up factory buildings Mk3 being broken (Player 1 will be given back all the factory buildings Mk3 you've lost because of this bug. The broken items will be removed on placement, with an "Invalid factory data" message.)
+- Fixed improper belt compression
+- Fixed missing walking speed and walking sound inside factory buildings
+- Fixed issue where factory port markers would sometimes block inserters from using chest connections
+
+### 2.0.0:
+
+- First release
+
