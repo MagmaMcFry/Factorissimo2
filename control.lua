@@ -849,11 +849,11 @@ local function set_camera(player, factory, inside)
 	if not inside then
 		position = {x = factory.outside_x, y = factory.outside_y}
 		surface_index = factory.outside_surface.index
-		zoom = math.min(1,(preview_size/(32*preview_zoom))/(8+factory.layout.outside_size))
+		zoom = (preview_size/(32/preview_zoom))/(8+factory.layout.outside_size)
 	else
 		position = {x = factory.inside_x, y = factory.inside_y}
 		surface_index = factory.inside_surface.index
-		zoom = math.min(1,(preview_size/(32*preview_zoom))/(5+factory.layout.inside_size))
+		zoom = (preview_size/(32/preview_zoom))/(5+factory.layout.inside_size)
 	end
 	local gui = get_camera_parent(player)
 	local camera_frame = gui.factory_camera_frame
