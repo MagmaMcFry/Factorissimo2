@@ -1,3 +1,11 @@
+### 2.1.5:
+
+- Updated to Factorio 0.15.10 (Won't load in older Factorio versions, so UPDATE FACTORIO)
+- Fixed connection arrows pointing the wrong way (due to a bug in 0.15.10)
+- Made factory buildings blueprintable again (hoping that the mysterious crash is gone for good this time)
+- Fixed factory requester chests not connecting to factory buildings
+- Updated Russian translation
+
 ### 2.1.4:
 
 - Updated to Factorio 0.15.7 (Won't load in older Factorio versions, so UPDATE FACTORIO)
