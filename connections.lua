@@ -94,6 +94,15 @@ local function delete_connection_indicator(factory, cid, ctype)
 	local old_indicator = factory.connection_indicators[cid]
 	if old_indicator and old_indicator.valid then old_indicator.destroy() end
 end
+
+local function refresh_connection_indicator(conn) -- Used in update 5
+	if conn and conn._valid then
+		local setting, dir = c_direction[conn._type](conn)
+		set_connection_indicator(conn._factory, conn._id, conn._type, setting, dir)
+	end
+end
+
+Connections.refresh_connection_indicator = refresh_connection_indicator
 -- Connection changes --
 
 local function register_connection(factory, cid, ctype, conn)

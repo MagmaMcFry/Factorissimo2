@@ -178,6 +178,7 @@ local function create_indicator(ctype, suffix, image)
 				base_area = 1,
 				pipe_connections = {},
 			},
+			two_direction_only = false,
 			window_bounding_box = {{0,0},{0,0}},
 			pictures = {
 				picture = {

@@ -1,7 +1,7 @@
 Updates = {}
 
 Updates.init = function()
-	global.update_version = 5
+	global.update_version = 6
 end
 
 Updates.run = function()
@@ -72,5 +72,13 @@ Updates.run = function()
 			end
 		end
 	end
-	global.update_version = 5
+	if global.update_version <= 5 then
+		-- Refresh all connection markers because they may have been turned around by 0.15.10
+		for _, factory in pairs(global.factories) do
+			for _, conn in pairs(factory.connections) do
+				Connections.refresh_connection_indicator(conn)
+			end
+		end
+	end
+	global.update_version = 6
 end

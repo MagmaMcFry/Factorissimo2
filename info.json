@@ -5,5 +5,5 @@
   "author": "MagmaMcFry",
   "description": "The official, improved rewrite of Factorissimo. Place down factory buildings, walk in, build your factories inside!",
   "factorio_version": "0.15",
-  "dependencies": ["base >= 0.15.7"]
+  "dependencies": ["base >= 0.15.10"]
 }
