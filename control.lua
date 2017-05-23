@@ -326,7 +326,7 @@ local function create_factory_position()
 		if #(game.surfaces) < 256 then
 			surface = game.create_surface(surface_name, {width = 2, height = 2})
 			surface.daytime = 0.5
-			surface.freeze_daytime(true)
+			surface.freeze_daytime = true
 		else
 			global.next_factory_surface = 1
 			surface_name = "Factory floor 1"
