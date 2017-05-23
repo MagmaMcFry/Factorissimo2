@@ -1,3 +1,7 @@
+### 2.1.7:
+
+- Fixed another crash due to API changes (LuaEntity.neighbours)
+
 ### 2.1.6:
 
 - Updated to Factorio 0.15.13 (Won't load in older Factorio versions, so UPDATE FACTORIO)
