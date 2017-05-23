@@ -1056,10 +1056,9 @@ script.on_event(defines.events.on_player_rotated_entity, function(event)
 	elseif Connections.is_connectable(entity) then
 		recheck_nearby_connections(entity)
 		if entity.type == "underground-belt" then
-			local neighbours = entity.neighbours
-			if neighbours and neighbours[1] then
-				--for k, v in pairs(neighbours) do game.print("Key: " .. k) end
-				recheck_nearby_connections(neighbours[1])
+			local neighbour = entity.neighbours
+			if neighbour then
+				recheck_nearby_connections(neighbour)
 			end
 		end
 	end
