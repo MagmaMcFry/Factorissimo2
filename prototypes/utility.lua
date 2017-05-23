@@ -22,7 +22,7 @@ local function factory_pipe(name, height, order)
 			minable = {mining_time = 1, result = name},
 			max_health = 80,
 			corpse = "small-remnants",
-			collision_box = {{-0.1, -0.1}, {0.1, 0.1}},
+			collision_box = {{-0.0625, -0.0625}, {0.0625, 0.0625}},
 			selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
 			fluid_box =
 			{
