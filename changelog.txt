@@ -1,3 +1,9 @@
+### 2.1.6:
+
+- Updated to Factorio 0.15.13 (Won't load in older Factorio versions, so UPDATE FACTORIO)
+- Fixed crash due to API changes (LuaSurface.freeze_daytime)
+- Reduced collision box of bulk transfer pipes so you can walk through
+
 ### 2.1.5:
 
 - Updated to Factorio 0.15.10 (Won't load in older Factorio versions, so UPDATE FACTORIO)
