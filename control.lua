@@ -99,6 +99,11 @@ script.on_configuration_changed(function(config_changed_data)
 	init_globals()
 	Updates.run()
 	init_gui()
+	for surface_name, _ in pairs(global.surface_factories or {}) do
+		if remote.interfaces["RSO"] then -- RSO compatibility
+			pcall(remote.call, "RSO", "ignoreSurface", surface_name)
+		end
+	end
 end)
 
 -- DATA MANAGEMENT --
@@ -327,6 +332,9 @@ local function create_factory_position()
 			surface = game.create_surface(surface_name, {width = 2, height = 2})
 			surface.daytime = 0.5
 			surface.freeze_daytime = true
+			if remote.interfaces["RSO"] then -- RSO compatibility
+				pcall(remote.call, "RSO", "ignoreSurface", surface_name)
+			end
 		else
 			global.next_factory_surface = 1
 			surface_name = "Factory floor 1"
