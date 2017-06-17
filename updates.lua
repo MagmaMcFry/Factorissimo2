@@ -1,7 +1,7 @@
 Updates = {}
 
 Updates.init = function()
-	global.update_version = 6
+	global.update_version = 7
 end
 
 Updates.run = function()
@@ -80,5 +80,21 @@ Updates.run = function()
 			end
 		end
 	end
-	global.update_version = 6
+	if global.update_version <= 6 then
+		for _, tick_conns in pairs(global.connections) do
+			for _, conn in pairs(tick_conns) do
+				if conn and conn._type == "belt" then
+					if conn.from.valid then
+						conn.from_line_1 = conn.from.get_transport_line(1)
+						conn.from_line_2 = conn.from.get_transport_line(2)
+					end
+					if conn.to.valid then
+						conn.to_line_1 = conn.to.get_transport_line(1)
+						conn.to_line_2 = conn.to.get_transport_line(2)
+					end
+				end
+			end
+		end
+	end
+	global.update_version = 7
 end

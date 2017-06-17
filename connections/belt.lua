@@ -61,11 +61,31 @@ end
 Belt.connect = function (factory, cid, cpos, outside_entity, inside_entity)
 	local conn_facing = get_conn_facing(outside_entity, inside_entity, cpos.direction_out, cpos.direction_in)
 	if conn_facing == cpos.direction_in then
-		local connection = {from = outside_entity, to = inside_entity, facing = cpos.direction_in, delays = calc_delays(outside_entity.prototype.belt_speed, inside_entity.prototype.belt_speed), offset = 0, insert_pos = INSERT_POS[inside_entity.type]}
+		local connection = {
+			from = outside_entity,
+			from_line_1 = outside_entity.get_transport_line(1),
+			from_line_2 = outside_entity.get_transport_line(2),
+			to = inside_entity,
+			to_line_1 = inside_entity.get_transport_line(1),
+			to_line_2 = inside_entity.get_transport_line(2),
+			facing = cpos.direction_in,
+			delays = calc_delays(outside_entity.prototype.belt_speed, inside_entity.prototype.belt_speed),
+			offset = 0,
+			insert_pos = INSERT_POS[inside_entity.type]}
 		--game.print("Connection created at " .. cid .. ", to the inside!")
 		return connection
 	elseif conn_facing == cpos.direction_out then
-		local connection = {from = inside_entity, to = outside_entity, facing = cpos.direction_out, delays = calc_delays(outside_entity.prototype.belt_speed, inside_entity.prototype.belt_speed), offset = 0, insert_pos = INSERT_POS[outside_entity.type]}
+		local connection = {
+			from = inside_entity,
+			from_line_1 = inside_entity.get_transport_line(1),
+			from_line_2 = inside_entity.get_transport_line(2),
+			to = outside_entity,
+			to_line_1 = outside_entity.get_transport_line(1),
+			to_line_2 = outside_entity.get_transport_line(2),
+			facing = cpos.direction_out,
+			delays = calc_delays(outside_entity.prototype.belt_speed, inside_entity.prototype.belt_speed),
+			offset = 0,
+			insert_pos = INSERT_POS[outside_entity.type]}
 		--game.print("Connection created at " .. cid .. ", to the outside!")
 		return connection
 	end
@@ -90,8 +110,8 @@ Belt.tick = function (conn)
 	local to = conn.to
 	if from.valid and to.valid then
 		--game.print("Belt ticking! Tick: " .. game.tick)
-		local f1 = from.get_transport_line(1)
-		local t1 = to.get_transport_line(1)
+		local f1 = conn.from_line_1
+		local t1 = conn.to_line_1
 		local contents = f1.get_contents()
 		local t = next(contents)
 		if t ~= nil then
@@ -100,8 +120,8 @@ Belt.tick = function (conn)
 				f1.remove_item{name = t, count = 1}
 			end
 		end
-		local f2 = from.get_transport_line(2)
-		local t2 = to.get_transport_line(2)
+		local f2 = conn.from_line_2
+		local t2 = conn.to_line_2
 		contents = f2.get_contents()
 		t = next(contents)
 		if t ~= nil then
