@@ -1,3 +1,9 @@
+### 2.1.8:
+
+- Improved belt connection performance by another 2-3x
+- Added Korean translation (Thanks Ikamusme)
+- Improved RSO compatibility
+
 ### 2.1.7:
 
 - Fixed another crash due to API changes (LuaEntity.neighbours)
