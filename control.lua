@@ -12,6 +12,8 @@ local Updates = Updates
 
 require("constants")
 
+local BlueprintString = require("blueprintstring.blueprintstring")
+
 -- DATA STRUCTURE --
 
 -- Factory buildings are entities of type "storage-tank" internally, because reasons
@@ -728,6 +730,172 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
 		end
 	end
 end)
+
+function list_to_index(list)
+	index = {}
+	for _,v in pairs(list) do
+		index[v] = true
+	end
+	return index
+end
+
+local entities_ignored_when_copying = list_to_index({
+	"factory-ceiling-light", "factory-fluid-dummy-connector",
+	"factory-overlay-controller"})
+
+script.on_event({defines.events.on_entity_settings_pasted}, function(event)
+	if event.source.name==event.destination.name and HasLayout(event.source.name) then
+		-- "Paste settings" from one factory to another. Create ghosts in the
+		-- destination factory to match buildings in the source factory.
+		local player = game.players[event.player_index]
+
+		local source_factory = get_factory_by_entity(event.source)
+		local dest_factory = get_factory_by_entity(event.destination)
+		
+		local blueprint_string = factory_to_blueprint_string(source_factory, player)
+		apply_blueprint_to_factory(dest_factory, player, blueprint_string)
+	end
+end)
+
+function factory_to_blueprint_string(factory, player)
+	-- Create a blueprint covering the contents of a factory floor
+	local blueprint = factory.inside_surface.create_entity{
+		name = "item-on-ground",
+		position = {0,0},
+		stack = { name="blueprint" },
+	}
+	
+	local bounds_markers = place_bounds_markers(
+		factory.inside_surface, player.force, get_factory_inside_area(factory))
+	
+	local topleft_x = factory.inside_x - factory.layout.inside_size/2
+	local topleft_y = factory.inside_y - factory.layout.inside_size/2
+	blueprint.stack.create_blueprint{
+		surface=factory.inside_surface,
+		force=player.force,
+		area=get_factory_inside_area(factory),
+	}
+	
+	-- Modify the blueprint to filter out entities with skipped types
+	filter_blueprint_entities(blueprint.stack, entities_ignored_when_copying)
+	
+	local blueprint_table = {
+		entities = blueprint.stack.get_blueprint_entities(),
+		tiles = blueprint.stack.get_blueprint_tiles(),
+		icons = blueprint.stack.blueprint_icons,
+		name = "Factory blueprint",
+	}
+	
+	-- Serialize
+	local blueprintString = BlueprintString.toString(blueprint_table)
+	
+	-- Clean up the temporary blueprint object and bounds markers
+	blueprint.destroy()
+	remove_bounds_markers(factory.inside_surface, get_factory_inside_area(factory))
+	
+	return blueprintString
+end
+
+function get_factory_inside_area(factory)
+	-- FIXME: This (a) assumes factories are always square, and (b) probably has
+	-- an off-by-one-half or worse
+	local size = factory.layout.inside_size+1
+	local topleft_x = factory.inside_x - size/2
+	local topleft_y = factory.inside_y - size/2
+	return {
+		left_top = {
+			x = factory.inside_x - size/2,
+			y = factory.inside_y - size/2,
+		},
+		right_bottom = {
+			x = factory.inside_x + size/2,
+			y = factory.inside_y + size/2,
+		}
+	}
+end
+
+function apply_blueprint_to_factory(factory, player, blueprint_string)
+	-- Unpack the blueprint
+	local blueprint = factory.inside_surface.create_entity{
+		name = "item-on-ground",
+		position = {0,0},
+		stack = { name="blueprint" },
+	}
+	
+	local blueprint_table = BlueprintString.fromString(blueprint_string)
+	blueprint.stack.set_blueprint_entities(blueprint_table.entities)
+	blueprint.stack.set_blueprint_tiles(blueprint_table.tiles)
+	blueprint.stack.blueprint_icons = blueprint_table.icons
+	blueprint.stack.label = blueprint_table.name or ""
+	
+	-- TODO: Fix these coords
+	local build_x = factory.inside_x
+	local build_y = factory.inside_y
+	
+	local build_result = blueprint.stack.build_blueprint{
+		surface=factory.inside_surface,
+		force=player.force,
+		position={build_x,build_y},
+		force_build=true
+	}
+	
+	-- Clean up the temporary blueprint object and bounds markers
+	blueprint.destroy()
+	remove_bounds_marker_ghosts(factory.inside_surface, get_factory_inside_area(factory))
+end
+
+function place_bounds_markers(surface, force, rect)
+	return {
+		place_bound_marker_at(surface, force, rect.left_top    .x, rect.left_top    .y),
+		place_bound_marker_at(surface, force, rect.right_bottom.x, rect.left_top    .y),
+		place_bound_marker_at(surface, force, rect.left_top    .x, rect.right_bottom.y),
+		place_bound_marker_at(surface, force, rect.right_bottom.x, rect.right_bottom.y),
+	}
+end
+
+function remove_bounds_markers(surface, rect)
+	local to_remove = surface.find_entities_filtered{
+		area = rect,
+		name = "factory-bounds-marker",
+	}
+	for _,v in pairs(to_remove) do
+		v.destroy()
+	end
+end
+
+function remove_bounds_marker_ghosts(surface, rect)
+	local to_remove = surface.find_entities_filtered{
+		area = rect,
+		name = "entity-ghost",
+	}
+	for _,v in pairs(to_remove) do
+		if v.ghost_name == "factory-bounds-marker" then
+			v.destroy()
+		end
+	end
+end
+
+function place_bound_marker_at(surface, force, x, y)
+	return surface.create_entity{
+		name = "factory-bounds-marker",
+		position = {x,y},
+		force = force,
+	}
+end
+
+-- Given a blueprint, modify it to remove any entities that appear in
+-- skipped_entity_types, a dict from entity type-names to true.
+function filter_blueprint_entities(blueprint, skipped_entity_types)
+	local blueprint_entities = blueprint.get_blueprint_entities()
+	local filtered_blueprint_entities = {}
+	for _,v in pairs(blueprint_entities) do
+		if not skipped_entity_types[v.name] then
+			table.insert(filtered_blueprint_entities, v)
+		end
+	end
+	blueprint.set_blueprint_entities(filtered_blueprint_entities)
+end
+
 
 
 -- How players pick up factories

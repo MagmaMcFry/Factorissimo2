@@ -470,3 +470,58 @@ data:extend({
 	},
 })
 
+-- Factory blueprint bounds-marker
+-- This object exists only so that factory-content blueprints don't have their
+-- bounding box shrunk because they aren't filled all the way to the edges. It
+-- is created as factories are being blueprinted, and deleted after the
+-- blueprint is applied.
+local function blank()
+	return {
+		filename = F.."/nothing.png",
+		priority = "high",
+		width = 1,
+		height = 1,
+	}
+end
+local function ablank()
+	return {
+		filename = F.."/nothing.png",
+		priority = "high",
+		width = 1,
+		height = 1,
+		frame_count = 1,
+	}
+end
+
+data:extend({
+	{
+		type = "item",
+		name = "factory-bounds-marker",
+		icon = F.."/graphics/indicator/blue-dot.png",
+		flags = {},
+		subgroup = "factorissimo2",
+		order = "a-a",
+		place_result = "factory-bounds-marker",
+		stack_size = 1,
+	},
+	{
+		type = "container",
+			inventory_size=0,
+		name = "factory-bounds-marker",
+		icon = F.."/graphics/indicator/blue-dot.png",
+		flags = {"placeable-player", "player-creation"},
+		max_health = 100,
+		collision_box = {{-0.35, -0.35}, {0.35, 0.35}},
+		selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+		collision_mask = {},
+		picture = {
+			-- Placeholder
+			filename = F.."/graphics/indicator/blue-dot.png",
+			priority = "extra-high",
+			width = 32,
+			height = 32,
+			shift = {0,0}
+		},
+	}
+})
+
