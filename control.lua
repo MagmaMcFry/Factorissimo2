@@ -10,6 +10,8 @@ local Connections = Connections
 require("updates")
 local Updates = Updates
 
+require("constants")
+
 -- DATA STRUCTURE --
 
 -- Factory buildings are entities of type "storage-tank" internally, because reasons
@@ -575,7 +577,7 @@ local SAVE_NAMES = {} -- Set of all valid factory save names
 local SAVE_ITEMS = {}
 for _,f in ipairs({"factory-1", "factory-2", "factory-3"}) do
 	SAVE_ITEMS[f] = {}
-	for n = 10,99 do
+	for n = Constants.factory_id_min,Constants.factory_id_max do
 		SAVE_NAMES[f .. "-s" .. n] = true
 		SAVE_ITEMS[f][n] = f .. "-s" .. n
 	end
