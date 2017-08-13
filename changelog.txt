@@ -1,3 +1,8 @@
+### 2.2.0:
+
+- jimrandomh: Add "factory robotic construction" technology and support for building filled factory buildings from blueprints
+- jimrandomh: Paste-settings (shift+right-click, shift+left-click) puts blueprint-ghosts in the target factory
+
 ### 2.1.8:
 
 - Improved belt connection performance by another 2-3x
