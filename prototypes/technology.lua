@@ -13,6 +13,7 @@ data:extend({
 		prerequisites = {"stone-walls", "logistics"},
 		effects = {
 			{type = "unlock-recipe", recipe = "factory-1"},
+			{type = "unlock-recipe", recipe = "factory-construction-requester-chest"},
 		},
 		unit = {
 			count = easy_research and 30 or 200,

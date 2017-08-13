@@ -155,6 +155,9 @@ end
 
 local M = {}
 
+M.remove_useless_fields = remove_useless_fields
+M.fix_entities = fix_entities
+
 M.COMPRESS_STRINGS = true  -- Compress saved strings. Format is gzip + base64.
 M.LINE_LENGTH = 120  -- Length of lines in compressed string. 0 means unlimited length.
 

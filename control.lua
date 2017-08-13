@@ -13,6 +13,7 @@ local Updates = Updates
 require("constants")
 
 local BlueprintString = require("blueprintstring.blueprintstring")
+local serpent = require "blueprintstring.serpent0272"
 
 -- DATA STRUCTURE --
 
@@ -708,6 +709,36 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
 			entity.surface.create_entity{name=entity.name .. "-i", position=entity.position, force=entity.force}
 			entity.destroy()
 		end
+		
+		-- Look for adjacent factory-contents-markers and ghosts thereof. If
+		-- found, unpack its blueprint, delete it, and put a
+		-- factory-construction-requester-chest in its place.
+		local content_marker_ghost = find_factory_content_marker_near(entity)
+		if content_marker_ghost ~= nil then
+			-- Revive the factory-contents-marker show we can get the alert
+			-- message (abused to contain a blueprint string) out of it.
+			collisions,content_marker = content_marker_ghost.revive()
+			blueprint_string = content_marker.alert_parameters.alert_message
+			
+			-- Replace the factory-contents-marker with a factory-construction-
+			-- requester-chest.
+			local position = content_marker.position
+			local surface = content_marker.surface
+			local force = content_marker.force
+			content_marker.destroy()
+			local construction_chest = surface.create_entity{
+				name="factory-construction-requester-chest",
+				position=position,
+				force=force
+			}
+			
+			-- Apply the blueprint to the factory, filling it with ghosts
+			local factory = get_factory_by_entity(entity)
+			apply_blueprint_to_factory(factory, entity.force, blueprint_string)
+			
+			-- Initialize the newly-created requester chest
+			init_construction_chest(construction_chest)
+		end
 	elseif global.saved_factories[entity.name] then
 		-- This is a saved factory, we need to unpack it
 		local factory = global.saved_factories[entity.name]
@@ -721,6 +752,8 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
 	elseif is_invalid_save_slot(entity.name) then
 		entity.surface.create_entity{name="flying-text", position=entity.position, text={"factory-connection-text.invalid-factory-data"}}
 		entity.destroy()
+	elseif entity.name == "factory-construction-requester-chest" then
+		init_construction_chest(entity)
 	else
 		if Connections.is_connectable(entity) then
 			recheck_nearby_connections(entity)
@@ -730,6 +763,24 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
 		end
 	end
 end)
+
+function find_factory_content_marker_near(entity)
+	local surface = entity.surface
+	local position = entity.position
+	local radius = 12
+	local nearby = surface.find_entities({
+		left_top = {position.x-radius, position.y-radius},
+		right_bottom = {position.x+radius, position.y+radius},
+	})
+	-- TODO: Figure out what area counts as "touching" and limit search to that
+	
+	for _,ghost in pairs(nearby) do
+		if ghost.name == "entity-ghost" and ghost.ghost_name == "factory-contents-marker" then
+			return ghost
+		end
+	end
+	return nil
+end
 
 function list_to_index(list)
 	index = {}
@@ -753,7 +804,7 @@ script.on_event({defines.events.on_entity_settings_pasted}, function(event)
 		local dest_factory = get_factory_by_entity(event.destination)
 		
 		local blueprint_string = factory_to_blueprint_string(source_factory, player)
-		apply_blueprint_to_factory(dest_factory, player, blueprint_string)
+		apply_blueprint_to_factory(dest_factory, player.force, blueprint_string)
 	end
 end)
 
@@ -814,7 +865,7 @@ function get_factory_inside_area(factory)
 	}
 end
 
-function apply_blueprint_to_factory(factory, player, blueprint_string)
+function apply_blueprint_to_factory(factory, force, blueprint_string)
 	-- Unpack the blueprint
 	local blueprint = factory.inside_surface.create_entity{
 		name = "item-on-ground",
@@ -828,13 +879,12 @@ function apply_blueprint_to_factory(factory, player, blueprint_string)
 	blueprint.stack.blueprint_icons = blueprint_table.icons
 	blueprint.stack.label = blueprint_table.name or ""
 	
-	-- TODO: Fix these coords
 	local build_x = factory.inside_x
 	local build_y = factory.inside_y
 	
 	local build_result = blueprint.stack.build_blueprint{
 		surface=factory.inside_surface,
-		force=player.force,
+		force=force,
 		position={build_x,build_y},
 		force_build=true
 	}
@@ -896,6 +946,191 @@ function filter_blueprint_entities(blueprint, skipped_entity_types)
 	blueprint.set_blueprint_entities(filtered_blueprint_entities)
 end
 
+function init_construction_chest(construction_requester_chest)
+	update_construction_chest(construction_requester_chest)
+	-- TODO: Set up a timer
+end
+
+function update_construction_chest(construction_requester_chest)
+	-- Find the factory this chest goes with
+	local surface = construction_requester_chest.surface
+	local position = construction_requester_chest.position
+	local nearby_entities = surface.find_entities({
+		left_top = {position.x-1, position.y-1},
+		right_bottom = {position.x+1, position.y+1},
+	})
+	local factory = nil
+	for _,nearby_entity in pairs(nearby_entities) do
+		if HasLayout(nearby_entity.name) then
+			factory = get_factory_by_entity(nearby_entity)
+		end
+	end
+	
+	if factory == nil then
+		return
+	end
+	
+	-- Get list of ghosts inside that factory
+	local area = get_factory_inside_area(factory)
+	local ghosts = factory.inside_surface.find_entities_filtered{
+		area = area,
+		name = "entity-ghost"
+	}
+	
+	-- Count up items in the chest, available for construction
+	local items_in_chest = construction_requester_chest.get_inventory(defines.inventory.chest).get_contents()
+	local items_spent = {}
+	
+	-- Count up items requested for ghosts
+	local unsatisfied_requests = {}
+	local items_spent = {}
+	for _,ghost in pairs(ghosts) do
+		local item_needed = ghost.ghost_prototype.items_to_place_this
+		local requests = {}
+		for k,v in pairs(item_needed) do
+			-- TODO: Handle alternatives? This only makes sense if a ghost can
+			-- only be revived with one particular item type.
+			-- (Which is how it normally works, but the API says there could
+			-- be multiple things here.)
+			requests[k] = 1
+		end
+		
+		-- Can this request be satisfied?
+		if request_is_satisfied(requests, items_in_chest) then
+			collisions,revived = ghost.revive()
+			if revived and revived.valid then
+				for item,num in pairs(requests) do
+					incr_default_0(items_spent, item, num)
+					incr_default_0(items_in_chest, item, -num)
+				end
+			end
+		else
+			-- Add to the list of unsatisfied requests
+			for item,num in pairs(requests) do
+				incr_default_0(unsatisfied_requests, item, num)
+			end
+		end
+	end
+	
+	-- TODO: Look for construction-requester-chests inside, in order to build
+	-- recursive factories.
+	
+	-- Remove spent items
+	for item,num in pairs(items_spent) do
+		construction_requester_chest.remove_item({
+			name = item,
+			count = num
+		})
+	end
+	
+	-- Apply item requests to requester-chest settings
+	local num_request_slots = construction_requester_chest.request_slot_count
+	local request_slot_index = 1
+	for item,num in pairs(unsatisfied_requests) do
+		local request = { name = item, count = num }
+		construction_requester_chest.set_request_slot(request, request_slot_index)
+		request_slot_index = request_slot_index+1
+		if request_slot_index >= num_request_slots then
+			break
+		end
+	end
+	for i = request_slot_index,num_request_slots do
+		construction_requester_chest.clear_request_slot(i)
+	end
+end
+
+function incr_default_0(dict, k, n)
+	if dict[k] ~= nil then
+		dict[k] = dict[k]+n
+	else
+		dict[k] = n
+	end
+	return dict
+end
+
+function request_is_satisfied(request, available)
+	for k,v in pairs(request) do
+		if available[k] == nil or available[k] < request[k] then
+			return false
+		end
+	end
+	return true
+end
+
+local pending_blueprints_by_player = {}
+
+script.on_event(defines.events.on_player_setup_blueprint, function(event)
+	local player_index = event.player_index
+	local area = event.area
+	local item = event.item
+	local alt = event.alt
+	
+	local player = game.players[player_index]
+	
+	pending_blueprints_by_player[player_index] = {
+		area = event.area,
+		item = event.item,
+		alt = event.alt
+		surface = player.surface
+	}
+end)
+
+script.on_event(defines.events.on_player_configured_blueprint, function(event)
+	local player_index = event.player_index
+	local area = pending_blueprints_by_player[player_index].area
+	local player = game.players[player_index]
+	local blueprint = player.cursor_stack
+	
+	-- Look at the surface the player was on when they set up the blueprint,
+	-- not the surface they're on when they confirm it. (Otherwise this would
+	-- go wrong if you entered/left a factory building while the blueprint
+	-- dialog was up.)
+	local surface = pending_blueprints_by_player[player_index].surface
+	
+	-- Find the relation between world-coords and blueprint-coords.
+	-- TODO
+	
+	-- Find any factory in the area, and get its blueprint string.
+	-- TODO: This effectively limits blueprints to only one factory. What we
+	-- want is a bijection between factory-construction-requester-chests and
+	-- the factories next to them.
+	local ents_in_area = surface.find_entities(area)
+	local factory = nil
+	for _,entity in pairs(ents_in_area) do
+		if HasLayout(entity.name) then
+			factory = get_factory_by_entity(entity)
+		end
+	end
+
+	-- Replace factory-construction-requester-chests in the blueprint with
+	-- factory-contents-markers that hold the factory's blueprint
+	-- To do this, we use BlueprintString's remove_useless_fields to reduce
+	-- it to something manageable, then make the change there, then change it
+	-- back.
+	
+	local blueprint_entities = blueprint.get_blueprint_entities()
+	BlueprintString.remove_useless_fields(blueprint_entities)
+	
+	for i,entity in pairs(blueprint_entities) do
+		if entity.name == "factory-construction-requester-chest" then
+			local blueprint_string = factory_to_blueprint_string(factory, player)
+			entity.name = "factory-contents-marker"
+			entity.parameters={
+				playback_volume=0,
+				playback_globally=false,
+				allow_polyphony=false,
+			}
+			entity.alert_parameters={
+				show_alert=true,
+				show_on_map=false,
+				alert_message=blueprint_string
+			}
+		end
+	end
+	
+	BlueprintString.fix_entities(blueprint_entities)
+	blueprint.set_blueprint_entities(blueprint_entities)
+end)
 
 
 -- How players pick up factories
@@ -1268,6 +1503,9 @@ script.on_event("factory-rotate", function(event)
 		end
 	elseif entity.name == "factory-requester-chest" then
 		init_factory_requester_chest(entity)
+	elseif entity.name == "factory-construction-requester-chest" then
+		-- TODO: This should be more automated
+		update_construction_chest(entity)
 	end
 end)
 

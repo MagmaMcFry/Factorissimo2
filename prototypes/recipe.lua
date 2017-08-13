@@ -31,6 +31,14 @@ data:extend({
 	-- Utilities
 	{
 		type = "recipe",
+		name = "factory-construction-requester-chest",
+		enabled = false,
+		energy_required = 1,
+		ingredients = {{"steel-plate", 25}},
+		result = "factory-construction-requester-chest"
+	},
+	{
+		type = "recipe",
 		name = "factory-circuit-input",
 		enabled = false,
 		energy_required = 1,
