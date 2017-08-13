@@ -83,6 +83,8 @@ local function init_globals()
 	global.next_factory_surface = global.next_factory_surface or 0
 	-- Map: Player index -> Last teleport time
 	global.last_player_teleport = global.last_player_teleport or {}
+	-- List of all construction-requester chests
+	global.construction_requester_chests = global.construction_requester_chests or {}
 end
 
 local prepare_gui = 0  -- Will be set to a function lower in the file
@@ -698,6 +700,10 @@ end
 
 script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_entity}, function(event)
 	local entity = event.created_entity
+	on_entity_built(entity)
+end)
+
+function on_entity_built(entity)
 	--if BUILDING_TYPE ~= entity.type then return nil end
 	if HasLayout(entity.name) then
 		-- This is a fresh factory, we need to create it
@@ -762,7 +768,7 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
 			init_factory_requester_chest(entity)
 		end
 	end
-end)
+end
 
 function find_factory_content_marker_near(entity)
 	local search_area = neighbor_area_from_collision_box(entity.position, entity.prototype.collision_box)
@@ -813,12 +819,12 @@ script.on_event({defines.events.on_entity_settings_pasted}, function(event)
 		local source_factory = get_factory_by_entity(event.source)
 		local dest_factory = get_factory_by_entity(event.destination)
 		
-		local blueprint_string = factory_to_blueprint_string(source_factory, player)
+		local blueprint_string = factory_to_blueprint_string(source_factory, player.force)
 		apply_blueprint_to_factory(dest_factory, player.force, blueprint_string)
 	end
 end)
 
-function factory_to_blueprint_string(factory, player)
+function factory_to_blueprint_string(factory, force)
 	-- Create a blueprint covering the contents of a factory floor
 	local blueprint = factory.inside_surface.create_entity{
 		name = "item-on-ground",
@@ -827,18 +833,22 @@ function factory_to_blueprint_string(factory, player)
 	}
 	
 	local bounds_markers = place_bounds_markers(
-		factory.inside_surface, player.force, get_factory_inside_area(factory))
+		factory.inside_surface, force, get_factory_inside_area(factory))
 	
 	local topleft_x = factory.inside_x - factory.layout.inside_size/2
 	local topleft_y = factory.inside_y - factory.layout.inside_size/2
+	local inside_area = get_factory_inside_area(factory)
 	blueprint.stack.create_blueprint{
 		surface=factory.inside_surface,
-		force=player.force,
-		area=get_factory_inside_area(factory),
+		force=force,
+		area=inside_area,
 	}
 	
 	-- Modify the blueprint to filter out entities with skipped types
 	filter_blueprint_entities(blueprint.stack, entities_ignored_when_copying)
+	
+	-- Modify the blueprint to record the contents of any nested factories
+	blueprint_record_factory_contents(blueprint.stack, inside_area, factory.inside_surface, force)
 	
 	local blueprint_table = {
 		entities = blueprint.stack.get_blueprint_entities(),
@@ -958,7 +968,22 @@ end
 
 function init_construction_chest(construction_requester_chest)
 	update_construction_chest(construction_requester_chest)
-	-- TODO: Set up a timer
+	table.insert(global.construction_requester_chests, construction_requester_chest)
+end
+
+function update_all_construction_requester_chests(tick)
+	-- TODO: Don't do all of these in the same tick, since it's potentially
+	-- slow enough to cause a noticeable stutter
+	if game.tick%60 == 0 then
+		for i=1,#global.construction_requester_chests do
+			local chest = global.construction_requester_chests[i]
+			if chest.valid then
+				update_construction_chest(chest)
+			else
+				table.remove(global.construction_requester_chests, i)
+			end
+		end
+	end
 end
 
 function update_construction_chest(construction_requester_chest)
@@ -996,35 +1021,59 @@ function update_construction_chest(construction_requester_chest)
 	local unsatisfied_requests = {}
 	local items_spent = {}
 	for _,ghost in pairs(ghosts) do
-		local item_needed = ghost.ghost_prototype.items_to_place_this
-		local requests = {}
-		for k,v in pairs(item_needed) do
-			-- TODO: Handle alternatives? This only makes sense if a ghost can
-			-- only be revived with one particular item type.
-			-- (Which is how it normally works, but the API says there could
-			-- be multiple things here.)
-			requests[k] = 1
-		end
-		
-		-- Can this request be satisfied?
-		if request_is_satisfied(requests, items_in_chest) then
-			collisions,revived = ghost.revive()
-			if revived and revived.valid then
-				for item,num in pairs(requests) do
-					incr_default_0(items_spent, item, num)
-					incr_default_0(items_in_chest, item, -num)
-				end
+		if ghost and ghost.valid and ghost.ghost_prototype and ghost.ghost_prototype.items_to_place_this then
+			local item_needed = ghost.ghost_prototype.items_to_place_this
+			local requests = {}
+			for k,v in pairs(item_needed) do
+				-- TODO: Handle alternatives? This only makes sense if a ghost can
+				-- only be revived with one particular item type.
+				-- (Which is how it normally works, but the API says there could
+				-- be multiple things here.)
+				requests[k] = 1
 			end
-		else
-			-- Add to the list of unsatisfied requests
-			for item,num in pairs(requests) do
-				incr_default_0(unsatisfied_requests, item, num)
+			
+			-- Can this request be satisfied?
+			if request_is_satisfied(requests, items_in_chest) then
+				collisions,revived = ghost.revive()
+				if revived and revived.valid then
+					for item,num in pairs(requests) do
+						incr_default_0(items_spent, item, num)
+						incr_default_0(items_in_chest, item, -num)
+					end
+					
+					on_entity_built(revived)
+				end
+			else
+				-- Add to the list of unsatisfied requests
+				for item,num in pairs(requests) do
+					incr_default_0(unsatisfied_requests, item, num)
+				end
 			end
 		end
 	end
 	
-	-- TODO: Look for construction-requester-chests inside, in order to build
+	-- Look for construction-requester-chests inside, in order to build
 	-- recursive factories.
+	local recursive_chests = factory.inside_surface.find_entities_filtered{
+		area = area,
+		name = "factory-construction-requester-chest"
+	}
+	for _,chest in pairs(recursive_chests) do
+		local chest_requests = get_chest_requests(chest)
+		for item,num in pairs(chest_requests) do
+			local items_to_transfer = 0
+			if items_in_chest[item] ~= nil and items_in_chest[item] > 0 then
+				-- We have an item that can satisfy this request
+				items_to_transfer = math.min(num, items_in_chest[item])
+				chest.insert({ name=item, count=items_to_transfer })
+				incr_default_0(items_spent, item, items_to_transfer)
+				incr_default_0(items_in_chest, item, -items_to_transfer)
+			end
+			if items_to_transfer < num then
+				incr_default_0(unsatisfied_requests, item, num-items_to_transfer)
+			end
+		end
+	end
 	
 	-- Remove spent items
 	for item,num in pairs(items_spent) do
@@ -1048,6 +1097,17 @@ function update_construction_chest(construction_requester_chest)
 	for i = request_slot_index,num_request_slots do
 		construction_requester_chest.clear_request_slot(i)
 	end
+end
+
+function get_chest_requests(chest)
+	local requests = {}
+	local num_request_slots = chest.request_slot_count
+	for i=1,num_request_slots do
+		local request = chest.get_request_slot(i)
+		if request == nil then break end
+		incr_default_0(requests, request.name, request.count)
+	end
+	return requests
 end
 
 function incr_default_0(dict, k, n)
@@ -1091,6 +1151,7 @@ script.on_event(defines.events.on_player_configured_blueprint, function(event)
 	local area = pending_blueprints_by_player[player_index].area
 	local player = game.players[player_index]
 	local blueprint = player.cursor_stack
+	local force = player.force
 	
 	-- Look at the surface the player was on when they set up the blueprint,
 	-- not the surface they're on when they confirm it. (Otherwise this would
@@ -1098,6 +1159,10 @@ script.on_event(defines.events.on_player_configured_blueprint, function(event)
 	-- dialog was up.)
 	local surface = pending_blueprints_by_player[player_index].surface
 	
+	blueprint_record_factory_contents(blueprint, area, surface, force)
+end)
+
+function blueprint_record_factory_contents(blueprint, area, surface, force)
 	-- Check whether the blueprint contains any factory buildings. If not, skip the
 	-- rest of this.
 	if not blueprint_contains_factories(blueprint) then
@@ -1146,7 +1211,7 @@ script.on_event(defines.events.on_player_configured_blueprint, function(event)
 			
 			-- If the chest touches a factory, replace it with a factory-contents-marker
 			if factory ~= nil then
-				local blueprint_string = factory_to_blueprint_string(factory, player)
+				local blueprint_string = factory_to_blueprint_string(factory, force)
 				entity.name = "factory-contents-marker"
 				entity.parameters={
 					playback_volume=0,
@@ -1164,7 +1229,7 @@ script.on_event(defines.events.on_player_configured_blueprint, function(event)
 	
 	BlueprintString.fix_entities(blueprint_entities)
 	blueprint.set_blueprint_entities(blueprint_entities)
-end)
+end
 
 function lexicographically_first_factory_in(entity_list)
 	local first = true
@@ -1513,6 +1578,8 @@ script.on_event(defines.events.on_tick, function(event)
 	
 	-- Teleport players
 	teleport_players() -- What did you expect
+	
+	update_all_construction_requester_chests()
 end)
 
 -- CONNECTION SETTINGS --
@@ -1569,9 +1636,6 @@ script.on_event("factory-rotate", function(event)
 		end
 	elseif entity.name == "factory-requester-chest" then
 		init_factory_requester_chest(entity)
-	elseif entity.name == "factory-construction-requester-chest" then
-		-- TODO: This should be more automated
-		update_construction_chest(entity)
 	end
 end)
 
