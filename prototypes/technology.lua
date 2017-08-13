@@ -13,7 +13,6 @@ data:extend({
 		prerequisites = {"stone-walls", "logistics"},
 		effects = {
 			{type = "unlock-recipe", recipe = "factory-1"},
-			{type = "unlock-recipe", recipe = "factory-construction-requester-chest"},
 		},
 		unit = {
 			count = easy_research and 30 or 200,
@@ -157,7 +156,7 @@ data:extend({
 		},
 		order = pf.."d-a",
 	},
-		{
+	{
 		type = "technology",
 		name = "factory-requester-chest",
 		icon = F.."/graphics/technology/factory-requester-chest.png",
@@ -172,6 +171,22 @@ data:extend({
 			time = 30
 		},
 		order = pf.."d-b",
+	},
+	{
+		type = "technology",
+		name = "factory-robotic-construction",
+		icon = F.."/graphics/technology/factory-requester-chest.png",
+		icon_size = 128,
+		prerequisites = {"factory-architecture-t1", "construction-robotics"},
+		effects = {
+			{type = "unlock-recipe", recipe = "factory-construction-requester-chest"},
+		},
+		unit = {
+			count = easy_research and 20 or 100,
+			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1},{"science-pack-3", 1}},
+			time = 30
+		},
+		order = pf.."d-c",
 	},
 	
 	-- Recursion!

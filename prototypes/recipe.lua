@@ -34,7 +34,7 @@ data:extend({
 		name = "factory-construction-requester-chest",
 		enabled = false,
 		energy_required = 1,
-		ingredients = {{"steel-plate", 25}},
+		ingredients = {{"steel-chest", 1}, {"advanced-circuit", 5}},
 		result = "factory-construction-requester-chest"
 	},
 	{
