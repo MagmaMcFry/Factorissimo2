@@ -765,14 +765,9 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
 end)
 
 function find_factory_content_marker_near(entity)
-	local surface = entity.surface
-	local position = entity.position
-	local radius = 12
-	local nearby = surface.find_entities({
-		left_top = {position.x-radius, position.y-radius},
-		right_bottom = {position.x+radius, position.y+radius},
-	})
-	-- TODO: Figure out what area counts as "touching" and limit search to that
+	local search_area = neighbor_area_from_collision_box(entity.position, entity.prototype.collision_box)
+	
+	local nearby = entity.surface.find_entities(search_area)
 	
 	for _,ghost in pairs(nearby) do
 		if ghost.name == "entity-ghost" and ghost.ghost_name == "factory-contents-marker" then
@@ -780,6 +775,21 @@ function find_factory_content_marker_near(entity)
 		end
 	end
 	return nil
+end
+
+-- Return an area that includes all tiles that would touch an object that's at
+-- the given position and has the given collision box.
+function neighbor_area_from_collision_box(position, collision_box)
+	return {
+		left_top = {
+			x = position.x + collision_box.left_top.x - 1,
+			y = position.y + collision_box.left_top.y - 1,
+		},
+		right_bottom = {
+			x = position.x + collision_box.right_bottom.x + 1,
+			y = position.y + collision_box.right_bottom.y + 1,
+		}
+	}
 end
 
 function list_to_index(list)
@@ -966,6 +976,7 @@ function update_construction_chest(construction_requester_chest)
 		end
 	end
 	
+	
 	if factory == nil then
 		return
 	end
@@ -1070,8 +1081,8 @@ script.on_event(defines.events.on_player_setup_blueprint, function(event)
 	pending_blueprints_by_player[player_index] = {
 		area = event.area,
 		item = event.item,
-		alt = event.alt
-		surface = player.surface
+		alt = event.alt,
+		surface = player.surface,
 	}
 end)
 
@@ -1087,50 +1098,105 @@ script.on_event(defines.events.on_player_configured_blueprint, function(event)
 	-- dialog was up.)
 	local surface = pending_blueprints_by_player[player_index].surface
 	
-	-- Find the relation between world-coords and blueprint-coords.
-	-- TODO
-	
-	-- Find any factory in the area, and get its blueprint string.
-	-- TODO: This effectively limits blueprints to only one factory. What we
-	-- want is a bijection between factory-construction-requester-chests and
-	-- the factories next to them.
-	local ents_in_area = surface.find_entities(area)
-	local factory = nil
-	for _,entity in pairs(ents_in_area) do
-		if HasLayout(entity.name) then
-			factory = get_factory_by_entity(entity)
-		end
+	-- Check whether the blueprint contains any factory buildings. If not, skip the
+	-- rest of this.
+	if not blueprint_contains_factories(blueprint) then
+		return
 	end
-
+	
+	-- Find the relation between world-coords and blueprint-coords.
+	-- Find the factory with the lexicographically-first coordinates in each.
+	-- They are the same factory; the difference between their positions is the
+	-- blueprint offset.
+	local ents_in_area = surface.find_entities(area)
+	local blueprint_entities = blueprint.get_blueprint_entities()
+	BlueprintString.remove_useless_fields(blueprint_entities)
+	
+	local first_blueprint_factory = lexicographically_first_factory_in(blueprint_entities)
+	local first_world_factory = lexicographically_first_factory_in(ents_in_area)
+	local blueprint_offset = {
+		x = first_world_factory.position.x - first_blueprint_factory.position.x,
+		y = first_world_factory.position.y - first_blueprint_factory.position.y,
+	}
+	
 	-- Replace factory-construction-requester-chests in the blueprint with
 	-- factory-contents-markers that hold the factory's blueprint
 	-- To do this, we use BlueprintString's remove_useless_fields to reduce
 	-- it to something manageable, then make the change there, then change it
 	-- back.
-	
-	local blueprint_entities = blueprint.get_blueprint_entities()
-	BlueprintString.remove_useless_fields(blueprint_entities)
-	
 	for i,entity in pairs(blueprint_entities) do
 		if entity.name == "factory-construction-requester-chest" then
-			local blueprint_string = factory_to_blueprint_string(factory, player)
-			entity.name = "factory-contents-marker"
-			entity.parameters={
-				playback_volume=0,
-				playback_globally=false,
-				allow_polyphony=false,
-			}
-			entity.alert_parameters={
-				show_alert=true,
-				show_on_map=false,
-				alert_message=blueprint_string
-			}
+			-- Find the factory this chest touches (if any)
+			local factory = nil
+			for _,neighbor in pairs(ents_in_area) do
+				if HasLayout(neighbor.name) then
+					local dx = neighbor.position.x - blueprint_offset.x - entity.position.x
+					local dy = neighbor.position.y - blueprint_offset.y - entity.position.y
+					local collision_box = neighbor.prototype.collision_box
+					
+					if dx >= collision_box.left_top.x - 1 and
+					   dx <= collision_box.right_bottom.x + 1 and
+					   dy >= collision_box.left_top.y - 1 and
+					   dy <= collision_box.right_bottom.y + 1
+					then
+						factory = get_factory_by_building(neighbor)
+					end
+				end
+			end
+			
+			-- If the chest touches a factory, replace it with a factory-contents-marker
+			if factory ~= nil then
+				local blueprint_string = factory_to_blueprint_string(factory, player)
+				entity.name = "factory-contents-marker"
+				entity.parameters={
+					playback_volume=0,
+					playback_globally=false,
+					allow_polyphony=false,
+				}
+				entity.alert_parameters={
+					show_alert=true,
+					show_on_map=false,
+					alert_message=blueprint_string
+				}
+			end
 		end
 	end
 	
 	BlueprintString.fix_entities(blueprint_entities)
 	blueprint.set_blueprint_entities(blueprint_entities)
 end)
+
+function lexicographically_first_factory_in(entity_list)
+	local first = true
+	local first_entity = nil
+	local first_position = nil
+	for _,entity in pairs(entity_list) do
+		if HasLayout(entity.name) then
+			if first then
+				first = false
+				first_entity = entity
+				first_position = entity.position
+			else
+				if entity.position.y < first_position.y or entity.position.y == first_position.y and entity.position.x < first_position.x then
+					first_entity = entity
+					first_position = entity.position
+				end
+			end
+		end
+	end
+	return first_entity
+end
+
+-- Returns whether the given blueprint contains at least one factory building
+function blueprint_contains_factories(blueprint)
+	local entities = blueprint.get_blueprint_entities()
+	for _,entity in pairs(entities) do
+		if HasLayout(entity.name) then
+			return true
+		end
+	end
+	return false
+end
 
 
 -- How players pick up factories
