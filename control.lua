@@ -740,7 +740,8 @@ function on_entity_built(entity)
 			
 			-- Apply the blueprint to the factory, filling it with ghosts
 			local factory = get_factory_by_entity(entity)
-			apply_blueprint_to_factory(factory, entity.force, blueprint_string)
+			apply_blueprint_to_factory(factory, entity.force, blueprint_string,
+				entity.orientation)
 			
 			-- Initialize the newly-created requester chest
 			init_construction_chest(construction_chest)
@@ -820,7 +821,8 @@ script.on_event({defines.events.on_entity_settings_pasted}, function(event)
 		local dest_factory = get_factory_by_entity(event.destination)
 		
 		local blueprint_string = factory_to_blueprint_string(source_factory, player.force)
-		apply_blueprint_to_factory(dest_factory, player.force, blueprint_string)
+		apply_blueprint_to_factory(dest_factory, player.force, blueprint_string,
+			defines.direction.north)
 	end
 end)
 
@@ -885,7 +887,7 @@ function get_factory_inside_area(factory)
 	}
 end
 
-function apply_blueprint_to_factory(factory, force, blueprint_string)
+function apply_blueprint_to_factory(factory, force, blueprint_string, direction)
 	-- Unpack the blueprint
 	local blueprint = factory.inside_surface.create_entity{
 		name = "item-on-ground",
@@ -902,11 +904,32 @@ function apply_blueprint_to_factory(factory, force, blueprint_string)
 	local build_x = factory.inside_x
 	local build_y = factory.inside_y
 	
+	local compass_dir = nil
+	
+	if direction == 0 then
+		compass_dir = defines.direction.west
+		build_y = build_y - 1
+	elseif direction == 0.25 then
+		compass_dir = defines.direction.north
+	elseif direction == 0.5 then
+		compass_dir = defines.direction.east
+		build_x = build_x - 1
+	elseif direction == 0.75 then
+		compass_dir = defines.direction.south
+		build_x = build_x - 1
+		build_y = build_y - 1
+	else
+		game.print("ERROR: Trying to place factory in invalid orientation: "..direction)
+		blueprint.destroy()
+		return
+	end
+	
 	local build_result = blueprint.stack.build_blueprint{
 		surface=factory.inside_surface,
 		force=force,
 		position={build_x,build_y},
-		force_build=true
+		force_build=true,
+		direction = compass_dir,
 	}
 	
 	-- Clean up the temporary blueprint object and bounds markers
