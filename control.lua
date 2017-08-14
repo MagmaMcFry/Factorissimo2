@@ -995,17 +995,16 @@ function init_construction_chest(construction_requester_chest)
 end
 
 function update_all_construction_requester_chests(tick)
-	-- TODO: Don't do all of these in the same tick, since it's potentially
-	-- slow enough to cause a noticeable stutter
-	if game.tick%60 == 0 then
-		for i=1,#global.construction_requester_chests do
-			local chest = global.construction_requester_chests[i]
-			if chest.valid then
-				update_construction_chest(chest)
-			else
-				table.remove(global.construction_requester_chests, i)
-			end
+	local num_chests = #global.construction_requester_chests
+	local offset = (23*game.tick)%60+1
+	while offset <= num_chests do
+		local chest = global.construction_requester_chests[i]
+		if chest and chest.valid then
+			update_construction_chest(chest)
+		else
+			table.remove(global.construction_requester_chests, offset)
 		end
+		offset = offset + 60
 	end
 end
 
