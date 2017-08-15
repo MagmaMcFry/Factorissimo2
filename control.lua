@@ -1175,6 +1175,10 @@ script.on_event(defines.events.on_player_configured_blueprint, function(event)
 	local blueprint = player.cursor_stack
 	local force = player.force
 	
+	if blueprint == nil then
+		return
+	end
+	
 	-- Look at the surface the player was on when they set up the blueprint,
 	-- not the surface they're on when they confirm it. (Otherwise this would
 	-- go wrong if you entered/left a factory building while the blueprint
