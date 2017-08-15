@@ -1170,6 +1170,11 @@ end)
 
 script.on_event(defines.events.on_player_configured_blueprint, function(event)
 	local player_index = event.player_index
+	
+	if pending_blueprints_by_player[player_index] == nil then
+		return
+	end
+	
 	local area = pending_blueprints_by_player[player_index].area
 	local player = game.players[player_index]
 	local blueprint = player.cursor_stack
