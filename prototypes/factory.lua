@@ -1,3 +1,4 @@
+require("util")
 require("constants")
 local Constants = Constants
 
@@ -9,25 +10,6 @@ end
 local function cc0()
 	return get_circuit_connector_sprites({0,0},nil,1)
 end
-local function blank()
-	return {
-		filename = F.."/graphics/nothing.png",
-		priority = "high",
-		width = 1,
-		height = 1,
-	}
-end
-local function ablank()
-	return {
-		filename = F.."/graphics/nothing.png",
-		priority = "high",
-		width = 1,
-		height = 1,
-		frame_count = 1,
-	}
-end
-
-
 
 
 function merge_properties(a,b)
@@ -41,15 +23,25 @@ function merge_properties(a,b)
 	return result
 end
 
-function factory_base(properties)
+function factory_base(params, suffix, result_suffix, visible, count, properties)
+	local name = params.name .. suffix
+	local result_name = params.name .. result_suffix
+	local item_flags
+	if visible then item_flags = {"goes-to-quickbar"} else item_flags = {"hidden"} end
+	
 	return merge_properties({
+		name = name,
 		type = "storage-tank",
+		icon = params.icon,
+		max_health = params.max_health,
 		flags = {"player-creation"},
+		minable = {mining_time = 5, result = result_name, count = count},
 		allow_copy_paste = true,
 		additional_pastable_entities = {"storage-tank"},
 		vehicle_impact_sound = { filename = "__base__/sound/car-stone-impact.ogg", volume = 1.0 },
 		corpse = "big-remnants",
-		window_bounding_box = {{0,0},{0,0}},
+		window_bounding_box = centered_square(0),
+		selection_box = properties.collision_box,
 		fluid_box = {
 			base_area = 1,
 			pipe_covers = pipecoverspictures(),
@@ -63,11 +55,20 @@ function factory_base(properties)
 	}, properties)
 end
 
-function factory_item_base(properties)
+function factory_item_base(params, suffix, visible, properties)
+	local name = params.name .. suffix
+	local item_flags
+	if visible then item_flags = {"goes-to-quickbar"} else item_flags = {"hidden"} end
+	
 	return merge_properties({
+		name = name,
 		type = "item",
 		subgroup = "factorissimo2",
-		stack_size = 1
+		icon = params.icon,
+		order = params.order,
+		flags = item_flags,
+		place_result = name,
+		stack_size = 1,
 	}, properties)
 end
 
@@ -78,25 +79,17 @@ function factory_overlay_base(properties)
 		minable = nil,
 		max_health = 1,
 		corpse = "big-remnants",
+		selection_box = properties.collision_box,
 		collision_mask = {},
 		selectable_in_game = false,
 		render_layer = "object",
 	}, properties)
 end
 
-local factory_1 = function(suffix, result_suffix, visible, count, sprite)
-	local name = "factory-1" .. suffix
-	local result_name = "factory-1" .. result_suffix
-	local item_flags
-	if visible then item_flags = {"goes-to-quickbar"} else item_flags = {"hidden"} end
+local factory_1 = function(params, suffix, result_suffix, visible, count, sprite)
 	return {
-		factory_base({
-			name = name,
-			icon = F.."/graphics/icon/factory-1.png",
-			minable = {mining_time = 5, result = result_name, count = count},
-			max_health = 2000,
-			collision_box = {{-3.8, -3.8}, {3.8, 3.8}},
-			selection_box = {{-3.8, -3.8}, {3.8, 3.8}},
+		factory_base(params, suffix, result_suffix, visible, count, {
+			collision_box = centered_square(7.6),
 			pictures = {
 				picture = {
 					sheet = {
@@ -113,29 +106,14 @@ local factory_1 = function(suffix, result_suffix, visible, count, sprite)
 				gas_flow = ablank(),
 			},
 		}),
-		factory_item_base({
-			name = name,
-			icon = F.."/graphics/icon/factory-1.png",
-			flags = item_flags,
-			order = "a-a",
-			place_result = name,
-		})
+		factory_item_base(params, suffix, visible, { })
 	};
 end
 
-local factory_2 = function(suffix, result_suffix, visible, count, sprite)
-	local name = "factory-2" .. suffix
-	local result_name = "factory-2" .. result_suffix
-	local item_flags
-	if visible then item_flags = {"goes-to-quickbar"} else item_flags = {"hidden"} end
+local factory_2 = function(params, suffix, result_suffix, visible, count, sprite)
 	return {
-		factory_base({
-			name = name,
-			icon = F.."/graphics/icon/factory-2.png",
-			minable = {mining_time = 5, result = result_name, count = count},
-			max_health = 3500,
-			collision_box = {{-5.8, -5.8}, {5.8, 5.8}},
-			selection_box = {{-5.8, -5.8}, {5.8, 5.8}},
+		factory_base(params, suffix, result_suffix, visible, count, {
+			collision_box = centered_square(11.6),
 			pictures = {
 				picture = {
 					sheet = {
@@ -152,29 +130,14 @@ local factory_2 = function(suffix, result_suffix, visible, count, sprite)
 				gas_flow = ablank(),
 			},
 		}),
-		factory_item_base({
-			name = name,
-			icon = F.."/graphics/icon/factory-2.png",
-			flags = item_flags,
-			order = "a-b",
-			place_result = name,
-		})
+		factory_item_base(params, suffix, visible, { })
 	};
 end
 
-local factory_3 = function(suffix, result_suffix, visible, count, sprite)
-	local name = "factory-3" .. suffix
-	local result_name = "factory-3" .. result_suffix
-	local item_flags
-	if visible then item_flags = {"goes-to-quickbar"} else item_flags = {"hidden"} end
+local factory_3 = function(params, suffix, result_suffix, visible, count, sprite)
 	return {
-		factory_base({
-			name = name,
-			icon = F.."/graphics/icon/factory-3.png",
-			minable = {mining_time = 5, result = result_name, count = count},
-			max_health = 5000,
-			collision_box = {{-7.8, -7.8}, {7.8, 7.8}},
-			selection_box = {{-7.8, -7.8}, {7.8, 7.8}},
+		factory_base(params, suffix, result_suffix, visible, count, {
+			collision_box = centered_square(15.6),
 			pictures = {
 				picture = {
 					sheet = {
@@ -191,75 +154,90 @@ local factory_3 = function(suffix, result_suffix, visible, count, sprite)
 				gas_flow = ablank(),
 			},
 		}),
-		factory_item_base({
-			name = name,
-			icon = F.."/graphics/icon/factory-3.png",
-			flags = item_flags,
-			order = "a-c",
-			place_result = name,
-		})
+		factory_item_base(params, suffix, visible, { })
 	};
 end
 
-
-data:extend(factory_1("", "", true, 0, F.."/graphics/factory/factory-1.png"))
-for i=Constants.factory_id_min,Constants.factory_id_max do
-	data:extend(factory_1("-s" .. i, "-s" .. i, false, 1, F.."/graphics/factory/factory-1-combined.png"))
-end
-data:extend(factory_1("-i", "", false, 1, F.."/graphics/factory/factory-1-combined.png"))
+function create_factory_entities(func, params)
+	data:extend(func(params, "", "", true, 0, params.image))
+	for i=Constants.factory_id_min,Constants.factory_id_max do
+		data:extend(func(params, "-s" .. i, "-s" .. i, false, 1, params.combined_image))
+	end
+	data:extend(func(params, "-i", "", false, 1, params.combined_image))
 	
-data:extend({
-	factory_overlay_base({
-		name = "factory-1-overlay",
-		collision_box = {{-3.8, -6.8}, {3.8, 0.8}},
-		selection_box = {{-3.8, -6.8}, {3.8, 0.8}},
-		picture = {
-			filename = F.."/graphics/factory/factory-1-combined.png",
-			width = 416,
-			height = 320,
-			shift = {1.5, -3}
-		},
+	data:extend({
+		factory_overlay_base({
+			name = params.name.."-overlay",
+			collision_box = params.overlay_collision_box,
+			picture = params.overlay_picture,
+		}),
+		{
+			type = "recipe",
+			name = params.name,
+			enabled = false,
+			result = params.name,
+			
+			energy_required = params.energy_required,
+			ingredients = params.ingredients
+		}
 	})
-})
-
-
-data:extend(factory_2("", "", true, 0, F.."/graphics/factory/factory-2.png"))
-for i=Constants.factory_id_min,Constants.factory_id_max do
-	data:extend(factory_2("-s" .. i, "-s" .. i, false, 1, F.."/graphics/factory/factory-2-combined.png"))
 end
-data:extend(factory_2("-i", "", false, 1, F.."/graphics/factory/factory-2-combined.png"))
 
-data:extend({
-	factory_overlay_base({
-		name = "factory-2-overlay",
-		collision_box = {{-5.8, -10.8}, {5.8, 0.8}},
-		selection_box = {{-5.8, -10.8}, {5.8, 0.8}},
-		picture = {
-			filename = F.."/graphics/factory/factory-2-combined.png",
-			width = 544,
-			height = 448,
-			shift = {1.5, -5},
-		},
-	})
+
+create_factory_entities(factory_1, {
+	name = "factory-1",
+	image = F.."/graphics/factory/factory-1.png",
+	combined_image = F.."/graphics/factory/factory-1-combined.png",
+	icon = F.."/graphics/icon/factory-1.png",
+	max_health = 2000,
+	order = "a-a",
+	
+	energy_required = 30,
+	ingredients = {{"stone", 500}, {"iron-plate", 500}, {"copper-plate", 100}},
+	
+	overlay_collision_box = {{-3.8, -6.8}, {3.8, 0.8}},
+	overlay_picture = {
+		filename = F.."/graphics/factory/factory-1-combined.png",
+		width = 416,
+		height = 320,
+		shift = {1.5, -3}
+	},
 })
-
-data:extend(factory_3("", "", true, 0, F.."/graphics/factory/factory-3.png"))
-for i=Constants.factory_id_min,Constants.factory_id_max do
-	data:extend(factory_3("-s" .. i, "-s" .. i, false, 1, F.."/graphics/factory/factory-3-combined.png"))
-end
-data:extend(factory_3("-i", "", false, 1, F.."/graphics/factory/factory-3-combined.png"))
-
-data:extend({
-	factory_overlay_base({
-		name = "factory-3-overlay",
-		collision_box = {{-7.8, -14.8}, {7.8, 0.8}},
-		selection_box = {{-7.8, -14.8}, {7.8, 0.8}},
-		picture = {
-			filename = F.."/graphics/factory/factory-3-combined.png",
-			width = 704,
-			height = 608,
-			shift = {2, -7.09375},
-		},
-	})
+create_factory_entities(factory_2, {
+	name = "factory-2",
+	image = F.."/graphics/factory/factory-2.png",
+	combined_image = F.."/graphics/factory/factory-2-combined.png",
+	icon = F.."/graphics/icon/factory-2.png",
+	max_health = 3500,
+	order = "a-b",
+	
+	energy_required = 46,
+	ingredients = {{"stone-brick", 1000}, {"steel-plate", 250}, {"big-electric-pole", 50}},
+	
+	overlay_collision_box = {{-5.8, -10.8}, {5.8, 0.8}},
+	overlay_picture = {
+		filename = F.."/graphics/factory/factory-2-combined.png",
+		width = 544,
+		height = 448,
+		shift = {1.5, -5},
+	},
 })
-
+create_factory_entities(factory_3, {
+	name = "factory-3",
+	image = F.."/graphics/factory/factory-3.png",
+	combined_image = F.."/graphics/factory/factory-3-combined.png",
+	icon = F.."/graphics/icon/factory-3.png",
+	max_health = 5000,
+	order = "a-c",
+	
+	energy_required = 60,
+	ingredients = {{"concrete", 5000}, {"steel-plate", 2000}, {"substation", 100}},
+	
+	overlay_collision_box = {{-7.8, -14.8}, {7.8, 0.8}},
+	overlay_picture = {
+		filename = F.."/graphics/factory/factory-3-combined.png",
+		width = 704,
+		height = 608,
+		shift = {2, -7.09375},
+	},
+})

@@ -1,3 +1,4 @@
+require("util")
 local F = "__Factorissimo2__"
 
 -- Pipe connectors
@@ -22,8 +23,8 @@ local function factory_pipe(name, height, order)
 			minable = {mining_time = 1, result = name},
 			max_health = 80,
 			corpse = "small-remnants",
-			collision_box = {{-0.0625, -0.0625}, {0.0625, 0.0625}},
-			selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+			collision_box = centered_square(0.125),
+			selection_box = centered_square(1.0),
 			fluid_box =
 			{
 				base_area = 25,
@@ -34,7 +35,7 @@ local function factory_pipe(name, height, order)
 					{ position = {0, 1} },
 				},
 			},
-			window_bounding_box = {{0,0}, {0,0}},
+			window_bounding_box = centered_square(0),
 			pictures = {
 				picture = {
 					sheet = {
@@ -161,8 +162,8 @@ data:extend({
 		max_health = 80,
 		corpse = "small-remnants",
 		
-		collision_box = {{-0.29, -0.29}, {0.29, 0.29}},
-		selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+		collision_box = centered_square(0.58),
+		selection_box = centered_square(1.0),
 		
 		fluid_box = {
 			base_area = 1,
@@ -287,8 +288,8 @@ data:extend({
 		max_health = 50,
 		corpse = "small-remnants",
 
-		collision_box = {{-0.35, -0.35}, {0.35, 0.35}},
-		selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+		collision_box = centered_square(0.7),
+		selection_box = centered_square(1.0),
 
 		item_slot_count = 15,
 
@@ -437,8 +438,8 @@ data:extend({
 		minable = {hardness = 0.2, mining_time = 0.5, result = "factory-requester-chest"},
 		max_health = 450,
 		corpse = "small-remnants",
-		collision_box = {{-0.35, -0.35}, {0.35, 0.35}},
-		selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+		collision_box = centered_square(0.7),
+		selection_box = centered_square(1.0),
 		inventory_size = 48,
 		logistic_mode = "requester",
 		open_sound = { filename = "__base__/sound/metallic-chest-open.ogg", volume=0.65 },
@@ -475,24 +476,6 @@ data:extend({
 -- bounding box shrunk because they aren't filled all the way to the edges. It
 -- is created as factories are being blueprinted, and deleted after the
 -- blueprint is applied.
-local function blank()
-	return {
-		filename = F.."/nothing.png",
-		priority = "high",
-		width = 1,
-		height = 1,
-	}
-end
-local function ablank()
-	return {
-		filename = F.."/nothing.png",
-		priority = "high",
-		width = 1,
-		height = 1,
-		frame_count = 1,
-	}
-end
-
 data:extend({
 	{
 		type = "item",
@@ -511,8 +494,8 @@ data:extend({
 		icon = F.."/graphics/indicator/blue-dot.png",
 		flags = {"placeable-player", "player-creation"},
 		max_health = 100,
-		collision_box = {{-0.35, -0.35}, {0.35, 0.35}},
-		selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+		collision_box = centered_square(0.7),
+		selection_box = centered_square(1.0),
 		collision_mask = {},
 		picture = {
 			-- Placeholder
@@ -548,8 +531,8 @@ data:extend({
 		icon = F.."/graphics/icon/factory-requester-chest.png",
 		max_health = 1000,
 		flags = {"placeable-player", "player-creation"},
-		collision_box = {{-0.35, -0.35}, {0.35, 0.35}},
-		selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+		collision_box = centered_square(0.7),
+		selection_box = centered_square(1.0),
 		energy_source = {
 			type = "electric",
 			usage_priority = "secondary-input",
@@ -598,8 +581,8 @@ data:extend({
 		minable = {hardness = 0.2, mining_time = 0.5, result = "factory-construction-requester-chest"},
 		max_health = 450,
 		corpse = "small-remnants",
-		collision_box = {{-0.35, -0.35}, {0.35, 0.35}},
-		selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+		collision_box = centered_square(0.7),
+		selection_box = centered_square(1.0),
 		inventory_size = 48,
 		logistic_mode = "requester",
 		open_sound = { filename = "__base__/sound/metallic-chest-open.ogg", volume=0.65 },

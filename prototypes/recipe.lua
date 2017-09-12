@@ -1,33 +1,5 @@
 data:extend({
 
-	-- Factory buildings
-	{
-		type = "recipe",
-		name = "factory-1",
-		enabled = false,
-		energy_required = 30,
-		ingredients = {{"stone", 500}, {"iron-plate", 500}, {"copper-plate", 100}},
-		result = "factory-1"
-	},
-
-	{
-		type = "recipe",
-		name = "factory-2",
-		enabled = false,
-		energy_required = 46,
-		ingredients = {{"stone-brick", 1000}, {"steel-plate", 250}, {"big-electric-pole", 50}},
-		result = "factory-2"
-	},
-	
-	{
-		type = "recipe",
-		name = "factory-3",
-		enabled = false,
-		energy_required = 60,
-		ingredients = {{"concrete", 5000}, {"steel-plate", 2000}, {"substation", 100}},
-		result = "factory-3"
-	},
-	
 	-- Utilities
 	{
 		type = "recipe",

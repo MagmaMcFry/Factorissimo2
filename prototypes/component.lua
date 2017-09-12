@@ -1,3 +1,4 @@
+require("util")
 local F = "__Factorissimo2__";
 
 local function cwc0()
@@ -8,25 +9,6 @@ local function cwc0c()
 end
 local function cc0()
 	return get_circuit_connector_sprites({0,0},nil,1)
-end
-
-local function blank()
-	return {
-		filename = F.."/graphics/nothing.png",
-		priority = "high",
-		width = 1,
-		height = 1,
-	}
-end
-
-local function ablank()
-	return {
-		filename = F.."/graphics/nothing.png",
-		priority = "high",
-		width = 1,
-		height = 1,
-		frame_count = 1,
-	}
 end
 
 local function ps()
@@ -111,7 +93,7 @@ end
 -- Factory power I/O
 
 function make_energy_interfaces(size,passive_input,passive_output,icon)
-	local j = size/2-0.3;
+	local selection_size = size-0.6;
 	local input_priority = (passive_input and "terciary") or "secondary-input"
 	local output_priority = (passive_output and "terciary") or "secondary-output"
 	-- I wish I could make only the input entity passive, so accumulators inside could charge, but there's a bug that prevents this from 
@@ -134,8 +116,8 @@ function make_energy_interfaces(size,passive_input,passive_output,icon)
 			},
 			energy_usage = "0MW",
 			energy_production = "0MW",
-			selection_box = {{-j,-j},{j,j}},
-			collision_box = {{-j,-j},{j,j}},
+			selection_box = centered_square(selection_size),
+			collision_box = centered_square(selection_size),
 			collision_mask = {},
 		},
 		{
@@ -156,8 +138,8 @@ function make_energy_interfaces(size,passive_input,passive_output,icon)
 			},
 			energy_usage = "0MW",
 			energy_production = "0MW",
-			selection_box = {{-j,-j},{j,j}},
-			collision_box = {{-j,-j},{j,j}},
+			selection_box = centered_square(selection_size),
+			collision_box = centered_square(selection_size),
 			collision_mask = {},
 		},
 	})
@@ -181,15 +163,15 @@ local function create_indicator(ctype, suffix, image)
 			flags = {"not-on-map"},
 			minable = nil,
 			max_health = 500,
-			selection_box = {{-0.4,-0.4},{0.4,0.4}},
-			collision_box = {{-0.4,-0.4},{0.4,0.4}},
+			selection_box = centered_square(0.8),
+			collision_box = centered_square(0.8),
 			collision_mask = {},
 			fluid_box = {
 				base_area = 1,
 				pipe_connections = {},
 			},
 			two_direction_only = false,
-			window_bounding_box = {{0,0},{0,0}},
+			window_bounding_box = centered_square(0),
 			pictures = {
 				picture = {
 					sheet = {
@@ -274,15 +256,14 @@ create_indicator("energy", "d100000", "yellow-dir")
 
 -- Other auxiliary entities
 
-local j = 0.99;
 data:extend({
 	{
 		type = "electric-pole",
 		name = "factory-power-pole",
 		minable = nil,
 		max_health = 1,
-		selection_box = {{-j,-j},{j,j}},
-		collision_box = {{-j,-j},{j,j}},
+		selection_box = centered_square(1.99),
+		collision_box = centered_square(1.99),
 		collision_mask = {},
 		maximum_wire_distance = 0,
 		supply_area_distance = 63,
@@ -310,9 +291,9 @@ data:extend({
 		minable = nil,
 		max_health = 55,
 		corpse = "small-remnants",
-		collision_box = {{-0.15, -0.15}, {0.15, 0.15}},
+		collision_box = centered_square(0.3),
 		collision_mask = {},
-		selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+		selection_box = centered_square(1.0),
 		selectable_in_game = false,
 		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
 		energy_source =
@@ -371,8 +352,8 @@ data:extend({
 		max_health = 100,
 		corpse = "small-remnants",
 		resistances = {},
-		collision_box = {{-0.35, -0.35}, {0.35, 0.35}},
-		selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+		collision_box = centered_square(0.7),
+		selection_box = centered_square(1.0),
 		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
 	},
 
@@ -412,9 +393,9 @@ data:extend({
 		max_health = 100,
 		corpse = "small-remnants",
 		resistances = {},
-		collision_box = {{-1.85, -1.85}, {1.85, 1.85}},
+		collision_box = centered_square(3.7),
 		collision_mask = {},
-		selection_box = {{-2, -2}, {2, 2}},
+		selection_box = centered_square(4),
 		selectable_in_game = false,
 		scale_info_icons = true,
 		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
@@ -425,9 +406,9 @@ data:extend({
 		flags = {"not-on-map"},
 		minable = nil,
 		max_health = 500,
-		selection_box = {{-0.4,-0.4},{0.4,0.4}},
+		selection_box = centered_square(0.8),
 		selectable_in_game = false,
-		collision_box = {{-0.4,-0.4},{0.4,0.4}},
+		collision_box = centered_square(0.8),
 		collision_mask = {},
 		fluid_box = {
 			base_area = 0, -- Important, because fluid displacement on deconstruction ignores connection type
@@ -438,8 +419,8 @@ data:extend({
 				{position = {-1, 0}, type = "output"},
 			},
 		},
-		horizontal_window_bounding_box = {{0,0},{0,0}},
-		vertical_window_bounding_box = {{0,0},{0,0}},
+		horizontal_window_bounding_box = centered_square(0),
+		vertical_window_bounding_box = centered_square(0),
 		pictures = blankpipepictures(),
 		vehicle_impact_sound = {filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65},
 	},
@@ -449,9 +430,9 @@ data:extend({
 		flags = {"not-on-map"},
 		minable = nil,
 		max_health = 500,
-		selection_box = {{-0.4,-0.4},{0.4,0.4}},
+		selection_box = centered_square(0.8),
 		selectable_in_game = false,
-		collision_box = {{-0.4,-0.4},{0.4,0.4}},
+		collision_box = centered_square(0.8),
 		collision_mask = {},
 		fluid_box = {
 			base_area = 0, -- Important, because fluid displacement on deconstruction ignores connection type
@@ -462,8 +443,8 @@ data:extend({
 				{position = {-1, 0}, type = "output"},
 			},
 		},
-		horizontal_window_bounding_box = {{0,0},{0,0}},
-		vertical_window_bounding_box = {{0,0},{0,0}},
+		horizontal_window_bounding_box = centered_square(0),
+		vertical_window_bounding_box = centered_square(0),
 		pictures = southpipepictures(),
 		vehicle_impact_sound = {filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65},
 	},
@@ -475,9 +456,9 @@ data:extend({
 		minable = nil,
 		max_health = 40,
 		resource_categories = {"basic-solid"},
-		selection_box = {{-0.4,-0.4},{0.4,0.4}},
+		selection_box = centered_square(0.8),
 		selectable_in_game = false,
-		collision_box = {{-0.4,-0.4},{0.4,0.4}},
+		collision_box = centered_square(0.8),
 		collision_mask = {},
 		energy_source = {
 			type = "electric",
