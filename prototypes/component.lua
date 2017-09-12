@@ -98,6 +98,16 @@ local function southpipepictures()
 	}
 end
 
+function overlay_controller_picture()
+	return {
+		filename = "__base__/graphics/entity/iron-chest/iron-chest.png",
+		priority = "extra-high",
+		width = 48,
+		height = 34,
+		shift = {0.1875, 0}
+	}
+end
+
 -- Factory power I/O
 
 function make_energy_interfaces(size,passive_input,passive_output,icon)
@@ -326,54 +336,88 @@ data:extend({
 	},
 	
 	{
-		type = "container",
+		type = "constant-combinator",
 		name = "factory-overlay-controller",
 		icon = "__base__/graphics/icons/iron-chest.png",
+		item_slot_count = 4,
+		
+		sprites = {
+			north = overlay_controller_picture(),
+			east = overlay_controller_picture(),
+			south = overlay_controller_picture(),
+			west = overlay_controller_picture(),
+		},
+		activity_led_sprites = {
+			north = blank(),
+			east = blank(),
+			south = blank(),
+			west = blank(),
+		},
+		activity_led_light_offsets = {
+			{x=0,y=0},
+			{x=0,y=0},
+			{x=0,y=0},
+			{x=0,y=0},
+		},
+		circuit_wire_connection_points = {
+			{ wire = { }, shadow = { } },
+			{ wire = { }, shadow = { } },
+			{ wire = { }, shadow = { } },
+			{ wire = { }, shadow = { } },
+		},
+		
 		flags = {},
 		minable = nil,
 		max_health = 100,
 		corpse = "small-remnants",
-		open_sound = { filename = "__base__/sound/metallic-chest-open.ogg", volume=0.65 },
-		close_sound = { filename = "__base__/sound/metallic-chest-close.ogg", volume = 0.7 },
 		resistances = {},
 		collision_box = {{-0.35, -0.35}, {0.35, 0.35}},
 		selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
-		inventory_size = 4,
 		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
-		picture = {
-			filename = "__base__/graphics/entity/iron-chest/iron-chest.png",
-			priority = "extra-high",
-			width = 48,
-			height = 34,
-			shift = {0.1875, 0}
-		},
-		circuit_wire_connection_point = cwc0(),
-		circuit_connector_sprites = get_circuit_connector_sprites({0.1875, 0.15625}, nil, 18),
-		circuit_wire_max_distance = 0
 	},
 
 	{
-		type = "container",
+		type = "constant-combinator",
 		name = "factory-overlay-display",
 		icon = "__base__/graphics/icons/iron-chest.png",
+		item_slot_count = 4,
+		
+		sprites = {
+			north = blank(),
+			east = blank(),
+			south = blank(),
+			west = blank(),
+		},
+		activity_led_sprites = {
+			north = blank(),
+			east = blank(),
+			south = blank(),
+			west = blank(),
+		},
+		activity_led_light_offsets = {
+			{x=0,y=0},
+			{x=0,y=0},
+			{x=0,y=0},
+			{x=0,y=0},
+		},
+		circuit_wire_connection_points = {
+			{ wire = { }, shadow = { } },
+			{ wire = { }, shadow = { } },
+			{ wire = { }, shadow = { } },
+			{ wire = { }, shadow = { } },
+		},
+		
 		flags = {"not-on-map"},
 		minable = nil,
 		max_health = 100,
 		corpse = "small-remnants",
-		open_sound = { filename = "__base__/sound/metallic-chest-open.ogg", volume=0.65 },
-		close_sound = { filename = "__base__/sound/metallic-chest-close.ogg", volume = 0.7 },
 		resistances = {},
 		collision_box = {{-1.85, -1.85}, {1.85, 1.85}},
 		collision_mask = {},
 		selection_box = {{-2, -2}, {2, 2}},
 		selectable_in_game = false,
 		scale_info_icons = true,
-		inventory_size = 4,
 		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
-		picture = blank(),
-		circuit_wire_connection_point = cwc0(),
-		circuit_connector_sprites = get_circuit_connector_sprites({0.1875, 0.15625}, nil, 18),
-		circuit_wire_max_distance = 0
 	},
 	{
 		type = "pipe",
