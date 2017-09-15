@@ -159,18 +159,34 @@ local factory_3 = function(params, suffix, result_suffix, visible, count, sprite
 end
 
 function create_factory_entities(func, params)
+	-- Craftable factory object, with no corresponding interior generated
 	data:extend(func(params, "", "", true, 0, params.image))
+	
+	-- Inactive factory object, for when the player put down a factory building
+	-- but it was invalid in some way (eg recursion without the technology
+	-- being researched).
+	data:extend(func(params, "-i", "", false, 1, params.combined_image))
+	
+	-- Saved factory entities - that is, for when the player placed a factory,
+	-- populated it, and then picked it back up. There's a set of special
+	-- entities for these (since entity-type-name is the only property that
+	-- gets reliably preserved when in inventory), and that's the maximum
+	-- number of factories you can have picked up.
 	for i=Constants.factory_id_min,Constants.factory_id_max do
 		data:extend(func(params, "-s" .. i, "-s" .. i, false, 1, params.combined_image))
 	end
-	data:extend(func(params, "-i", "", false, 1, params.combined_image))
 	
+	-- Factory overlay entity
 	data:extend({
 		factory_overlay_base({
 			name = params.name.."-overlay",
 			collision_box = params.overlay_collision_box,
 			picture = params.overlay_picture,
-		}),
+		})
+	})
+	
+	-- Crafting recipe
+	data:extend({
 		{
 			type = "recipe",
 			name = params.name,
@@ -195,7 +211,7 @@ create_factory_entities(factory_1, {
 	energy_required = 30,
 	ingredients = {{"stone", 500}, {"iron-plate", 500}, {"copper-plate", 100}},
 	
-	overlay_collision_box = {{-3.8, -6.8}, {3.8, 0.8}},
+	overlay_collision_box = shift_bounds_by(0, -3, centered_square(7.6)),
 	overlay_picture = {
 		filename = F.."/graphics/factory/factory-1-combined.png",
 		width = 416,
@@ -214,7 +230,7 @@ create_factory_entities(factory_2, {
 	energy_required = 46,
 	ingredients = {{"stone-brick", 1000}, {"steel-plate", 250}, {"big-electric-pole", 50}},
 	
-	overlay_collision_box = {{-5.8, -10.8}, {5.8, 0.8}},
+	overlay_collision_box = shift_bounds_by(0, -5, centered_square(11.6)),
 	overlay_picture = {
 		filename = F.."/graphics/factory/factory-2-combined.png",
 		width = 544,
@@ -233,7 +249,7 @@ create_factory_entities(factory_3, {
 	energy_required = 60,
 	ingredients = {{"concrete", 5000}, {"steel-plate", 2000}, {"substation", 100}},
 	
-	overlay_collision_box = {{-7.8, -14.8}, {7.8, 0.8}},
+	overlay_collision_box = shift_bounds_by(0, -7, centered_square(15.6)),
 	overlay_picture = {
 		filename = F.."/graphics/factory/factory-3-combined.png",
 		width = 704,

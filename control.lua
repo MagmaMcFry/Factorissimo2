@@ -361,22 +361,10 @@ local function create_factory_position()
 	local cy = 16*math.floor(n / 8)
 	
 	-- To make void chunks show up on the map, you need to tell them they've finished generating.
-	surface.set_chunk_generated_status({cx-2, cy-2}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx-1, cy-2}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx+0, cy-2}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx+1, cy-2}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx-2, cy-1}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx-1, cy-1}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx+0, cy-1}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx+1, cy-1}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx-2, cy+0}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx-1, cy+0}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx+0, cy+0}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx+1, cy+0}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx-2, cy+1}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx-1, cy+1}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx+0, cy+1}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx+1, cy+1}, defines.chunk_generated_status.entities)
+	for xi=-2,1 do
+	for yi=-2,1 do
+		surface.set_chunk_generated_status({cx+xi, cy+yi}, defines.chunk_generated_status.entities)
+	end end
 	
 	local factory = {}
 	factory.inside_surface = surface
@@ -584,7 +572,7 @@ end
 
 local SAVE_NAMES = {} -- Set of all valid factory save names
 local SAVE_ITEMS = {}
-for _,f in ipairs({"factory-1", "factory-2", "factory-3"}) do
+for _,f in ipairs(Constants.factory_type_names) do
 	SAVE_ITEMS[f] = {}
 	for n = Constants.factory_id_min,Constants.factory_id_max do
 		SAVE_NAMES[f .. "-s" .. n] = true
