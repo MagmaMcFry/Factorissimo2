@@ -298,7 +298,11 @@ local function build_display_upgrade(factory)
 	if factory.upgrades.display then return end
 	factory.upgrades.display = true
 	for id, pos in pairs(factory.layout.overlays) do
-		local controller = factory.inside_surface.create_entity{name = "factory-overlay-controller", position = {factory.inside_x + pos.inside_x, factory.inside_y + pos.inside_y}, force = factory.force}
+		local controller = factory.inside_surface.create_entity {
+			name = "factory-overlay-controller",
+			position = {factory.inside_x + pos.inside_x, factory.inside_y + pos.inside_y},
+			force = factory.force
+		}
 		controller.destructible = false
 		controller.rotatable = false
 		factory.inside_overlay_controllers[id] = controller
@@ -316,7 +320,7 @@ local function update_overlay(factory)
 				local behavior = controller.get_control_behavior()
 				local display_behavior = display.get_control_behavior()
 				
-				for i=1,4 do
+				for i=1,Constants.overlay_slot_count do
 					local signal = behavior.get_signal(i)
 					if display_behavior and signal and signal.signal then
 						display_behavior.set_signal(i, signal)
@@ -497,7 +501,11 @@ local function create_factory_exterior(factory, building)
 	factory.outside_overlay_displays = {}
 	
 	for id, pos in pairs(layout.overlays) do
-		local display = factory.outside_surface.create_entity{name = "factory-overlay-display", position = {factory.outside_x + pos.outside_x, factory.outside_y + pos.outside_y}, force = force}
+		local display = factory.outside_surface.create_entity {
+			name = "factory-overlay-display-"..pos.outside_size,
+			position = {factory.outside_x + pos.outside_x, factory.outside_y + pos.outside_y},
+			force = force
+		}
 		display.destructible = false
 		display.operable = false
 		display.rotatable = false
@@ -844,11 +852,32 @@ function factory_to_blueprint_string(factory, force)
 	-- Modify the blueprint to record the contents of any nested factories
 	blueprint_record_factory_contents(blueprint.stack, inside_area, factory.inside_surface, force)
 	
+	-- Record the filter settings on any overlay controllers
+	local extended_inside_area = {
+		left_top = {
+			x = inside_area.left_top.x-1,
+			y = inside_area.left_top.y-1
+		},
+		right_bottom = {
+			x = inside_area.right_bottom.x+1,
+			y = inside_area.right_bottom.y+1
+		}
+	}
+	local overlay_controllers = factory.inside_surface.find_entities_filtered {
+		area = extended_inside_area,
+		name = "factory-overlay-controller",
+	}
+	local overlay_list={}
+	for _,overlay_controller in pairs(overlay_controllers) do
+		table.insert(overlay_list, extract_overlay_controller_settings(overlay_controller))
+	end
+	
 	local blueprint_table = {
 		entities = blueprint.stack.get_blueprint_entities(),
 		tiles = blueprint.stack.get_blueprint_tiles(),
 		icons = blueprint.stack.blueprint_icons,
 		name = "Factory blueprint",
+		overlays = overlay_list
 	}
 	
 	-- Serialize
@@ -859,6 +888,47 @@ function factory_to_blueprint_string(factory, force)
 	remove_bounds_markers(factory.inside_surface, get_factory_inside_area(factory))
 	
 	return blueprintString
+end
+
+function extract_overlay_controller_settings(overlay_controller)
+	signals = {}
+	local behavior = overlay_controller.get_control_behavior()
+	for i=1,Constants.overlay_slot_count do
+		local signal = behavior.get_signal(i)
+		if signal.signal then
+			signals[i] = {
+				type = signal.signal.type,
+				count = signal.count,
+				name = signal.signal.name
+			}
+		else
+			signals[i] = nil
+		end
+	end
+	return {
+		x = overlay_controller.position.x,
+		y = overlay_controller.position.y,
+		overlay_signals = signals
+	}
+end
+
+function apply_overlay_controller_settings(settings, overlay_controller)
+	local behavior = overlay_controller.get_control_behavior()
+	if behavior and settings.overlay_signals then
+		for i=1,Constants.overlay_slot_count do
+			if settings.overlay_signals[i] then
+				behavior.set_signal(i, {
+					signal = {
+						type = settings.overlay_signals[i].type,
+						name = settings.overlay_signals[i].name
+					},
+					count = 1
+				})
+			else
+				behavior.set_signal(i, nil)
+			end
+		end
+	end
 end
 
 function get_factory_inside_area(factory)
@@ -888,6 +958,7 @@ function apply_blueprint_to_factory(factory, force, blueprint_string, direction)
 	}
 	
 	local blueprint_table = BlueprintString.fromString(blueprint_string)
+	local overlays = blueprint_table.overlays
 	blueprint.stack.set_blueprint_entities(blueprint_table.entities)
 	blueprint.stack.set_blueprint_tiles(blueprint_table.tiles)
 	blueprint.stack.blueprint_icons = blueprint_table.icons
@@ -924,9 +995,71 @@ function apply_blueprint_to_factory(factory, force, blueprint_string, direction)
 		direction = compass_dir,
 	}
 	
+	-- Apply overlay settings
+	for i,overlay in ipairs(blueprint_table.overlays) do
+		local rotated_overlay_controller_pos = find_rotated_overlay_controller(factory, direction, overlay.x, overlay.y)
+		if rotated_overlay_controller_pos then
+			local pos = {x=rotated_overlay_controller_pos.x, y=rotated_overlay_controller_pos.y}
+			local controller_maybe = factory.inside_surface.find_entities_filtered {
+				area = {
+					top_left     = { x=pos.x-.5, y=pos.y-.5 },
+					bottom_right = { x=pos.x+.5, y=pos.y+.5 },
+				},
+				name = "factory-overlay-controller",
+			}
+			if (#controller_maybe) == 1 then
+				local controller = controller_maybe[1]
+				apply_overlay_controller_settings(overlay, controller)
+			end
+		end
+	end
+	update_overlay(factory)
+	
 	-- Clean up the temporary blueprint object and bounds markers
 	blueprint.destroy()
 	remove_bounds_marker_ghosts(factory.inside_surface, get_factory_inside_area(factory))
+end
+
+-- Given a factory, the inside (x,y) position of an overlay controller, and a
+-- rotation, find the corresponding connection, find the rotated version of
+-- that connection, and return the position of that connection's overlay
+-- controller.
+function find_rotated_overlay_controller(factory, direction, x, y)
+	local connections = factory.layout.connections
+	local connection_id = nil
+	
+	-- Find the overlay specification in the factory layout
+	local overlay_specification = nil
+	for id,o in pairs(factory.layout.overlays) do
+		if o.inside_x==x and o.inside_y==y then
+			connection_id = id
+			break
+		end
+	end
+	if connection_id == nil then
+		return nil
+	end
+	
+	-- Get the corresponding connection specification
+	local connection = connections[connection_id]
+	if connection == nil then
+		return nil
+	end
+	
+	-- Find the rotated connection
+	local rotated_connection_id
+	if direction == 0 then
+		rotated_connection_id = connection.id
+	elseif direction == 0.25 then
+		rotated_connection_id = connection.rotates_to
+	elseif direction == 0.5 then
+		rotated_connection_id = connections[connection.rotates_to].rotates_to
+	elseif direction == 0.75 then
+		rotated_connection_id = connections[connections[connection.rotates_to].rotates_to].rotates_to
+	end
+	
+	local rotated_overlay = factory.layout.overlays[rotated_connection_id]
+	return { x=rotated_overlay.inside_x, y=rotated_overlay.inside_y }
 end
 
 function place_bounds_markers(surface, force, rect)
@@ -1340,7 +1473,7 @@ script.on_event(defines.events.on_marked_for_deconstruction, function(event)
 				entity.destroy()
 				set_entity_to_factory(newbuilding, factory)
 				factory.building = newbuilding
-				entity.surface.print("Could not pick up factory, too many factories picked up at once")			
+				game.print("Could not pick up factory, too many factories picked up at once")			
 			end
 		end
 	end

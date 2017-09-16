@@ -12,17 +12,6 @@ local function cc0()
 end
 
 
-function merge_properties(a,b)
-	local result = {}
-	for k,v in pairs(a) do
-		result[k] = v
-	end
-	for k,v in pairs(b)  do
-		result[k] = v
-	end
-	return result
-end
-
 function factory_base(params, suffix, result_suffix, visible, count, properties)
 	local name = params.name .. suffix
 	local result_name = params.name .. result_suffix

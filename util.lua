@@ -41,11 +41,22 @@ end
 
 -- Given a list of x-coords and y-coords, returns a grid of points; or, more
 -- abstractly, returns the cross-product of two lists.
-local function grid_of(x_list, y_list)
+function grid_of(x_list, y_list)
 	local result = {}
 	for _,xi in ipairs(x_list) do
 	for _,yi in ipairs(y_list) do
 		table.insert(result, {x=xi,y=yi})
 	end end
+	return result
+end
+
+function merge_properties(a,b)
+	local result = {}
+	for k,v in pairs(a) do
+		result[k] = v
+	end
+	for k,v in pairs(b)  do
+		result[k] = v
+	end
 	return result
 end

@@ -1,4 +1,5 @@
 require("util")
+require("constants")
 local F = "__Factorissimo2__";
 
 local function cwc0()
@@ -320,7 +321,7 @@ data:extend({
 		type = "constant-combinator",
 		name = "factory-overlay-controller",
 		icon = "__base__/graphics/icons/iron-chest.png",
-		item_slot_count = 4,
+		item_slot_count = Constants.overlay_slot_count,
 		
 		sprites = {
 			north = overlay_controller_picture(),
@@ -359,9 +360,52 @@ data:extend({
 
 	{
 		type = "constant-combinator",
-		name = "factory-overlay-display",
+		name = "factory-overlay-display-1",
 		icon = "__base__/graphics/icons/iron-chest.png",
-		item_slot_count = 4,
+		item_slot_count = Constants.overlay_slot_count,
+		
+		sprites = {
+			north = blank(),
+			east = blank(),
+			south = blank(),
+			west = blank(),
+		},
+		activity_led_sprites = {
+			north = blank(),
+			east = blank(),
+			south = blank(),
+			west = blank(),
+		},
+		activity_led_light_offsets = {
+			{x=0,y=0},
+			{x=0,y=0},
+			{x=0,y=0},
+			{x=0,y=0},
+		},
+		circuit_wire_connection_points = {
+			{ wire = { }, shadow = { } },
+			{ wire = { }, shadow = { } },
+			{ wire = { }, shadow = { } },
+			{ wire = { }, shadow = { } },
+		},
+		
+		flags = {"not-on-map"},
+		minable = nil,
+		max_health = 100,
+		corpse = "small-remnants",
+		resistances = {},
+		collision_box = centered_square(1),
+		collision_mask = {},
+		selection_box = centered_square(1),
+		selectable_in_game = false,
+		scale_info_icons = true,
+		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
+	},
+	{
+		type = "constant-combinator",
+		name = "factory-overlay-display-2",
+		icon = "__base__/graphics/icons/iron-chest.png",
+		item_slot_count = Constants.overlay_slot_count,
 		
 		sprites = {
 			north = blank(),
