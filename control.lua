@@ -560,6 +560,36 @@ local function toggle_port_markers(factory)
 	end
 end
 
+local function rotate_factory(factory)
+	-- Check whether this contains anything that isn't a blueprint ghost.
+	-- If so, error out (because some things can't be moved once they're
+	-- placed)
+	local inside_area = get_factory_inside_area(factory)
+	local contents = factory.inside_surface.find_entities(inside_area)
+	for _,entity in pairs(contents) do
+		if entity.name ~= "entity-ghost" and entity.name ~= "factory-ceiling-light" then
+			game.print("Can't rotate factory because it contains "..entity.name)
+			return
+		end
+	end
+	
+	-- Create a blueprint which captures the factory contents
+	local blueprint_string = factory_to_blueprint_string(factory, factory.force)
+	
+	-- Clear the factory
+	for _,entity in pairs(contents) do
+		if entity.name == "entity-ghost" then
+			entity.order_deconstruction(factory.force)
+		end
+	end
+	
+	-- Apply the blueprint, but rotated
+	apply_blueprint_to_factory(factory, factory.force, blueprint_string, 0.5)
+	
+	-- Rotate the exterior building
+	factory.building.direction = (factory.building.direction + 0.25) % 1.0
+end
+
 local function cleanup_factory_exterior(factory, building)
 	Connections.disconnect_factory(factory)
 	factory.outside_energy_sender.destroy()
@@ -822,7 +852,7 @@ script.on_event({defines.events.on_entity_settings_pasted}, function(event)
 		
 		local blueprint_string = factory_to_blueprint_string(source_factory, player.force)
 		apply_blueprint_to_factory(dest_factory, player.force, blueprint_string,
-			defines.direction.north)
+			0.25)
 	end
 end)
 
@@ -1047,19 +1077,27 @@ function find_rotated_overlay_controller(factory, direction, x, y)
 	end
 	
 	-- Find the rotated connection
-	local rotated_connection_id
-	if direction == 0 then
-		rotated_connection_id = connection.id
-	elseif direction == 0.25 then
-		rotated_connection_id = connection.rotates_to
-	elseif direction == 0.5 then
-		rotated_connection_id = connections[connection.rotates_to].rotates_to
-	elseif direction == 0.75 then
-		rotated_connection_id = connections[connections[connection.rotates_to].rotates_to].rotates_to
+	local rotated_connection_id = connection.id
+	for i=1,direction_to_rotation_count(direction) do
+		rotated_connection_id = connections[rotated_connection_id].rotates_to
 	end
 	
 	local rotated_overlay = factory.layout.overlays[rotated_connection_id]
 	return { x=rotated_overlay.inside_x, y=rotated_overlay.inside_y }
+end
+
+function direction_to_rotation_count(direction)
+	if direction == 0 then
+		return 3
+	elseif direction == 0.25 then
+		return 0
+	elseif direction == 0.5 then
+		return 1
+	elseif direction == 0.75 then
+		return 2
+	else
+		game.print("Invalid direction: "..direction)
+	end
 end
 
 function place_bounds_markers(surface, force, rect)
@@ -1767,12 +1805,18 @@ script.on_event(defines.events.on_player_rotated_entity, function(event)
 end)
 
 script.on_event("factory-rotate", function(event)
-	local entity = game.players[event.player_index].selected
+	local player = game.players[event.player_index]
+	local entity = player.selected
 	if not entity then return end
 	if HasLayout(entity.name) then
 		local factory = get_factory_by_building(entity)
 		if factory then
-			toggle_port_markers(factory)
+			-- toggle_port_markers(factory)
+			if player.force == factory.force then
+				rotate_factory(factory)
+			else
+				player.print("That building belongs to another team")
+			end
 		end
 	elseif CONNECTION_INDICATOR_NAMES[entity.name] then
 		local factory = find_surrounding_factory(entity.surface, entity.position)
