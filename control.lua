@@ -856,13 +856,22 @@ script.on_event({defines.events.on_entity_settings_pasted}, function(event)
 	end
 end)
 
-function factory_to_blueprint_string(factory, force)
-	-- Create a blueprint covering the contents of a factory floor
-	local blueprint = factory.inside_surface.create_entity{
+-- Create a temporary blueprint item, for generating blueprint strings or
+-- applying them. Takes a factory and places it in an empty (player
+-- inacecssible) position.
+function create_temp_blueprint(factory)
+	local surface = factory.inside_surface
+	local item_on_ground = surface.create_entity {
 		name = "item-on-ground",
-		position = {0,0},
+		position = {64,64},
 		stack = { name="blueprint" },
 	}
+	return item_on_ground
+end
+
+function factory_to_blueprint_string(factory, force)
+	-- Create a blueprint covering the contents of a factory floor
+	local blueprint = create_temp_blueprint(factory)
 	
 	local bounds_markers = place_bounds_markers(
 		factory.inside_surface, force, get_factory_inside_area(factory))
@@ -981,11 +990,7 @@ end
 
 function apply_blueprint_to_factory(factory, force, blueprint_string, direction)
 	-- Unpack the blueprint
-	local blueprint = factory.inside_surface.create_entity{
-		name = "item-on-ground",
-		position = {0,0},
-		stack = { name="blueprint" },
-	}
+	local blueprint = create_temp_blueprint(factory)
 	
 	local blueprint_table = BlueprintString.fromString(blueprint_string)
 	local overlays = blueprint_table.overlays
