@@ -177,13 +177,14 @@ data:extend({
 		name = "factory-robotic-construction",
 		icon = F.."/graphics/technology/factory-requester-chest.png",
 		icon_size = 128,
-		prerequisites = {"factory-architecture-t1", "construction-robotics"},
+		-- prerequisites = {"factory-architecture-t1", "construction-robotics"},
+		prerequisites = {"factory-architecture-t1"},
 		effects = {
 			{type = "unlock-recipe", recipe = "factory-construction-requester-chest"},
 		},
 		unit = {
 			count = easy_research and 20 or 100,
-			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1},{"science-pack-3", 1}},
+			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1}},
 			time = 30
 		},
 		order = pf.."d-c",

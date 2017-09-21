@@ -6,7 +6,7 @@ data:extend({
 		name = "factory-construction-requester-chest",
 		enabled = false,
 		energy_required = 1,
-		ingredients = {{"steel-chest", 1}, {"advanced-circuit", 5}},
+		ingredients = {{"steel-chest", 1}, {"electronic-circuit", 5}},
 		result = "factory-construction-requester-chest"
 	},
 	{
