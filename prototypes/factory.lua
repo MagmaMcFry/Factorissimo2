@@ -57,7 +57,7 @@ function factory_item_base(params, suffix, visible, properties)
 		order = params.order,
 		flags = item_flags,
 		place_result = name,
-		stack_size = 1,
+		stack_size = (suffix=="" and 10 or 1),
 	}, properties)
 end
 
@@ -149,7 +149,7 @@ end
 
 function create_factory_entities(func, params)
 	-- Craftable factory object, with no corresponding interior generated
-	data:extend(func(params, "", "", true, 0, params.image))
+	data:extend(func(params, "", "", true, 0, params.combined_image))
 	
 	-- Inactive factory object, for when the player put down a factory building
 	-- but it was invalid in some way (eg recursion without the technology
@@ -164,15 +164,6 @@ function create_factory_entities(func, params)
 	for i=Constants.factory_id_min,Constants.factory_id_max do
 		data:extend(func(params, "-s" .. i, "-s" .. i, false, 1, params.combined_image))
 	end
-	
-	-- Factory overlay entity
-	data:extend({
-		factory_overlay_base({
-			name = params.name.."-overlay",
-			collision_box = params.overlay_collision_box,
-			picture = params.overlay_picture,
-		})
-	})
 	
 	-- Crafting recipe
 	data:extend({

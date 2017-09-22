@@ -34,9 +34,6 @@ local function factory_layout_base(properties)
 		inside_energy_y = properties.inside_size/2 + 2,
 		energy_indicator_x = -3.5,
 		energy_indicator_y = properties.inside_size/2 + 3.5,
-		overlay_x = 0,
-		overlay_y = properties.outside_size/2 - 1,
-		overlay_name = properties.name.."-overlay",
 		outside_energy_receiver_type = "factory-power-input-"..properties.outside_size,
 		outside_energy_sender_type = "factory-power-output-"..properties.outside_size,
 	}, properties)
