@@ -1209,9 +1209,9 @@ function apply_blueprint_to_factory(factory, force, blueprint_string, direction)
 	
 	-- Apply overlay settings
 	for _,overlay in ipairs(blueprint_table.overlays) do
-		local rotated_overlay_controller_pos = find_rotated_overlay_controller(factory, direction, overlay.x-factory.inside_x, overlay.y-factory.inside_y)
+		local rotated_overlay_controller_pos = find_rotated_overlay_controller(factory, direction, overlay.x, overlay.y)
 		if rotated_overlay_controller_pos then
-			local pos = {x=rotated_overlay_controller_pos.x, y=rotated_overlay_controller_pos.y}
+			local pos = {x=rotated_overlay_controller_pos.x+factory.inside_x, y=rotated_overlay_controller_pos.y+factory.inside_y}
 			local controller_maybe = factory.inside_surface.find_entities_filtered {
 				area = {
 					top_left     = { x=pos.x-.5, y=pos.y-.5 },
@@ -1567,7 +1567,7 @@ script.on_event(defines.events.on_player_configured_blueprint, function(event)
 	local blueprint = player.cursor_stack
 	local force = player.force
 	
-	if blueprint == nil then
+	if blueprint == nil or not blueprint.valid or not blueprint.valid_for_read then
 		return
 	end
 	
@@ -1581,6 +1581,10 @@ script.on_event(defines.events.on_player_configured_blueprint, function(event)
 end)
 
 function blueprint_record_factory_contents(blueprint, area, surface, force)
+	if not blueprint.valid then
+		return
+	end
+	
 	-- Check whether the blueprint contains any factory buildings. If not, skip the
 	-- rest of this.
 	if not blueprint_contains_factories(blueprint) then
