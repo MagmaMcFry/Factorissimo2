@@ -912,6 +912,7 @@ function on_entity_built(entity)
 		else
 			entity.surface.create_entity{name=entity.name .. "-i", position=entity.position, force=entity.force}
 			entity.destroy()
+			return
 		end
 		
 		-- Look for adjacent factory-contents-markers and ghosts thereof. If
@@ -970,6 +971,9 @@ function on_entity_built(entity)
 end
 
 function find_factory_content_marker_near(entity)
+	if not entity or not entity.valid then
+		return nil
+	end
 	local search_area = neighbor_area_from_collision_box(entity.position, entity.prototype.collision_box)
 	
 	local nearby = entity.surface.find_entities(search_area)
@@ -1375,7 +1379,7 @@ function build_ghosts(factory, items_to_use, items_spent, missing_items)
 	-- Count up items requested for ghosts
 	for _,entity in pairs(entities) do
 		-- Use items to revive ghosts
-		if entity.name=="entity-ghost" and entity.valid and entity.ghost_prototype and entity.ghost_prototype.items_to_place_this then
+		if entity and entity.valid and entity.name=="entity-ghost" and entity.ghost_prototype and entity.ghost_prototype.items_to_place_this then
 			local ghost = entity
 			local item_needed = ghost.ghost_prototype.items_to_place_this
 			local requests = {}
@@ -1409,7 +1413,7 @@ function build_ghosts(factory, items_to_use, items_spent, missing_items)
 		end
 		
 		-- Fill module requests
-		if entity.name=="item-request-proxy" then
+		if entity and entity.valid and entity.name=="item-request-proxy" then
 			local updated_requests = entity.item_requests
 			local unsatisfied_requests = 0
 			local changed = false
@@ -1492,7 +1496,7 @@ function update_construction_chest(construction_requester_chest)
 		local request = { name = item, count = num }
 		construction_requester_chest.set_request_slot(request, request_slot_index)
 		request_slot_index = request_slot_index+1
-		if request_slot_index >= num_request_slots then
+		if request_slot_index > num_request_slots then
 			break
 		end
 	end

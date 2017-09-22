@@ -571,7 +571,7 @@ data:extend({
 		subgroup = "factorissimo2",
 		order = "d-a",
 		place_result = "factory-construction-requester-chest",
-		stack_size = 1,
+		stack_size = 50,
 	},
 	{
 		type = "logistic-container",
