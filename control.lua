@@ -477,7 +477,7 @@ local function create_factory_interior(layout, force)
 	return factory
 end
 
-local function create_factory_exterior(factory, building)
+function create_factory_exterior(factory, building)
 	local layout = factory.layout
 	local force = factory.force
 	factory.outside_x = building.position.x
@@ -565,6 +565,8 @@ local function is_factory_component_entity(entity)
 	if (entity.name == "factory-ceiling-light"
 	    or entity.name == "factory-power-pole"
 	    or entity.name == "factory-overlay-controller"
+	    or string.find(entity.name, "factory-fluid-dummy-connector", 1, true)
+	    or string.find(entity.name, "factory-overlay-display-", 1, true)
 	    or string.find(entity.name, "factory-power-input-", 1, true)
 	    or string.find(entity.name, "factory-power-output-", 1, true)) then
 		return true
@@ -607,25 +609,24 @@ local function add_inventory(items_list, inventory)
 	end
 end
 
-local function can_teleport(entity)
-	if entity.prototype.type == "storage-tank" then
-		return false
-	elseif entity.prototype.type == "underground-belt" then
-		return false
-	end
+local teleport_blacklist = list_to_index({
+	"storage-tank",
+	"underground-belt", "transport-belt", "splitter", "loader",
+	"assembling-machine", "pipe", "pipe-to-ground", "pump", "generator", "boiler", "fluid-turret",
+	"straight-rail", "curved-rail",
+	"rail-signal", "rail-chain-signal", "train-stop",
+	"wall", "gate",
+})
+
+local function can_teleport(entity_name, proto_name)
+	if HasLayout(entity_name) then return true end
+	
+	if teleport_blacklist[proto_name] then return false end
+	
+	local prototype = game.entity_prototypes[proto_name]
+	if not prototype then return false end
+	
 	return true
-end
-
-local function extract_items_from(entity)
-	-- TODO
-end
-
-local function return_items_to(entity, items)
-	-- TODO
-end
-
-local function flatten_items(items)
-	-- TODO
 end
 
 -- Deconstruct all the buildings inside a factory, then return the items they
@@ -707,46 +708,175 @@ local function deconstruct_factory_contents(factory)
 	return items_generated
 end
 
-local function rotate_factory(factory)
-	-- Check whether this contains anything that isn't a blueprint ghost.
-	-- If so, error out (because some things can't be moved once they're
-	-- placed)
-	local inside_area = get_factory_inside_area(factory)
+local function filter_blueprint_reconstructed_only(blueprint_string)
+	local deserialized_blueprint = BlueprintString.fromString(blueprint_string)
+	local filtered_entities = {}
 	
-	--if not factory_is_empty(factory) then
-	--	game.print("Can't rotate factory because it is not empty.")
-	--	return
-	--end
+	for _,entity in ipairs(deserialized_blueprint.entities) do
+		local proto = game.item_prototypes[entity.name]
+		if proto then
+			if not can_teleport(entity.name, proto.type) then
+				table.insert(filtered_entities, entity)
+			end
+		else
+			if entity.type then
+				game.print("Unrecognized entity type "..entity.type.." in blueprint")
+			else
+				game.print("Unrecognized entity without a valid type")
+			end
+		end
+	end
+	
+	if #filtered_entities == 0 then
+		return nil
+	end
+	
+	deserialized_blueprint.entities = filtered_entities
+	return BlueprintString.toString(deserialized_blueprint)
+end
+
+local function rotate_position(factory, position)
+	-- Translate into factory coords
+	local x = position.x - factory.inside_x
+	local y = position.y - factory.inside_y
+	-- Rotate
+	local rotated_x = -y
+	local rotated_y = x
+	-- Translate back to world coords
+	return {
+		rotated_x + factory.inside_x,
+		rotated_y + factory.inside_y
+	}
+end
+
+local function describe_for_reconstruction(entity)
+	local result = {
+		name = entity.name,
+		position = entity.position,
+		force = entity.force,
+		direction = entity.direction,
+		health = entity.health,
+		temperature = entity.temperature,
+	}
+	
+	if entity.prototype.type == "underground-belt" then
+		result.belt_to_ground_type = entity.belt_to_ground_type
+	end
+	if entity.prototype.type == "loader" then
+		result.loader_type = entity.loader_type
+	end
+	-- TODO: Extract contents from assembling machines, belts, pipes, etc
+	return result
+end
+
+local function reconstruct_entity(factory, description)
+	-- TODO: Put contents back into assembling machines, belts, pipes, etc
+	local entity_create_params = {
+		name = description.name,
+		position = rotate_position(factory, description.position),
+		force = description.force,
+		direction = (description.direction+2)%8
+	}
+	local prototype = game.entity_prototypes[description.name]
+	if prototype.type == "underground-belt" then
+		entity_create_params.type = description.belt_to_ground_type
+	end
+	
+	local entity = factory.inside_surface.create_entity(entity_create_params)
+	entity.health = description.health
+	entity.temperature = description.temperature
+	
+	if entity.prototype.type == "loader" then
+		entity.loader_type = description.loader_type
+	end
+end
+
+local function rotate_factory(factory)
+	local inside_area = get_factory_inside_area(factory)
+	local inside_entities = factory.inside_surface.find_entities(inside_area)
 	
 	-- Create a blueprint which captures the factory contents
 	local blueprint_string = factory_to_blueprint_string(factory, factory.force)
 	
-	-- Clear the factory
-	--clear_factory_ghosts(factory)
-	local items_generated = deconstruct_factory_contents(factory)
+	-- Filter the blueprint to only contain things that can't be teleported
+	blueprint_string = filter_blueprint_reconstructed_only(blueprint_string)
 	
-	-- Apply the blueprint, but rotated
-	apply_blueprint_to_factory(factory, factory.force, blueprint_string, 0.5)
-	
-	-- Use items to rebuild factory contents
-	local items_spent = {}
-	local missing_items = {}
-	build_ghosts(factory, items_generated, items_spent, missing_items)
-	
-	-- Spill remaining items
-	for name,count in pairs(items_generated) do
-		if count>0 then
-			factory.outside_surface.spill_item_stack(
-				{x=factory.outside_x, y=factory.outside_y},
-				{name=name,count=count})
+	-- Clear anything that can't be teleported
+	local reconstructed_entities = {}
+	for _,entity in ipairs(inside_entities) do
+		if is_factory_component_entity(entity) then
+			-- Skip
+		elseif not can_teleport(entity.name, entity.prototype.type) then
+			table.insert(reconstructed_entities, describe_for_reconstruction(entity))
+			entity.destroy()
 		end
 	end
 	
+	-- Move teleported entities
+	for _,entity in pairs(inside_entities) do
+		if entity.valid then
+			if is_factory_component_entity(entity) then
+				-- Skip
+			else
+				local rotated_position = rotate_position(factory, entity.position)
+				
+				if HasLayout(entity.name) then
+					-- If this is a recursive factory building, update it
+					local nested_factory = get_factory_by_building(entity)
+					cleanup_factory_exterior(nested_factory, entity)
+					-- entity.teleport(rotated_position)
+					
+					local entity_name = entity.name
+					entity.destroy()
+					entity = factory.inside_surface.create_entity {
+						name = entity_name,
+						position = rotated_position
+					}
+					
+					create_factory_exterior(nested_factory, entity)
+					rotate_factory(nested_factory)
+				else
+					if entity.teleport(rotated_position) then
+						if entity.supports_direction then
+							entity.direction = (entity.direction+2) % 8
+						end
+					else
+						game.print("Failed to move entity: "..entity.prototype.type)
+					end
+				end
+			end
+		end
+	end
+	
+	-- Apply the blueprint, but rotated
+	if blueprint_string then
+		apply_blueprint_to_factory(factory, factory.force, blueprint_string, 0.25)
+	end
+	
+	-- Reconstruct entities that were deconstructed
+	for _,entity in ipairs(reconstructed_entities) do
+		reconstruct_entity(factory, entity)
+	end
+	
+	-- Use items to rebuild factory contents
+	--local items_spent = {}
+	--local missing_items = {}
+	--build_ghosts(factory, items_generated, items_spent, missing_items)
+	
+	-- Spill remaining items
+	--for name,count in pairs(items_generated) do
+		--if count>0 then
+			--factory.outside_surface.spill_item_stack(
+				--{x=factory.outside_x, y=factory.outside_y},
+				--{name=name,count=count})
+		--end
+	--end
+	
 	-- Rotate the exterior building
-	factory.building.direction = (factory.building.direction + 0.25) % 1.0
+	factory.building.direction = (factory.building.direction + 2) % 8
 end
 
-local function cleanup_factory_exterior(factory, building)
+function cleanup_factory_exterior(factory, building)
 	Connections.disconnect_factory(factory)
 	if factory.outside_energy_sender.valid then
 		factory.outside_energy_sender.destroy()
@@ -1028,7 +1158,7 @@ script.on_event({defines.events.on_entity_settings_pasted}, function(event)
 			local blueprint_string = factory_to_blueprint_string(source_factory, player.force)
 			clear_factory_ghosts(dest_factory)
 			apply_blueprint_to_factory(dest_factory, player.force, blueprint_string,
-				0.25)
+				0)
 		end
 	end
 end)
@@ -1165,7 +1295,7 @@ function get_factory_inside_area(factory)
 	}
 end
 
-function apply_blueprint_to_factory(factory, force, blueprint_string, direction)
+function apply_blueprint_to_factory(factory, force, blueprint_string, orientation)
 	-- Unpack the blueprint
 	local blueprint = create_temp_blueprint(factory)
 	
@@ -1181,17 +1311,17 @@ function apply_blueprint_to_factory(factory, force, blueprint_string, direction)
 	
 	local compass_dir = nil
 	
-	if direction == 0 then
-		compass_dir = defines.direction.west
-		build_y = build_y - 1
-	elseif direction == 0.25 then
+	if orientation == 0 then
 		compass_dir = defines.direction.north
-	elseif direction == 0.5 then
+	elseif orientation == 0.25 then
 		compass_dir = defines.direction.east
 		build_x = build_x - 1
-	elseif direction == 0.75 then
+	elseif orientation == 0.5 then
 		compass_dir = defines.direction.south
 		build_x = build_x - 1
+		build_y = build_y - 1
+	elseif orientation == 0.75 then
+		compass_dir = defines.direction.west
 		build_y = build_y - 1
 	else
 		game.print("ERROR: Trying to place factory in invalid orientation: "..direction)
@@ -1209,7 +1339,7 @@ function apply_blueprint_to_factory(factory, force, blueprint_string, direction)
 	
 	-- Apply overlay settings
 	for _,overlay in ipairs(blueprint_table.overlays) do
-		local rotated_overlay_controller_pos = find_rotated_overlay_controller(factory, direction, overlay.x, overlay.y)
+		local rotated_overlay_controller_pos = find_rotated_overlay_controller(factory, orientation, overlay.x, overlay.y)
 		if rotated_overlay_controller_pos then
 			local pos = {x=rotated_overlay_controller_pos.x+factory.inside_x, y=rotated_overlay_controller_pos.y+factory.inside_y}
 			local controller_maybe = factory.inside_surface.find_entities_filtered {
@@ -1236,7 +1366,7 @@ end
 -- rotation, find the corresponding connection, find the rotated version of
 -- that connection, and return the position of that connection's overlay
 -- controller.
-function find_rotated_overlay_controller(factory, direction, x, y)
+function find_rotated_overlay_controller(factory, orientation, x, y)
 	local connections = factory.layout.connections
 	local connection_id = nil
 	
@@ -1263,7 +1393,7 @@ function find_rotated_overlay_controller(factory, direction, x, y)
 	
 	-- Find the rotated connection
 	local rotated_connection_id = connection.id
-	for i=1,direction_to_rotation_count(direction) do
+	for i=1,orientation_to_rotation_count(orientation) do
 		rotated_connection_id = connections[rotated_connection_id].rotates_to
 	end
 	
@@ -1271,17 +1401,17 @@ function find_rotated_overlay_controller(factory, direction, x, y)
 	return { x=rotated_overlay.inside_x, y=rotated_overlay.inside_y }
 end
 
-function direction_to_rotation_count(direction)
-	if direction == 0 then
-		return 3
-	elseif direction == 0.25 then
+function orientation_to_rotation_count(orientation)
+	if orientation == 0 then
 		return 0
-	elseif direction == 0.5 then
+	elseif orientation == 0.25 then
 		return 1
-	elseif direction == 0.75 then
+	elseif orientation == 0.5 then
 		return 2
+	elseif orientation == 0.75 then
+		return 3
 	else
-		game.print("Invalid direction: "..direction)
+		game.print("Invalid orientation: "..orientation)
 	end
 end
 
@@ -1379,7 +1509,9 @@ function build_ghosts(factory, items_to_use, items_spent, missing_items)
 	-- Count up items requested for ghosts
 	for _,entity in pairs(entities) do
 		-- Use items to revive ghosts
-		if entity and entity.valid and entity.name=="entity-ghost" and entity.ghost_prototype and entity.ghost_prototype.items_to_place_this then
+		if entity and entity.valid
+		   and entity.name=="entity-ghost" and entity.ghost_prototype and entity.ghost_prototype.items_to_place_this
+		   and entity.ghost_prototype.name ~= "factory-contents-marker" then
 			local ghost = entity
 			local item_needed = ghost.ghost_prototype.items_to_place_this
 			local requests = {}
@@ -1606,12 +1738,12 @@ function blueprint_record_factory_contents(blueprint, area, surface, force)
 		y = first_world_factory.position.y - first_blueprint_factory.position.y,
 	}
 	
-	-- Replace factory-construction-requester-chests in the blueprint with
-	-- factory-contents-markers that hold the factory's blueprint
-	-- To do this, we use BlueprintString's remove_useless_fields to reduce
-	-- it to something manageable, then make the change there, then change it
-	-- back.
 	for i,entity in pairs(blueprint_entities) do
+		-- Replace factory-construction-requester-chests in the blueprint with
+		-- factory-contents-markers that hold the factory's blueprint
+		-- To do this, we use BlueprintString's remove_useless_fields to reduce
+		-- it to something manageable, then make the change there, then change it
+		-- back.
 		if entity.name == "factory-construction-requester-chest" then
 			-- Find the factory this chest touches (if any)
 			local factory = nil
@@ -1646,6 +1778,9 @@ function blueprint_record_factory_contents(blueprint, area, surface, force)
 					alert_message=blueprint_string
 				}
 			end
+		-- Un-rotate factories in the blueprint
+		elseif HasLayout(entity.name) then
+			entity.direction = 0
 		end
 	end
 	

@@ -60,3 +60,13 @@ function merge_properties(a,b)
 	end
 	return result
 end
+
+-- Given a list {a,b,c,...} returns a dictionary from items that were in the
+-- list to true, {a:true, b:true, c:true, ...}
+function list_to_index(list)
+	local result = {}
+	for _,v in ipairs(list) do
+		result[v] = true
+	end
+	return result
+end
