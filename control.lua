@@ -10,6 +10,11 @@ local Connections = Connections
 require("updates")
 local Updates = Updates
 
+require("constants")
+
+local BlueprintString = require("blueprintstring.blueprintstring")
+local serpent = require "blueprintstring.serpent0272"
+
 -- DATA STRUCTURE --
 
 -- Factory buildings are entities of type "storage-tank" internally, because reasons
@@ -78,6 +83,8 @@ local function init_globals()
 	global.next_factory_surface = global.next_factory_surface or 0
 	-- Map: Player index -> Last teleport time
 	global.last_player_teleport = global.last_player_teleport or {}
+	-- List of all construction-requester chests
+	global.construction_requester_chests = global.construction_requester_chests or {}
 end
 
 local prepare_gui = 0  -- Will be set to a function lower in the file
@@ -291,7 +298,11 @@ local function build_display_upgrade(factory)
 	if factory.upgrades.display then return end
 	factory.upgrades.display = true
 	for id, pos in pairs(factory.layout.overlays) do
-		local controller = factory.inside_surface.create_entity{name = "factory-overlay-controller", position = {factory.inside_x + pos.inside_x, factory.inside_y + pos.inside_y}, force = factory.force}
+		local controller = factory.inside_surface.create_entity {
+			name = "factory-overlay-controller",
+			position = {factory.inside_x + pos.inside_x, factory.inside_y + pos.inside_y},
+			force = factory.force
+		}
 		controller.destructible = false
 		controller.rotatable = false
 		factory.inside_overlay_controllers[id] = controller
@@ -306,12 +317,16 @@ local function update_overlay(factory)
 		for id, controller in pairs(factory.inside_overlay_controllers) do
 			local display = factory.outside_overlay_displays[id]
 			if controller.valid and display and display.valid then
-				local controller_inv = controller.get_inventory(defines.inventory.chest)
-				local display_inv = display.get_inventory(defines.inventory.chest)
-				display_inv.clear()
-				for i =1,4 do
-					local slot = controller_inv[i]
-					if slot.valid_for_read then display_inv.insert(slot) end
+				local behavior = controller.get_control_behavior()
+				local display_behavior = display.get_control_behavior()
+				
+				for i=1,Constants.overlay_slot_count do
+					local signal = behavior.get_signal(i)
+					if display_behavior and signal and signal.signal then
+						display_behavior.set_signal(i, signal)
+					else
+						display_behavior.set_signal(i, nil)
+					end
 				end
 			end
 		end
@@ -350,22 +365,10 @@ local function create_factory_position()
 	local cy = 16*math.floor(n / 8)
 	
 	-- To make void chunks show up on the map, you need to tell them they've finished generating.
-	surface.set_chunk_generated_status({cx-2, cy-2}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx-1, cy-2}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx+0, cy-2}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx+1, cy-2}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx-2, cy-1}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx-1, cy-1}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx+0, cy-1}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx+1, cy-1}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx-2, cy+0}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx-1, cy+0}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx+0, cy+0}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx+1, cy+0}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx-2, cy+1}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx-1, cy+1}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx+0, cy+1}, defines.chunk_generated_status.entities)
-	surface.set_chunk_generated_status({cx+1, cy+1}, defines.chunk_generated_status.entities)
+	for xi=-2,1 do
+	for yi=-2,1 do
+		surface.set_chunk_generated_status({cx+xi, cy+yi}, defines.chunk_generated_status.entities)
+	end end
 	
 	local factory = {}
 	factory.inside_surface = surface
@@ -474,7 +477,11 @@ local function create_factory_interior(layout, force)
 	return factory
 end
 
-local function create_factory_exterior(factory, building)
+local function destroy_factory_interior(factory)
+	-- TODO
+end
+
+function create_factory_exterior(factory, building)
 	local layout = factory.layout
 	local force = factory.force
 	factory.outside_x = building.position.x
@@ -498,7 +505,11 @@ local function create_factory_exterior(factory, building)
 	factory.outside_overlay_displays = {}
 	
 	for id, pos in pairs(layout.overlays) do
-		local display = factory.outside_surface.create_entity{name = "factory-overlay-display", position = {factory.outside_x + pos.outside_x, factory.outside_y + pos.outside_y}, force = force}
+		local display = factory.outside_surface.create_entity {
+			name = "factory-overlay-display-"..pos.outside_size,
+			position = {factory.outside_x + pos.outside_x, factory.outside_y + pos.outside_y},
+			force = force
+		}
 		display.destructible = false
 		display.operable = false
 		display.rotatable = false
@@ -516,12 +527,13 @@ local function create_factory_exterior(factory, building)
 		factory.outside_fluid_dummy_connectors[id] = connector
 	end
 
-	local overlay = factory.outside_surface.create_entity{name = factory.layout.overlay_name, position = {factory.outside_x + factory.layout.overlay_x, factory.outside_y + factory.layout.overlay_y}, force = force}
-	overlay.destructible = false
-	overlay.operable = false
-	overlay.rotatable = false
+	-- local overlay = factory.outside_surface.create_entity{name = factory.layout.overlay_name, position = {factory.outside_x + factory.layout.overlay_x, factory.outside_y + factory.layout.overlay_y}, force = force}
+	-- overlay.destructible = false
+	-- overlay.operable = false
+	-- overlay.rotatable = false
 	
-	factory.outside_other_entities = {overlay}
+	-- factory.outside_other_entities = {overlay}
+	factory.outside_other_entities = {}
 
 	factory.outside_port_markers = {}
 	
@@ -553,17 +565,352 @@ local function toggle_port_markers(factory)
 	end
 end
 
-local function cleanup_factory_exterior(factory, building)
+local function is_factory_component_entity(entity)
+	if (entity.name == "factory-ceiling-light"
+	    or entity.name == "factory-power-pole"
+	    or entity.name == "factory-overlay-controller"
+	    or string.find(entity.name, "factory-fluid-dummy-connector", 1, true)
+	    or string.find(entity.name, "factory-overlay-display-", 1, true)
+	    or string.find(entity.name, "factory-power-input-", 1, true)
+	    or string.find(entity.name, "factory-power-output-", 1, true)) then
+		return true
+	else
+		return false
+	end
+end
+
+-- Returns whether a factory is empty, that is, whether it is free of entities
+-- other than blueprint ghosts.
+local function factory_is_empty(factory)
+	local inside_area = get_factory_inside_area(factory)
+	local contents = factory.inside_surface.find_entities(inside_area)
+	for _,entity in pairs(contents) do
+		if entity.name ~= "entity-ghost" and not is_factory_component_entity(entity) then
+			return false
+		end
+	end
+	
+	return true
+end
+
+-- Given a factory which may contain blueprint ghosts but is otherwise empty,
+-- clear it (removing any blueprint ghosts).
+local function clear_factory_ghosts(factory)
+	local inside_area = get_factory_inside_area(factory)
+	local contents = factory.inside_surface.find_entities(inside_area)
+	for _,entity in pairs(contents) do
+		if entity.name == "entity-ghost" then
+			entity.order_deconstruction(factory.force)
+		end
+	end
+end
+
+local function add_inventory(items_list, inventory)
+	if inventory ~= nil then
+		for name,count in pairs(inventory.get_contents()) do
+			incr_default_0(items_list, name, count)
+		end
+	end
+end
+
+local teleport_blacklist = list_to_index({
+	"storage-tank",
+	"underground-belt", "transport-belt", "splitter", "loader",
+	"assembling-machine", "pipe", "pipe-to-ground", "pump", "generator", "boiler", "fluid-turret",
+	"straight-rail", "curved-rail",
+	"rail-signal", "rail-chain-signal", "train-stop",
+	"wall", "gate",
+})
+
+local function can_teleport(entity_name, proto_name)
+	if HasLayout(entity_name) then return true end
+	
+	if teleport_blacklist[proto_name] then return false end
+	
+	local prototype = game.entity_prototypes[proto_name]
+	if not prototype then return false end
+	
+	return true
+end
+
+local all_inventories = {
+	defines.inventory.fuel, defines.inventory.burnt_result,
+	defines.inventory.chest, defines.inventory.furnace_source,
+	defines.inventory.furnace_result, defines.inventory.furnace_modules,
+	defines.inventory.roboport_robot, defines.inventory.roboport_material,
+	defines.inventory.robot_cargo, defines.inventory.robot_repair,
+	defines.inventory.assembling_machine_input, defines.inventory.assembling_machine_output,
+	defines.inventory.assembling_machine_modules, defines.inventory.lab_input,
+	defines.inventory.lab_modules, defines.inventory.mining_drill_modules,
+	defines.inventory.item_main, defines.inventory.rocket_silo_rocket,
+	defines.inventory.rocket_silo_result, defines.inventory.car_trunk,
+	defines.inventory.car_ammo, defines.inventory.cargo_wagon,
+	defines.inventory.turret_ammo, defines.inventory.beacon_modules
+}
+
+-- Deconstruct all the buildings inside a factory, then return the items they
+-- were made from.
+local function deconstruct_factory_contents(factory)
+	local inside_area = get_factory_inside_area(factory)
+	local contents = factory.inside_surface.find_entities(inside_area)
+	local items_generated = {}
+	-- TODO: Handle tiles
+	for _,entity in pairs(contents) do
+		if entity.name == "entity-ghost" then
+			entity.order_deconstruction(factory.force)
+		elseif is_factory_component_entity(entity) then
+			-- Skip
+		else
+			local skip = false
+			if entity.name=="item-on-ground" then
+				incr_default_0(items_generated, entity.stack.name, entity.stack.count)
+				skip = true
+			elseif entity.prototype.type=="inserter" then
+				if entity.valid and entity.held_stack and entity.held_stack.valid_for_read then
+					incr_default_0(items_generated, entity.held_stack.name, entity.held_stack.count)
+				end
+			elseif entity.prototype.type=="transport-belt" then
+				add_inventory(items_generated, entity.get_transport_line(1))
+				add_inventory(items_generated, entity.get_transport_line(2))
+			end
+			
+			if entity.has_items_inside() then
+				for _,inventory_id in ipairs(all_inventories) do
+					local inventory = entity.get_inventory(inventory_id)
+					if inventory then
+						add_inventory(items_generated, inventory)
+					end
+				end
+			end
+			
+			if not skip then
+				incr_default_0(items_generated, entity.name, 1)
+			end
+			-- TODO: Handle recursive factories?
+			entity.destroy()
+		end
+	end
+	
+	return items_generated
+end
+
+local function serialize_inventory(inventory)
+	if not inventory then return nil end
+	if inventory.get_item_count()==0 then return nil end
+	return inventory.get_contents()
+end
+
+local function filter_blueprint_reconstructed_only(blueprint_string)
+	local deserialized_blueprint = BlueprintString.fromString(blueprint_string)
+	local filtered_entities = {}
+	
+	for _,entity in ipairs(deserialized_blueprint.entities) do
+		local proto = game.item_prototypes[entity.name]
+		if proto then
+			if not can_teleport(entity.name, proto.type) then
+				table.insert(filtered_entities, entity)
+			end
+		else
+			if entity.type then
+				game.print("Unrecognized entity type "..entity.type.." in blueprint")
+			else
+				game.print("Unrecognized entity without a valid type")
+			end
+		end
+	end
+	
+	if #filtered_entities == 0 then
+		return nil
+	end
+	
+	deserialized_blueprint.entities = filtered_entities
+	return BlueprintString.toString(deserialized_blueprint)
+end
+
+local function rotate_position(factory, position)
+	-- Translate into factory coords
+	local x = position.x - factory.inside_x
+	local y = position.y - factory.inside_y
+	-- Rotate
+	local rotated_x = -y
+	local rotated_y = x
+	-- Translate back to world coords
+	return {
+		rotated_x + factory.inside_x,
+		rotated_y + factory.inside_y
+	}
+end
+
+local function describe_for_reconstruction(entity)
+	local result = {
+		name = entity.name,
+		position = entity.position,
+		force = entity.force,
+		direction = entity.direction,
+		health = entity.health,
+		energy = entity.energy,
+		temperature = entity.temperature,
+	}
+	
+	if entity.prototype.type == "underground-belt" then
+		result.belt_to_ground_type = entity.belt_to_ground_type
+	end
+	if entity.prototype.type == "underground-belt" or entity.prototype.type == "transport-belt" then
+		-- TODO: Extract content from belts
+	end
+	-- TODO: Extact contents from pipes, storage tanks
+	if entity.prototype.type == "loader" then
+		result.loader_type = entity.loader_type
+	end
+	if entity.prototype.type == "assembling-machine" then
+		result.recipe = entity.recipe.name
+	end
+	if entity.has_items_inside() then
+		result.inventories = {}
+		for _,inventory_id in ipairs(all_inventories) do
+			local inventory = serialize_inventory(entity.get_inventory(inventory_id))
+			if inventory then
+				result.inventories[inventory_id] = inventory
+			end
+		end
+		game.print(serpent.dump(result.inventories))
+	end
+	-- TODO: Extract contents from belts, pipes, etc
+	return result
+end
+
+local function reconstruct_entity(factory, description)
+	-- TODO: Put contents back into belts
+	-- TODO: Put contents back into pipes, storage tanks
+	local entity_create_params = {
+		name = description.name,
+		position = rotate_position(factory, description.position),
+		force = description.force,
+		direction = (description.direction+2)%8
+	}
+	local prototype = game.entity_prototypes[description.name]
+	if prototype.type == "underground-belt" then
+		entity_create_params.type = description.belt_to_ground_type
+	end
+	
+	local entity = factory.inside_surface.create_entity(entity_create_params)
+	entity.health = description.health
+	entity.energy = description.energy
+	entity.temperature = description.temperature
+	
+	if entity.prototype.type == "loader" then
+		entity.loader_type = description.loader_type
+	end
+	if entity.prototype.type == "assembling-machine" then
+		local force = factory.force
+		entity.recipe = force.recipes[description.recipe]
+	end
+	if description.inventories then
+		for inventory_id,contents in pairs(description.inventories) do
+			local inventory = entity.get_inventory(inventory_id)
+			if inventory and inventory.is_empty() then
+				for item,count in pairs(contents) do
+					inventory.insert({name=item, count=count})
+				end
+			end
+		end
+	end
+end
+
+local function rotate_factory(factory)
+	local inside_area = get_factory_inside_area(factory)
+	local inside_entities = factory.inside_surface.find_entities(inside_area)
+	
+	-- Create a blueprint which captures the factory contents
+	local blueprint_string = factory_to_blueprint_string(factory, factory.force)
+	
+	-- Filter the blueprint to only contain things that can't be teleported
+	blueprint_string = filter_blueprint_reconstructed_only(blueprint_string)
+	
+	-- Clear anything that can't be teleported
+	local reconstructed_entities = {}
+	for _,entity in ipairs(inside_entities) do
+		if is_factory_component_entity(entity) then
+			-- Skip
+		elseif not can_teleport(entity.name, entity.prototype.type) then
+			table.insert(reconstructed_entities, describe_for_reconstruction(entity))
+			entity.destroy()
+		end
+	end
+	
+	-- Move teleported entities
+	for _,entity in pairs(inside_entities) do
+		if entity.valid then
+			if is_factory_component_entity(entity) then
+				-- Skip
+			else
+				local rotated_position = rotate_position(factory, entity.position)
+				
+				if HasLayout(entity.name) then
+					-- If this is a recursive factory building, update it
+					local nested_factory = get_factory_by_building(entity)
+					cleanup_factory_exterior(nested_factory, entity)
+					-- entity.teleport(rotated_position)
+					
+					local entity_name = entity.name
+					entity.destroy()
+					entity = factory.inside_surface.create_entity {
+						name = entity_name,
+						position = rotated_position
+					}
+					
+					create_factory_exterior(nested_factory, entity)
+					rotate_factory(nested_factory)
+				else
+					if entity.teleport(rotated_position) then
+						if entity.supports_direction then
+							entity.direction = (entity.direction+2) % 8
+						end
+					else
+						game.print("Failed to move entity: "..entity.prototype.type)
+					end
+				end
+			end
+		end
+	end
+	
+	-- Apply the blueprint, but rotated
+	if blueprint_string then
+		apply_blueprint_to_factory(factory, factory.force, blueprint_string, 0.25)
+	end
+	
+	-- Reconstruct entities that were deconstructed
+	for _,entity in ipairs(reconstructed_entities) do
+		reconstruct_entity(factory, entity)
+	end
+	
+	-- Rotate the exterior building
+	factory.building.direction = (factory.building.direction + 2) % 8
+end
+
+function cleanup_factory_exterior(factory, building)
 	Connections.disconnect_factory(factory)
-	factory.outside_energy_sender.destroy()
-	factory.outside_energy_receiver.destroy()
-	for _, entity in pairs(factory.outside_overlay_displays) do entity.destroy() end
+	if factory.outside_energy_sender.valid then
+		factory.outside_energy_sender.destroy()
+	end
+	if factory.outside_energy_receiver.valid then
+		factory.outside_energy_receiver.destroy()
+	end
+	for _, entity in pairs(factory.outside_overlay_displays) do
+		if entity.valid then entity.destroy() end
+	end
 	factory.outside_overlay_displays = {}
-	for _, entity in pairs(factory.outside_fluid_dummy_connectors) do entity.destroy() end
+	for _, entity in pairs(factory.outside_fluid_dummy_connectors) do
+		if entity.valid then entity.destroy() end
+	end
 	factory.outside_fluid_dummy_connectors = {}
-	for _, entity in pairs(factory.outside_port_markers) do entity.destroy() end
+	for _, entity in pairs(factory.outside_port_markers) do
+		if entity.valid then entity.destroy() end
+	end
 	factory.outside_port_markers = {}
-	for _, entity in pairs(factory.outside_other_entities) do entity.destroy() end
+	for _, entity in pairs(factory.outside_other_entities) do
+		if entity.valid then entity.destroy() end
+	end
 	factory.outside_other_entities = {}
 	factory.building = nil
 	factory.built = false
@@ -573,9 +920,9 @@ end
 
 local SAVE_NAMES = {} -- Set of all valid factory save names
 local SAVE_ITEMS = {}
-for _,f in ipairs({"factory-1", "factory-2", "factory-3"}) do
+for _,f in ipairs(Constants.factory_type_names) do
 	SAVE_ITEMS[f] = {}
-	for n = 10,99 do
+	for n = Constants.factory_id_min,Constants.factory_id_max do
 		SAVE_NAMES[f .. "-s" .. n] = true
 		SAVE_ITEMS[f][n] = f .. "-s" .. n
 	end
@@ -693,8 +1040,17 @@ end
 
 script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_entity}, function(event)
 	local entity = event.created_entity
-	--if BUILDING_TYPE ~= entity.type then return nil end
-	if HasLayout(entity.name) then
+	on_entity_built(entity)
+end)
+
+function on_entity_built(entity)
+	if entity.name == "entity-ghost" then
+		game.print("on_entity_built entity-ghost")
+		if entity.ghost_name == "blueprint-factory-overlay-display-1"
+		   or entity.ghost_name == "blueprint-factory-overlay-display-2" then
+			entity.destroy()
+		end
+	elseif HasLayout(entity.name) then
 		-- This is a fresh factory, we need to create it
 		local layout = CreateLayout(entity.name)
 		if can_place_factory_here(layout.tier, entity.surface, entity.position) then
@@ -703,6 +1059,38 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
 		else
 			entity.surface.create_entity{name=entity.name .. "-i", position=entity.position, force=entity.force}
 			entity.destroy()
+			return
+		end
+		
+		-- Look for adjacent factory-contents-markers and ghosts thereof. If
+		-- found, unpack its blueprint, delete it, and put a
+		-- factory-construction-requester-chest in its place.
+		local content_marker_ghost = find_factory_content_marker_near(entity)
+		if content_marker_ghost ~= nil then
+			-- Revive the factory-contents-marker show we can get the alert
+			-- message (abused to contain a blueprint string) out of it.
+			collisions,content_marker = content_marker_ghost.revive()
+			blueprint_string = content_marker.alert_parameters.alert_message
+			
+			-- Replace the factory-contents-marker with a factory-construction-
+			-- requester-chest.
+			local position = content_marker.position
+			local surface = content_marker.surface
+			local force = content_marker.force
+			content_marker.destroy()
+			local construction_chest = surface.create_entity{
+				name="factory-construction-requester-chest",
+				position=position,
+				force=force
+			}
+			
+			-- Apply the blueprint to the factory, filling it with ghosts
+			local factory = get_factory_by_entity(entity)
+			apply_blueprint_to_factory(factory, entity.force, blueprint_string,
+				entity.orientation)
+			
+			-- Initialize the newly-created requester chest
+			init_construction_chest(construction_chest)
 		end
 	elseif global.saved_factories[entity.name] then
 		-- This is a saved factory, we need to unpack it
@@ -717,6 +1105,8 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
 	elseif is_invalid_save_slot(entity.name) then
 		entity.surface.create_entity{name="flying-text", position=entity.position, text={"factory-connection-text.invalid-factory-data"}}
 		entity.destroy()
+	elseif entity.name == "factory-construction-requester-chest" then
+		init_construction_chest(entity)
 	else
 		if Connections.is_connectable(entity) then
 			recheck_nearby_connections(entity)
@@ -725,7 +1115,787 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
 			init_factory_requester_chest(entity)
 		end
 	end
+end
+
+function find_factory_content_marker_near(entity)
+	if not entity or not entity.valid then
+		return nil
+	end
+	local search_area = neighbor_area_from_collision_box(entity.position, entity.prototype.collision_box)
+	
+	local nearby = entity.surface.find_entities(search_area)
+	
+	for _,ghost in pairs(nearby) do
+		if ghost.name == "entity-ghost" and ghost.ghost_name == "factory-contents-marker" then
+			return ghost
+		end
+	end
+	return nil
+end
+
+-- Return an area that includes all tiles that would touch an object that's at
+-- the given position and has the given collision box.
+function neighbor_area_from_collision_box(position, collision_box)
+	return {
+		left_top = {
+			x = position.x + collision_box.left_top.x - 1,
+			y = position.y + collision_box.left_top.y - 1,
+		},
+		right_bottom = {
+			x = position.x + collision_box.right_bottom.x + 1,
+			y = position.y + collision_box.right_bottom.y + 1,
+		}
+	}
+end
+
+function list_to_index(list)
+	index = {}
+	for _,v in pairs(list) do
+		index[v] = true
+	end
+	return index
+end
+
+local entities_ignored_when_copying = list_to_index({
+	"factory-ceiling-light", "factory-fluid-dummy-connector",
+	"factory-overlay-controller"})
+
+script.on_event({defines.events.on_entity_settings_pasted}, function(event)
+	if event.source.name==event.destination.name and HasLayout(event.source.name) then
+		-- "Paste settings" from one factory to another. Create ghosts in the
+		-- destination factory to match buildings in the source factory.
+		local player = game.players[event.player_index]
+
+		local source_factory = get_factory_by_entity(event.source)
+		local dest_factory = get_factory_by_entity(event.destination)
+		
+		if not factory_is_empty(dest_factory) then
+			player.print("Can't paste onto factory because it is not empty.")
+		else
+			local blueprint_string = factory_to_blueprint_string(source_factory, player.force)
+			clear_factory_ghosts(dest_factory)
+			apply_blueprint_to_factory(dest_factory, player.force, blueprint_string,
+				0)
+		end
+	end
 end)
+
+-- Create a temporary blueprint item, for generating blueprint strings or
+-- applying them. Takes a factory and places it in an empty (player
+-- inacecssible) position.
+function create_temp_blueprint(factory)
+	local surface = factory.inside_surface
+	local item_on_ground = surface.create_entity {
+		name = "item-on-ground",
+		position = {64,64},
+		stack = { name="blueprint" },
+	}
+	return item_on_ground
+end
+
+function factory_to_blueprint_string(factory, force)
+	-- Create a blueprint covering the contents of a factory floor
+	local blueprint = create_temp_blueprint(factory)
+	
+	local bounds_markers = place_bounds_markers(
+		factory.inside_surface, force, get_factory_inside_area(factory))
+	
+	local topleft_x = factory.inside_x - factory.layout.inside_size/2
+	local topleft_y = factory.inside_y - factory.layout.inside_size/2
+	local inside_area = get_factory_inside_area(factory)
+	blueprint.stack.create_blueprint{
+		surface=factory.inside_surface,
+		force=force,
+		area=inside_area,
+	}
+	
+	-- Modify the blueprint to filter out entities with skipped types
+	filter_blueprint_entities(blueprint.stack, entities_ignored_when_copying)
+	
+	-- Modify the blueprint to record the contents of any nested factories
+	blueprint_record_factory_contents(blueprint.stack, inside_area, factory.inside_surface, force)
+	
+	-- Record the filter settings on any overlay controllers
+	local extended_inside_area = {
+		left_top = {
+			x = inside_area.left_top.x-1,
+			y = inside_area.left_top.y-1
+		},
+		right_bottom = {
+			x = inside_area.right_bottom.x+1,
+			y = inside_area.right_bottom.y+1
+		}
+	}
+	local overlay_controllers = factory.inside_surface.find_entities_filtered {
+		area = extended_inside_area,
+		name = "factory-overlay-controller",
+	}
+	local overlay_list={}
+	for _,overlay_controller in pairs(overlay_controllers) do
+		table.insert(overlay_list, extract_overlay_controller_settings(factory, overlay_controller))
+	end
+	
+	local blueprint_table = {
+		entities = blueprint.stack.get_blueprint_entities(),
+		tiles = blueprint.stack.get_blueprint_tiles(),
+		icons = blueprint.stack.blueprint_icons,
+		name = "Factory blueprint",
+		overlays = overlay_list
+	}
+	
+	-- Serialize
+	local blueprintString = BlueprintString.toString(blueprint_table)
+	
+	-- Clean up the temporary blueprint object and bounds markers
+	blueprint.destroy()
+	remove_bounds_markers(factory.inside_surface, get_factory_inside_area(factory))
+	
+	return blueprintString
+end
+
+function extract_overlay_controller_settings(factory, overlay_controller)
+	signals = {}
+	local behavior = overlay_controller.get_control_behavior()
+	for i=1,Constants.overlay_slot_count do
+		local signal = behavior.get_signal(i)
+		if signal.signal then
+			signals[i] = {
+				type = signal.signal.type,
+				count = signal.count,
+				name = signal.signal.name
+			}
+		else
+			signals[i] = nil
+		end
+	end
+	return {
+		x = overlay_controller.position.x-factory.inside_x,
+		y = overlay_controller.position.y-factory.inside_y,
+		overlay_signals = signals
+	}
+end
+
+function apply_overlay_controller_settings(settings, overlay_controller)
+	local behavior = overlay_controller.get_control_behavior()
+	if behavior and settings.overlay_signals then
+		for i=1,Constants.overlay_slot_count do
+			if settings.overlay_signals[i] then
+				behavior.set_signal(i, {
+					signal = {
+						type = settings.overlay_signals[i].type,
+						name = settings.overlay_signals[i].name
+					},
+					count = 1
+				})
+			else
+				behavior.set_signal(i, nil)
+			end
+		end
+	end
+end
+
+function get_factory_inside_area(factory)
+	-- FIXME: This (a) assumes factories are always square, and (b) probably has
+	-- an off-by-one-half or worse
+	local size = factory.layout.inside_size+1
+	local topleft_x = factory.inside_x - size/2
+	local topleft_y = factory.inside_y - size/2
+	return {
+		left_top = {
+			x = factory.inside_x - size/2,
+			y = factory.inside_y - size/2,
+		},
+		right_bottom = {
+			x = factory.inside_x + size/2,
+			y = factory.inside_y + size/2,
+		}
+	}
+end
+
+function apply_blueprint_to_factory(factory, force, blueprint_string, orientation)
+	-- Unpack the blueprint
+	local blueprint = create_temp_blueprint(factory)
+	
+	local blueprint_table = BlueprintString.fromString(blueprint_string)
+	local overlays = blueprint_table.overlays
+	blueprint.stack.set_blueprint_entities(blueprint_table.entities)
+	blueprint.stack.set_blueprint_tiles(blueprint_table.tiles)
+	blueprint.stack.blueprint_icons = blueprint_table.icons
+	blueprint.stack.label = blueprint_table.name or ""
+	
+	local build_x = factory.inside_x
+	local build_y = factory.inside_y
+	
+	local compass_dir = nil
+	
+	if orientation == 0 then
+		compass_dir = defines.direction.north
+	elseif orientation == 0.25 then
+		compass_dir = defines.direction.east
+		build_x = build_x - 1
+	elseif orientation == 0.5 then
+		compass_dir = defines.direction.south
+		build_x = build_x - 1
+		build_y = build_y - 1
+	elseif orientation == 0.75 then
+		compass_dir = defines.direction.west
+		build_y = build_y - 1
+	else
+		game.print("ERROR: Trying to place factory in invalid orientation: "..direction)
+		blueprint.destroy()
+		return
+	end
+	
+	local build_result = blueprint.stack.build_blueprint{
+		surface=factory.inside_surface,
+		force=force,
+		position={build_x,build_y},
+		force_build=true,
+		direction = compass_dir,
+	}
+	
+	-- Apply overlay settings
+	for _,overlay in ipairs(blueprint_table.overlays) do
+		local rotated_overlay_controller_pos = find_rotated_overlay_controller(factory, orientation, overlay.x, overlay.y)
+		if rotated_overlay_controller_pos then
+			local pos = {x=rotated_overlay_controller_pos.x+factory.inside_x, y=rotated_overlay_controller_pos.y+factory.inside_y}
+			local controller_maybe = factory.inside_surface.find_entities_filtered {
+				area = {
+					top_left     = { x=pos.x-.5, y=pos.y-.5 },
+					bottom_right = { x=pos.x+.5, y=pos.y+.5 },
+				},
+				name = "factory-overlay-controller",
+			}
+			if (#controller_maybe) == 1 then
+				local controller = controller_maybe[1]
+				apply_overlay_controller_settings(overlay, controller)
+			end
+		end
+	end
+	update_overlay(factory)
+	
+	-- Clean up the temporary blueprint object and bounds markers
+	blueprint.destroy()
+	remove_bounds_marker_ghosts(factory.inside_surface, get_factory_inside_area(factory))
+end
+
+-- Given a factory, the inside (x,y) position of an overlay controller, and a
+-- rotation, find the corresponding connection, find the rotated version of
+-- that connection, and return the position of that connection's overlay
+-- controller.
+function find_rotated_overlay_controller(factory, orientation, x, y)
+	local connections = factory.layout.connections
+	local connection_id = nil
+	
+	-- Find the overlay specification in the factory layout
+	local overlay_specification = nil
+	for id,o in pairs(factory.layout.overlays) do
+		if o.inside_x==x and o.inside_y==y then
+			connection_id = id
+			break
+		end
+	end
+	if connection_id == nil then
+		return nil
+	end
+	
+	-- Get the corresponding connection specification
+	local connection = connections[connection_id]
+	if connection == nil then
+		-- If no corresponding connection, then this overlay controller is one
+		-- of the ones that marks the middle of the building, so it doesn't
+		-- get rotated.
+		return { x=x, y=y }
+	end
+	
+	-- Find the rotated connection
+	local rotated_connection_id = connection.id
+	for i=1,orientation_to_rotation_count(orientation) do
+		rotated_connection_id = connections[rotated_connection_id].rotates_to
+	end
+	
+	local rotated_overlay = factory.layout.overlays[rotated_connection_id]
+	return { x=rotated_overlay.inside_x, y=rotated_overlay.inside_y }
+end
+
+function orientation_to_rotation_count(orientation)
+	if orientation == 0 then
+		return 0
+	elseif orientation == 0.25 then
+		return 1
+	elseif orientation == 0.5 then
+		return 2
+	elseif orientation == 0.75 then
+		return 3
+	else
+		game.print("Invalid orientation: "..orientation)
+	end
+end
+
+function place_bounds_markers(surface, force, rect)
+	return {
+		place_bound_marker_at(surface, force, rect.left_top    .x, rect.left_top    .y),
+		place_bound_marker_at(surface, force, rect.right_bottom.x, rect.left_top    .y),
+		place_bound_marker_at(surface, force, rect.left_top    .x, rect.right_bottom.y),
+		place_bound_marker_at(surface, force, rect.right_bottom.x, rect.right_bottom.y),
+	}
+end
+
+function remove_bounds_markers(surface, rect)
+	local to_remove = surface.find_entities_filtered{
+		area = rect,
+		name = "factory-bounds-marker",
+	}
+	for _,v in pairs(to_remove) do
+		v.destroy()
+	end
+end
+
+function remove_bounds_marker_ghosts(surface, rect)
+	local to_remove = surface.find_entities_filtered{
+		area = rect,
+		name = "entity-ghost",
+	}
+	for _,v in pairs(to_remove) do
+		if v.ghost_name == "factory-bounds-marker" then
+			v.destroy()
+		end
+	end
+end
+
+function place_bound_marker_at(surface, force, x, y)
+	return surface.create_entity{
+		name = "factory-bounds-marker",
+		position = {x,y},
+		force = force,
+	}
+end
+
+-- Given a blueprint, modify it to remove any entities that appear in
+-- skipped_entity_types, a dict from entity type-names to true.
+function filter_blueprint_entities(blueprint, skipped_entity_types)
+	local blueprint_entities = blueprint.get_blueprint_entities()
+	local filtered_blueprint_entities = {}
+	for _,v in pairs(blueprint_entities) do
+		if not skipped_entity_types[v.name] then
+			table.insert(filtered_blueprint_entities, v)
+		end
+	end
+	blueprint.set_blueprint_entities(filtered_blueprint_entities)
+end
+
+function init_construction_chest(construction_requester_chest)
+	update_construction_chest(construction_requester_chest)
+	table.insert(global.construction_requester_chests, construction_requester_chest)
+end
+
+function update_all_construction_requester_chests(tick)
+	local num_chests = #global.construction_requester_chests
+	local check_interval = 60
+	local offset = (23*game.tick)%check_interval+1
+	while offset <= num_chests do
+		local chest = global.construction_requester_chests[offset]
+		if chest and chest.valid then
+			update_construction_chest(chest)
+		else
+			table.remove(global.construction_requester_chests, offset)
+		end
+		offset = offset + check_interval
+	end
+end
+
+local function get_factory_touching(surface, position)
+	local nearby_entities = surface.find_entities({
+		left_top = {position.x-1, position.y-1},
+		right_bottom = {position.x+1, position.y+1},
+	})
+	for _,nearby_entity in pairs(nearby_entities) do
+		if HasLayout(nearby_entity.name) then
+			return get_factory_by_entity(nearby_entity)
+		end
+	end
+	return nil
+end
+
+-- Modifies: items_to_use items_spent, missing_items
+function build_ghosts(factory, items_to_use, items_spent, missing_items)
+	local area = get_factory_inside_area(factory)
+	local entities = factory.inside_surface.find_entities(area)
+	local num_built = 0
+	
+	-- Count up items requested for ghosts
+	for _,entity in pairs(entities) do
+		-- Use items to revive ghosts
+		if entity and entity.valid
+		   and entity.name=="entity-ghost" and entity.ghost_prototype and entity.ghost_prototype.items_to_place_this
+		   and entity.ghost_prototype.name ~= "factory-contents-marker" then
+			local ghost = entity
+			local item_needed = ghost.ghost_prototype.items_to_place_this
+			local requests = {}
+			for k,v in pairs(item_needed) do
+				-- TODO: Handle alternatives? This only makes sense if a ghost can
+				-- only be revived with one particular item type.
+				-- (Which is how it normally works, but the API says there could
+				-- be multiple things here.)
+				requests[k] = 1
+			end
+			
+			-- Can this request be satisfied?
+			if request_is_satisfied(requests, items_to_use) then
+				collisions,revived = ghost.revive()
+				if revived and revived.valid then
+					for item,num in pairs(requests) do
+						incr_default_0(items_spent, item, num)
+						incr_default_0(items_to_use, item, -num)
+					end
+					
+					on_entity_built(revived)
+					num_built = num_built+1
+					entity = revived
+				end
+			else
+				-- Add to the list of unsatisfied requests
+				for item,num in pairs(requests) do
+					incr_default_0(missing_items, item, num)
+				end
+			end
+		end
+		
+		-- Fill module requests
+		if entity and entity.valid and entity.name=="item-request-proxy" then
+			local updated_requests = entity.item_requests
+			local unsatisfied_requests = 0
+			local changed = false
+			for module,count in pairs(entity.item_requests) do
+				local count_to_insert = math.min(count, items_to_use[module] or 0)
+				
+				if count_to_insert > 0 then
+					entity.proxy_target.insert({name=module, count=count_to_insert})
+					incr_default_0(items_to_use, module, -count_to_insert)
+					incr_default_0(items_spent, module, count_to_insert)
+					incr_default_0(missing_items, module, count-count_to_insert)
+					incr_default_0(updated_requests, module, -count_to_insert)
+					changed = true
+				else
+					incr_default_0(missing_items, module, count)
+				end
+				unsatisfied_requests = unsatisfied_requests + (count-count_to_insert)
+			end
+			if unsatisfied_requests > 0 then
+				if changed then
+					entity.item_requests = updated_requests
+				end
+			else
+				entity.destroy()
+			end
+		end
+	end
+end
+
+function update_construction_chest(construction_requester_chest)
+	-- Find the factory this chest goes with
+	local factory = get_factory_touching(construction_requester_chest.surface, construction_requester_chest.position)
+	if factory == nil then
+		return
+	end
+	local area = get_factory_inside_area(factory)
+	
+	-- Count up items in the chest, available for construction
+	local items_in_chest = construction_requester_chest.get_inventory(defines.inventory.chest).get_contents()
+	local items_spent = {}
+	local unsatisfied_requests = {}
+	
+	build_ghosts(factory, items_in_chest, items_spent, unsatisfied_requests)
+	
+	-- Look for construction-requester-chests inside, in order to build
+	-- recursive factories.
+	local recursive_chests = factory.inside_surface.find_entities_filtered{
+		area = area,
+		name = "factory-construction-requester-chest"
+	}
+	for _,chest in pairs(recursive_chests) do
+		local chest_requests = get_chest_requests(chest)
+		for item,num in pairs(chest_requests) do
+			local items_to_transfer = 0
+			if items_in_chest[item] ~= nil and items_in_chest[item] > 0 then
+				-- We have an item that can satisfy this request
+				items_to_transfer = math.min(num, items_in_chest[item])
+				chest.insert({ name=item, count=items_to_transfer })
+				incr_default_0(items_spent, item, items_to_transfer)
+				incr_default_0(items_in_chest, item, -items_to_transfer)
+			end
+			if items_to_transfer < num then
+				incr_default_0(unsatisfied_requests, item, num-items_to_transfer)
+			end
+		end
+	end
+	
+	-- Remove spent items
+	for item,num in pairs(items_spent) do
+		construction_requester_chest.remove_item({
+			name = item,
+			count = num
+		})
+	end
+	
+	-- Apply item requests to requester-chest settings
+	local num_request_slots = construction_requester_chest.request_slot_count
+	local request_slot_index = 1
+	for item,num in pairs(unsatisfied_requests) do
+		local request = { name = item, count = num }
+		construction_requester_chest.set_request_slot(request, request_slot_index)
+		request_slot_index = request_slot_index+1
+		if request_slot_index > num_request_slots then
+			break
+		end
+	end
+	for i = request_slot_index,num_request_slots do
+		construction_requester_chest.clear_request_slot(i)
+	end
+end
+
+function get_chest_requests(chest)
+	local requests = {}
+	local num_request_slots = chest.request_slot_count
+	for i=1,num_request_slots do
+		local request = chest.get_request_slot(i)
+		if request == nil then break end
+		incr_default_0(requests, request.name, request.count)
+	end
+	return requests
+end
+
+function incr_default_0(dict, k, n)
+	if n==0 then
+		return dict
+	end
+	if dict[k] ~= nil then
+		dict[k] = dict[k]+n
+	else
+		dict[k] = n
+	end
+	return dict
+end
+
+function request_is_satisfied(request, available)
+	for k,v in pairs(request) do
+		if available[k] == nil or available[k] < request[k] then
+			return false
+		end
+	end
+	return true
+end
+
+local pending_blueprints_by_player = {}
+
+script.on_event(defines.events.on_player_setup_blueprint, function(event)
+	local player_index = event.player_index
+	local area = event.area
+	local item = event.item
+	local alt = event.alt
+	
+	local player = game.players[player_index]
+	
+	pending_blueprints_by_player[player_index] = {
+		area = event.area,
+		item = event.item,
+		alt = event.alt,
+		surface = player.surface,
+	}
+end)
+
+script.on_event(defines.events.on_player_configured_blueprint, function(event)
+	local player_index = event.player_index
+	
+	if pending_blueprints_by_player[player_index] == nil then
+		return
+	end
+	
+	local area = pending_blueprints_by_player[player_index].area
+	local player = game.players[player_index]
+	local blueprint = player.cursor_stack
+	local force = player.force
+	
+	if blueprint == nil or not blueprint.valid or not blueprint.valid_for_read then
+		return
+	end
+	
+	-- Look at the surface the player was on when they set up the blueprint,
+	-- not the surface they're on when they confirm it. (Otherwise this would
+	-- go wrong if you entered/left a factory building while the blueprint
+	-- dialog was up.)
+	local surface = pending_blueprints_by_player[player_index].surface
+	
+	blueprint_record_factory_contents(blueprint, area, surface, force)
+end)
+
+function blueprint_record_factory_contents(blueprint, area, surface, force)
+	if not blueprint.valid then
+		return
+	end
+	
+	-- Check whether the blueprint contains any factory buildings. If not, skip the
+	-- rest of this.
+	if not blueprint_contains_factories(blueprint) then
+		return
+	end
+	
+	-- Find the relation between world-coords and blueprint-coords.
+	-- Find the factory with the lexicographically-first coordinates in each.
+	-- They are the same factory; the difference between their positions is the
+	-- blueprint offset.
+	local ents_in_area = surface.find_entities(area)
+	local blueprint_entities = blueprint.get_blueprint_entities()
+	BlueprintString.remove_useless_fields(blueprint_entities)
+	
+	local first_blueprint_factory = lexicographically_first_factory_in(blueprint_entities)
+	local first_world_factory = lexicographically_first_factory_in(ents_in_area)
+	local blueprint_offset = {
+		x = first_world_factory.position.x - first_blueprint_factory.position.x,
+		y = first_world_factory.position.y - first_blueprint_factory.position.y,
+	}
+	local overlay_entities = {}
+	
+	for i,entity in pairs(blueprint_entities) do
+		-- Replace factory-construction-requester-chests in the blueprint with
+		-- factory-contents-markers that hold the factory's blueprint
+		-- To do this, we use BlueprintString's remove_useless_fields to reduce
+		-- it to something manageable, then make the change there, then change it
+		-- back.
+		if entity.name == "factory-construction-requester-chest" then
+			-- Find the factory this chest touches (if any)
+			local factory = nil
+			for _,neighbor in pairs(ents_in_area) do
+				if HasLayout(neighbor.name) then
+					local dx = neighbor.position.x - blueprint_offset.x - entity.position.x
+					local dy = neighbor.position.y - blueprint_offset.y - entity.position.y
+					local collision_box = neighbor.prototype.collision_box
+					
+					if dx >= collision_box.left_top.x - 1 and
+					   dx <= collision_box.right_bottom.x + 1 and
+					   dy >= collision_box.left_top.y - 1 and
+					   dy <= collision_box.right_bottom.y + 1
+					then
+						factory = get_factory_by_building(neighbor)
+					end
+				end
+			end
+			
+			-- If the chest touches a factory, replace it with a factory-contents-marker
+			if factory ~= nil then
+				local blueprint_string = factory_to_blueprint_string(factory, force)
+				entity.name = "factory-contents-marker"
+				entity.parameters={
+					playback_volume=0,
+					playback_globally=false,
+					allow_polyphony=false,
+				}
+				entity.alert_parameters={
+					show_alert=true,
+					show_on_map=false,
+					alert_message=blueprint_string
+				}
+			end
+		elseif HasLayout(entity.name) then
+			-- Un-rotate factories in the blueprint
+			entity.direction = 0
+			
+			-- Find the factory entity in the world
+			local world_pos = {
+				x = entity.position.x + blueprint_offset.x,
+				y = entity.position.y + blueprint_offset.y
+			}
+			local world_entities = surface.find_entities(
+				shift_bounds_by(world_pos.x, world_pos.y, centered_square(1)))
+			local factory
+			for i,world_entity in ipairs(world_entities) do
+				if world_entity.name == entity.name then
+					factory = get_factory_by_entity(world_entity)
+				end
+			end
+			for i,overlay in pairs(factory.outside_overlay_displays) do
+				if not overlay_is_empty(overlay) then
+					table.insert(overlay_entities, {
+						name = "blueprint-"..overlay.name,
+						position = {
+							x=overlay.position.x-world_pos.x - 0.5,
+							y=overlay.position.y-world_pos.y - 0.5
+						},
+						control_behavior = serialize_overlay_behavior(overlay.get_control_behavior())
+					})
+				end
+			end
+		end
+	end
+	
+	for i,overlay in ipairs(overlay_entities) do
+		table.insert(blueprint_entities, overlay)
+	end
+	
+	BlueprintString.fix_entities(blueprint_entities)
+	blueprint.set_blueprint_entities(blueprint_entities)
+end
+
+function serialize_overlay_behavior(overlay)
+	local filters = {}
+	for i = 1,Constants.overlay_slot_count do
+		local signal = overlay.get_signal(i)
+		if signal and signal.signal then
+			table.insert(filters, {
+				index = i,
+				count = signal.count,
+				signal = signal.signal
+			})
+		end
+	end
+	
+	return { filters = filters }
+end
+
+function overlay_is_empty(overlay)
+	if not overlay then return true end
+	local behavior = overlay.get_control_behavior()
+	if not behavior then return true end
+	for i = 1,Constants.overlay_slot_count do
+		local signal = behavior.get_signal(i)
+		if signal and signal.signal then
+			return false
+		end
+	end
+	return true
+end
+
+function lexicographically_first_factory_in(entity_list)
+	local first = true
+	local first_entity = nil
+	local first_position = nil
+	for _,entity in pairs(entity_list) do
+		if HasLayout(entity.name) then
+			if first then
+				first = false
+				first_entity = entity
+				first_position = entity.position
+			else
+				if entity.position.y < first_position.y or entity.position.y == first_position.y and entity.position.x < first_position.x then
+					first_entity = entity
+					first_position = entity.position
+				end
+			end
+		end
+	end
+	return first_entity
+end
+
+-- Returns whether the given blueprint contains at least one factory building
+function blueprint_contains_factories(blueprint)
+	local entities = blueprint.get_blueprint_entities()
+	for _,entity in pairs(entities) do
+		if HasLayout(entity.name) then
+			return true
+		end
+	end
+	return false
+end
 
 
 -- How players pick up factories
@@ -781,7 +1951,7 @@ script.on_event(defines.events.on_marked_for_deconstruction, function(event)
 				entity.destroy()
 				set_entity_to_factory(newbuilding, factory)
 				factory.building = newbuilding
-				entity.surface.print("Could not pick up factory, too many factories picked up at once")			
+				game.print("Could not pick up factory, too many factories picked up at once")			
 			end
 		end
 	end
@@ -1042,6 +2212,8 @@ script.on_event(defines.events.on_tick, function(event)
 	
 	-- Teleport players
 	teleport_players() -- What did you expect
+	
+	update_all_construction_requester_chests()
 end)
 
 -- CONNECTION SETTINGS --
@@ -1073,12 +2245,18 @@ script.on_event(defines.events.on_player_rotated_entity, function(event)
 end)
 
 script.on_event("factory-rotate", function(event)
-	local entity = game.players[event.player_index].selected
+	local player = game.players[event.player_index]
+	local entity = player.selected
 	if not entity then return end
 	if HasLayout(entity.name) then
 		local factory = get_factory_by_building(entity)
 		if factory then
-			toggle_port_markers(factory)
+			-- toggle_port_markers(factory)
+			if player.force == factory.force then
+				rotate_factory(factory)
+			else
+				player.print("That building belongs to another team")
+			end
 		end
 	elseif CONNECTION_INDICATOR_NAMES[entity.name] then
 		local factory = find_surrounding_factory(entity.surface, entity.position)

@@ -1,3 +1,5 @@
+require("util")
+require("constants")
 local F = "__Factorissimo2__";
 
 local function cwc0()
@@ -10,31 +12,38 @@ local function cc0()
 	return get_circuit_connector_sprites({0,0},nil,1)
 end
 
-local function blank()
-	return {
-		filename = F.."/graphics/nothing.png",
-		priority = "high",
-		width = 1,
-		height = 1,
-	}
-end
-
-local function ablank()
-	return {
-		filename = F.."/graphics/nothing.png",
-		priority = "high",
-		width = 1,
-		height = 1,
-		frame_count = 1,
-	}
-end
-
 local function ps()
 	return {
 		filename = F.."/graphics/component/pipe-connection-south.png",
 		priority = "extra-high",
 		width = 44,
 		height = 32
+	}
+end
+
+local function sprite_entity_info()
+	return {
+		filename = "__core__/graphics/entity-info-dark-background.png",
+		priority = "high",
+		width = 53,
+		height = 53,
+		scale = 0.5
+	}
+end
+
+local function repeat_count(count, entry)
+	local result = {}
+	for i=1,count do
+		table.insert(result, entry)
+	end
+	return result
+end
+local function repeat_nesw(entry)
+	return {
+		north = entry,
+		east = entry,
+		south = entry,
+		west = entry
 	}
 end
 
@@ -98,10 +107,20 @@ local function southpipepictures()
 	}
 end
 
+function overlay_controller_picture()
+	return {
+		filename = "__base__/graphics/entity/iron-chest/iron-chest.png",
+		priority = "extra-high",
+		width = 48,
+		height = 34,
+		shift = {0.1875, 0}
+	}
+end
+
 -- Factory power I/O
 
 function make_energy_interfaces(size,passive_input,passive_output,icon)
-	local j = size/2-0.3;
+	local selection_size = size-0.6;
 	local input_priority = (passive_input and "terciary") or "secondary-input"
 	local output_priority = (passive_output and "terciary") or "secondary-output"
 	-- I wish I could make only the input entity passive, so accumulators inside could charge, but there's a bug that prevents this from 
@@ -124,8 +143,8 @@ function make_energy_interfaces(size,passive_input,passive_output,icon)
 			},
 			energy_usage = "0MW",
 			energy_production = "0MW",
-			selection_box = {{-j,-j},{j,j}},
-			collision_box = {{-j,-j},{j,j}},
+			selection_box = centered_square(selection_size),
+			collision_box = centered_square(selection_size),
 			collision_mask = {},
 		},
 		{
@@ -146,8 +165,8 @@ function make_energy_interfaces(size,passive_input,passive_output,icon)
 			},
 			energy_usage = "0MW",
 			energy_production = "0MW",
-			selection_box = {{-j,-j},{j,j}},
-			collision_box = {{-j,-j},{j,j}},
+			selection_box = centered_square(selection_size),
+			collision_box = centered_square(selection_size),
 			collision_mask = {},
 		},
 	})
@@ -171,15 +190,15 @@ local function create_indicator(ctype, suffix, image)
 			flags = {"not-on-map"},
 			minable = nil,
 			max_health = 500,
-			selection_box = {{-0.4,-0.4},{0.4,0.4}},
-			collision_box = {{-0.4,-0.4},{0.4,0.4}},
+			selection_box = centered_square(0.8),
+			collision_box = centered_square(0.8),
 			collision_mask = {},
 			fluid_box = {
 				base_area = 1,
 				pipe_connections = {},
 			},
 			two_direction_only = false,
-			window_bounding_box = {{0,0},{0,0}},
+			window_bounding_box = centered_square(0),
 			pictures = {
 				picture = {
 					sheet = {
@@ -264,15 +283,14 @@ create_indicator("energy", "d100000", "yellow-dir")
 
 -- Other auxiliary entities
 
-local j = 0.99;
 data:extend({
 	{
 		type = "electric-pole",
 		name = "factory-power-pole",
 		minable = nil,
 		max_health = 1,
-		selection_box = {{-j,-j},{j,j}},
-		collision_box = {{-j,-j},{j,j}},
+		selection_box = centered_square(1.99),
+		collision_box = centered_square(1.99),
 		collision_mask = {},
 		maximum_wire_distance = 0,
 		supply_area_distance = 63,
@@ -300,9 +318,9 @@ data:extend({
 		minable = nil,
 		max_health = 55,
 		corpse = "small-remnants",
-		collision_box = {{-0.15, -0.15}, {0.15, 0.15}},
+		collision_box = centered_square(0.3),
 		collision_mask = {},
-		selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+		selection_box = centered_square(1.0),
 		selectable_in_game = false,
 		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
 		energy_source =
@@ -326,54 +344,141 @@ data:extend({
 	},
 	
 	{
-		type = "container",
+		type = "constant-combinator",
 		name = "factory-overlay-controller",
 		icon = "__base__/graphics/icons/iron-chest.png",
+		item_slot_count = Constants.overlay_slot_count,
+		
+		sprites = repeat_nesw(overlay_controller_picture()),
+		activity_led_sprites = repeat_nesw(blank()),
+		activity_led_light_offsets = repeat_count(4, {x=0,y=0}),
+		circuit_wire_connection_points = repeat_count(4, {wire={}, shadow={}}),
+		
 		flags = {},
 		minable = nil,
 		max_health = 100,
 		corpse = "small-remnants",
-		open_sound = { filename = "__base__/sound/metallic-chest-open.ogg", volume=0.65 },
-		close_sound = { filename = "__base__/sound/metallic-chest-close.ogg", volume = 0.7 },
 		resistances = {},
-		collision_box = {{-0.35, -0.35}, {0.35, 0.35}},
-		selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
-		inventory_size = 4,
+		collision_box = centered_square(0.7),
+		selection_box = centered_square(1.0),
 		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
-		picture = {
-			filename = "__base__/graphics/entity/iron-chest/iron-chest.png",
-			priority = "extra-high",
-			width = 48,
-			height = 34,
-			shift = {0.1875, 0}
-		},
-		circuit_wire_connection_point = cwc0(),
-		circuit_connector_sprites = get_circuit_connector_sprites({0.1875, 0.15625}, nil, 18),
-		circuit_wire_max_distance = 0
 	},
 
 	{
-		type = "container",
-		name = "factory-overlay-display",
-		icon = "__base__/graphics/icons/iron-chest.png",
+		type = "item",
+		name = "factory-overlay-display-1-item",
+		icon = "__core__/graphics/entity-info-dark-background.png",
+		flags = {"hidden"},
+		subgroup = "factorissimo2",
+		place_result = "blueprint-factory-overlay-display-1",
+		stack_size = 10
+	},
+	{
+		type = "item",
+		name = "factory-overlay-display-2-item",
+		icon = "__core__/graphics/entity-info-dark-background.png",
+		flags = {"hidden"},
+		subgroup = "factorissimo2",
+		place_result = "blueprint-factory-overlay-display-2",
+		stack_size = 10
+	},
+	{
+		type = "constant-combinator",
+		name = "factory-overlay-display-1",
+		icon = F.."/graphics/icon/blank-icon.png",
+		item_slot_count = Constants.overlay_slot_count,
+		
+		sprites = repeat_nesw(blank()),
+		activity_led_sprites = repeat_nesw(blank()),
+		activity_led_light_offsets = repeat_count(4, {x=0,y=0}),
+		circuit_wire_connection_points = repeat_count(4, {wire={}, shadow={}}),
+		
 		flags = {"not-on-map"},
 		minable = nil,
 		max_health = 100,
 		corpse = "small-remnants",
-		open_sound = { filename = "__base__/sound/metallic-chest-open.ogg", volume=0.65 },
-		close_sound = { filename = "__base__/sound/metallic-chest-close.ogg", volume = 0.7 },
 		resistances = {},
-		collision_box = {{-1.85, -1.85}, {1.85, 1.85}},
+		collision_box = centered_square(1),
 		collision_mask = {},
-		selection_box = {{-2, -2}, {2, 2}},
+		selection_box = centered_square(1),
 		selectable_in_game = false,
 		scale_info_icons = true,
-		inventory_size = 4,
 		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
-		picture = blank(),
-		circuit_wire_connection_point = cwc0(),
-		circuit_connector_sprites = get_circuit_connector_sprites({0.1875, 0.15625}, nil, 18),
-		circuit_wire_max_distance = 0
+	},
+	{
+		type = "constant-combinator",
+		name = "blueprint-factory-overlay-display-1",
+		icon = "__core__/graphics/entity-info-dark-background.png",
+		item_slot_count = Constants.overlay_slot_count,
+		
+		sprites = repeat_nesw(sprite_entity_info()),
+		activity_led_sprites = repeat_nesw(blank()),
+		activity_led_light_offsets = repeat_count(4, {x=0,y=0}),
+		circuit_wire_connection_points = repeat_count(4, {wire={}, shadow={}}),
+		
+		flags = {"not-on-map", "player-creation"},
+		minable = {
+			mining_time = 1,
+			result = "factory-overlay-display-1-item"
+		},
+		max_health = 100,
+		corpse = "small-remnants",
+		resistances = {},
+		collision_box = centered_square(1),
+		collision_mask = {},
+		selection_box = centered_square(1),
+		selectable_in_game = false,
+		scale_info_icons = true,
+		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
+	},
+	{
+		type = "constant-combinator",
+		name = "factory-overlay-display-2",
+		icon = F.."/graphics/icon/blank-icon.png",
+		item_slot_count = Constants.overlay_slot_count,
+		
+		sprites = repeat_nesw(blank()),
+		activity_led_sprites = repeat_nesw(blank()),
+		activity_led_light_offsets = repeat_count(4, {x=0,y=0}),
+		circuit_wire_connection_points = repeat_count(4, {wire={}, shadow={}}),
+		
+		flags = {"not-on-map"},
+		minable = nil,
+		max_health = 100,
+		corpse = "small-remnants",
+		resistances = {},
+		collision_box = centered_square(3.7),
+		collision_mask = {},
+		selection_box = centered_square(4),
+		selectable_in_game = false,
+		scale_info_icons = true,
+		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
+	},
+	{
+		type = "constant-combinator",
+		name = "blueprint-factory-overlay-display-2",
+		icon = "__core__/graphics/entity-info-dark-background.png",
+		item_slot_count = Constants.overlay_slot_count,
+		
+		sprites = repeat_nesw(sprite_entity_info()),
+		activity_led_sprites = repeat_nesw(blank()),
+		activity_led_light_offsets = repeat_count(4, {x=0,y=0}),
+		circuit_wire_connection_points = repeat_count(4, {wire={}, shadow={}}),
+		
+		flags = {"not-on-map", "player-creation"},
+		minable = {
+			mining_time = 1,
+			result = "factory-overlay-display-1-item"
+		},
+		max_health = 100,
+		corpse = "small-remnants",
+		resistances = {},
+		collision_box = centered_square(3.7),
+		collision_mask = {},
+		selection_box = centered_square(4),
+		selectable_in_game = false,
+		scale_info_icons = true,
+		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
 	},
 	{
 		type = "pipe",
@@ -381,9 +486,9 @@ data:extend({
 		flags = {"not-on-map"},
 		minable = nil,
 		max_health = 500,
-		selection_box = {{-0.4,-0.4},{0.4,0.4}},
+		selection_box = centered_square(0.8),
 		selectable_in_game = false,
-		collision_box = {{-0.4,-0.4},{0.4,0.4}},
+		collision_box = centered_square(0.8),
 		collision_mask = {},
 		fluid_box = {
 			base_area = 0, -- Important, because fluid displacement on deconstruction ignores connection type
@@ -394,8 +499,8 @@ data:extend({
 				{position = {-1, 0}, type = "output"},
 			},
 		},
-		horizontal_window_bounding_box = {{0,0},{0,0}},
-		vertical_window_bounding_box = {{0,0},{0,0}},
+		horizontal_window_bounding_box = centered_square(0),
+		vertical_window_bounding_box = centered_square(0),
 		pictures = blankpipepictures(),
 		vehicle_impact_sound = {filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65},
 	},
@@ -405,9 +510,9 @@ data:extend({
 		flags = {"not-on-map"},
 		minable = nil,
 		max_health = 500,
-		selection_box = {{-0.4,-0.4},{0.4,0.4}},
+		selection_box = centered_square(0.8),
 		selectable_in_game = false,
-		collision_box = {{-0.4,-0.4},{0.4,0.4}},
+		collision_box = centered_square(0.8),
 		collision_mask = {},
 		fluid_box = {
 			base_area = 0, -- Important, because fluid displacement on deconstruction ignores connection type
@@ -418,8 +523,8 @@ data:extend({
 				{position = {-1, 0}, type = "output"},
 			},
 		},
-		horizontal_window_bounding_box = {{0,0},{0,0}},
-		vertical_window_bounding_box = {{0,0},{0,0}},
+		horizontal_window_bounding_box = centered_square(0),
+		vertical_window_bounding_box = centered_square(0),
 		pictures = southpipepictures(),
 		vehicle_impact_sound = {filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65},
 	},
@@ -431,9 +536,9 @@ data:extend({
 		minable = nil,
 		max_health = 40,
 		resource_categories = {"basic-solid"},
-		selection_box = {{-0.4,-0.4},{0.4,0.4}},
+		selection_box = centered_square(0.8),
 		selectable_in_game = false,
-		collision_box = {{-0.4,-0.4},{0.4,0.4}},
+		collision_box = centered_square(0.8),
 		collision_mask = {},
 		energy_source = {
 			type = "electric",

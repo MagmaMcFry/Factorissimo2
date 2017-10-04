@@ -1,3 +1,14 @@
+### 2.2.0:
+
+- jimrandomh: Add "factory robotic construction" technology and support for
+building filled factory buildings from blueprints
+- jimrandomh: Paste-settings (shift+right-click, shift+left-click) puts
+blueprint-ghosts in the target factory
+- jimrandomh: Overlay display can now be used to mark individual ports, in
+addition to marking the whole factory
+- jimrandomh: Factory buildings can be rotated. (This replaces the keybinding
+for toggling port-markers)
+
 ### 2.1.8:
 
 - Improved belt connection performance by another 2-3x
