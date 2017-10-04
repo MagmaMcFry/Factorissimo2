@@ -477,6 +477,10 @@ local function create_factory_interior(layout, force)
 	return factory
 end
 
+local function destroy_factory_interior(factory)
+	-- TODO
+end
+
 function create_factory_exterior(factory, building)
 	local layout = factory.layout
 	local force = factory.force
@@ -629,6 +633,21 @@ local function can_teleport(entity_name, proto_name)
 	return true
 end
 
+local all_inventories = {
+	defines.inventory.fuel, defines.inventory.burnt_result,
+	defines.inventory.chest, defines.inventory.furnace_source,
+	defines.inventory.furnace_result, defines.inventory.furnace_modules,
+	defines.inventory.roboport_robot, defines.inventory.roboport_material,
+	defines.inventory.robot_cargo, defines.inventory.robot_repair,
+	defines.inventory.assembling_machine_input, defines.inventory.assembling_machine_output,
+	defines.inventory.assembling_machine_modules, defines.inventory.lab_input,
+	defines.inventory.lab_modules, defines.inventory.mining_drill_modules,
+	defines.inventory.item_main, defines.inventory.rocket_silo_rocket,
+	defines.inventory.rocket_silo_result, defines.inventory.car_trunk,
+	defines.inventory.car_ammo, defines.inventory.cargo_wagon,
+	defines.inventory.turret_ammo, defines.inventory.beacon_modules
+}
+
 -- Deconstruct all the buildings inside a factory, then return the items they
 -- were made from.
 local function deconstruct_factory_contents(factory)
@@ -656,43 +675,10 @@ local function deconstruct_factory_contents(factory)
 			end
 			
 			if entity.has_items_inside() then
-				local inventories_searched = {}
-				for _,inventory_id in ipairs({
-					defines.inventory.fuel,
-					defines.inventory.burnt_result,
-					defines.inventory.chest,
-					defines.inventory.furnace_source,
-					defines.inventory.furnace_result,
-					defines.inventory.furnace_modules,
-					defines.inventory.roboport_robot,
-					defines.inventory.roboport_material,
-					defines.inventory.robot_cargo,
-					defines.inventory.robot_repair,
-					defines.inventory.assembling_machine_input,
-					defines.inventory.assembling_machine_output,
-					defines.inventory.assembling_machine_modules,
-					defines.inventory.lab_input,
-					defines.inventory.lab_modules,
-					defines.inventory.mining_drill_modules,
-					defines.inventory.item_main,
-					defines.inventory.rocket_silo_rocket,
-					defines.inventory.rocket_silo_result,
-					defines.inventory.car_trunk,
-					defines.inventory.car_ammo,
-					defines.inventory.cargo_wagon,
-					defines.inventory.turret_ammo,
-					defines.inventory.beacon_modules
-				}) do
+				for _,inventory_id in ipairs(all_inventories) do
 					local inventory = entity.get_inventory(inventory_id)
 					if inventory then
-						if not inventories_searched[inventory] then
-							inventories_searched[inventory] = true
-							add_inventory(items_generated, inventory)
-							
-							if inventory.get_item_count() > 0 then
-								game.print("Found items in "..inventory_id)
-							end
-						end
+						add_inventory(items_generated, inventory)
 					end
 				end
 			end
@@ -706,6 +692,12 @@ local function deconstruct_factory_contents(factory)
 	end
 	
 	return items_generated
+end
+
+local function serialize_inventory(inventory)
+	if not inventory then return nil end
+	if inventory.get_item_count()==0 then return nil end
+	return inventory.get_contents()
 end
 
 local function filter_blueprint_reconstructed_only(blueprint_string)
@@ -756,21 +748,40 @@ local function describe_for_reconstruction(entity)
 		force = entity.force,
 		direction = entity.direction,
 		health = entity.health,
+		energy = entity.energy,
 		temperature = entity.temperature,
 	}
 	
 	if entity.prototype.type == "underground-belt" then
 		result.belt_to_ground_type = entity.belt_to_ground_type
 	end
+	if entity.prototype.type == "underground-belt" or entity.prototype.type == "transport-belt" then
+		-- TODO: Extract content from belts
+	end
+	-- TODO: Extact contents from pipes, storage tanks
 	if entity.prototype.type == "loader" then
 		result.loader_type = entity.loader_type
 	end
-	-- TODO: Extract contents from assembling machines, belts, pipes, etc
+	if entity.prototype.type == "assembling-machine" then
+		result.recipe = entity.recipe.name
+	end
+	if entity.has_items_inside() then
+		result.inventories = {}
+		for _,inventory_id in ipairs(all_inventories) do
+			local inventory = serialize_inventory(entity.get_inventory(inventory_id))
+			if inventory then
+				result.inventories[inventory_id] = inventory
+			end
+		end
+		game.print(serpent.dump(result.inventories))
+	end
+	-- TODO: Extract contents from belts, pipes, etc
 	return result
 end
 
 local function reconstruct_entity(factory, description)
-	-- TODO: Put contents back into assembling machines, belts, pipes, etc
+	-- TODO: Put contents back into belts
+	-- TODO: Put contents back into pipes, storage tanks
 	local entity_create_params = {
 		name = description.name,
 		position = rotate_position(factory, description.position),
@@ -784,10 +795,25 @@ local function reconstruct_entity(factory, description)
 	
 	local entity = factory.inside_surface.create_entity(entity_create_params)
 	entity.health = description.health
+	entity.energy = description.energy
 	entity.temperature = description.temperature
 	
 	if entity.prototype.type == "loader" then
 		entity.loader_type = description.loader_type
+	end
+	if entity.prototype.type == "assembling-machine" then
+		local force = factory.force
+		entity.recipe = force.recipes[description.recipe]
+	end
+	if description.inventories then
+		for inventory_id,contents in pairs(description.inventories) do
+			local inventory = entity.get_inventory(inventory_id)
+			if inventory and inventory.is_empty() then
+				for item,count in pairs(contents) do
+					inventory.insert({name=item, count=count})
+				end
+			end
+		end
 	end
 end
 
@@ -857,20 +883,6 @@ local function rotate_factory(factory)
 	for _,entity in ipairs(reconstructed_entities) do
 		reconstruct_entity(factory, entity)
 	end
-	
-	-- Use items to rebuild factory contents
-	--local items_spent = {}
-	--local missing_items = {}
-	--build_ghosts(factory, items_generated, items_spent, missing_items)
-	
-	-- Spill remaining items
-	--for name,count in pairs(items_generated) do
-		--if count>0 then
-			--factory.outside_surface.spill_item_stack(
-				--{x=factory.outside_x, y=factory.outside_y},
-				--{name=name,count=count})
-		--end
-	--end
 	
 	-- Rotate the exterior building
 	factory.building.direction = (factory.building.direction + 2) % 8
@@ -1032,8 +1044,13 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
 end)
 
 function on_entity_built(entity)
-	--if BUILDING_TYPE ~= entity.type then return nil end
-	if HasLayout(entity.name) then
+	if entity.name == "entity-ghost" then
+		game.print("on_entity_built entity-ghost")
+		if entity.ghost_name == "blueprint-factory-overlay-display-1"
+		   or entity.ghost_name == "blueprint-factory-overlay-display-2" then
+			entity.destroy()
+		end
+	elseif HasLayout(entity.name) then
 		-- This is a fresh factory, we need to create it
 		local layout = CreateLayout(entity.name)
 		if can_place_factory_here(layout.tier, entity.surface, entity.position) then
@@ -1737,6 +1754,7 @@ function blueprint_record_factory_contents(blueprint, area, surface, force)
 		x = first_world_factory.position.x - first_blueprint_factory.position.x,
 		y = first_world_factory.position.y - first_blueprint_factory.position.y,
 	}
+	local overlay_entities = {}
 	
 	for i,entity in pairs(blueprint_entities) do
 		-- Replace factory-construction-requester-chests in the blueprint with
@@ -1778,14 +1796,73 @@ function blueprint_record_factory_contents(blueprint, area, surface, force)
 					alert_message=blueprint_string
 				}
 			end
-		-- Un-rotate factories in the blueprint
 		elseif HasLayout(entity.name) then
+			-- Un-rotate factories in the blueprint
 			entity.direction = 0
+			
+			-- Find the factory entity in the world
+			local world_pos = {
+				x = entity.position.x + blueprint_offset.x,
+				y = entity.position.y + blueprint_offset.y
+			}
+			local world_entities = surface.find_entities(
+				shift_bounds_by(world_pos.x, world_pos.y, centered_square(1)))
+			local factory
+			for i,world_entity in ipairs(world_entities) do
+				if world_entity.name == entity.name then
+					factory = get_factory_by_entity(world_entity)
+				end
+			end
+			for i,overlay in pairs(factory.outside_overlay_displays) do
+				if not overlay_is_empty(overlay) then
+					table.insert(overlay_entities, {
+						name = "blueprint-"..overlay.name,
+						position = {
+							x=overlay.position.x-world_pos.x - 0.5,
+							y=overlay.position.y-world_pos.y - 0.5
+						},
+						control_behavior = serialize_overlay_behavior(overlay.get_control_behavior())
+					})
+				end
+			end
 		end
+	end
+	
+	for i,overlay in ipairs(overlay_entities) do
+		table.insert(blueprint_entities, overlay)
 	end
 	
 	BlueprintString.fix_entities(blueprint_entities)
 	blueprint.set_blueprint_entities(blueprint_entities)
+end
+
+function serialize_overlay_behavior(overlay)
+	local filters = {}
+	for i = 1,Constants.overlay_slot_count do
+		local signal = overlay.get_signal(i)
+		if signal and signal.signal then
+			table.insert(filters, {
+				index = i,
+				count = signal.count,
+				signal = signal.signal
+			})
+		end
+	end
+	
+	return { filters = filters }
+end
+
+function overlay_is_empty(overlay)
+	if not overlay then return true end
+	local behavior = overlay.get_control_behavior()
+	if not behavior then return true end
+	for i = 1,Constants.overlay_slot_count do
+		local signal = behavior.get_signal(i)
+		if signal and signal.signal then
+			return false
+		end
+	end
+	return true
 end
 
 function lexicographically_first_factory_in(entity_list)

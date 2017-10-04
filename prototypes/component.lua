@@ -21,6 +21,32 @@ local function ps()
 	}
 end
 
+local function sprite_entity_info()
+	return {
+		filename = "__core__/graphics/entity-info-dark-background.png",
+		priority = "high",
+		width = 53,
+		height = 53,
+		scale = 0.5
+	}
+end
+
+local function repeat_count(count, entry)
+	local result = {}
+	for i=1,count do
+		table.insert(result, entry)
+	end
+	return result
+end
+local function repeat_nesw(entry)
+	return {
+		north = entry,
+		east = entry,
+		south = entry,
+		west = entry
+	}
+end
+
 local function blankpipepictures()
 	return {
 		straight_vertical_single = blank(),
@@ -323,30 +349,10 @@ data:extend({
 		icon = "__base__/graphics/icons/iron-chest.png",
 		item_slot_count = Constants.overlay_slot_count,
 		
-		sprites = {
-			north = overlay_controller_picture(),
-			east = overlay_controller_picture(),
-			south = overlay_controller_picture(),
-			west = overlay_controller_picture(),
-		},
-		activity_led_sprites = {
-			north = blank(),
-			east = blank(),
-			south = blank(),
-			west = blank(),
-		},
-		activity_led_light_offsets = {
-			{x=0,y=0},
-			{x=0,y=0},
-			{x=0,y=0},
-			{x=0,y=0},
-		},
-		circuit_wire_connection_points = {
-			{ wire = { }, shadow = { } },
-			{ wire = { }, shadow = { } },
-			{ wire = { }, shadow = { } },
-			{ wire = { }, shadow = { } },
-		},
+		sprites = repeat_nesw(overlay_controller_picture()),
+		activity_led_sprites = repeat_nesw(blank()),
+		activity_led_light_offsets = repeat_count(4, {x=0,y=0}),
+		circuit_wire_connection_points = repeat_count(4, {wire={}, shadow={}}),
 		
 		flags = {},
 		minable = nil,
@@ -359,35 +365,33 @@ data:extend({
 	},
 
 	{
+		type = "item",
+		name = "factory-overlay-display-1-item",
+		icon = "__core__/graphics/entity-info-dark-background.png",
+		flags = {"hidden"},
+		subgroup = "factorissimo2",
+		place_result = "blueprint-factory-overlay-display-1",
+		stack_size = 10
+	},
+	{
+		type = "item",
+		name = "factory-overlay-display-2-item",
+		icon = "__core__/graphics/entity-info-dark-background.png",
+		flags = {"hidden"},
+		subgroup = "factorissimo2",
+		place_result = "blueprint-factory-overlay-display-2",
+		stack_size = 10
+	},
+	{
 		type = "constant-combinator",
 		name = "factory-overlay-display-1",
-		icon = "__base__/graphics/icons/iron-chest.png",
+		icon = F.."/graphics/icon/blank-icon.png",
 		item_slot_count = Constants.overlay_slot_count,
 		
-		sprites = {
-			north = blank(),
-			east = blank(),
-			south = blank(),
-			west = blank(),
-		},
-		activity_led_sprites = {
-			north = blank(),
-			east = blank(),
-			south = blank(),
-			west = blank(),
-		},
-		activity_led_light_offsets = {
-			{x=0,y=0},
-			{x=0,y=0},
-			{x=0,y=0},
-			{x=0,y=0},
-		},
-		circuit_wire_connection_points = {
-			{ wire = { }, shadow = { } },
-			{ wire = { }, shadow = { } },
-			{ wire = { }, shadow = { } },
-			{ wire = { }, shadow = { } },
-		},
+		sprites = repeat_nesw(blank()),
+		activity_led_sprites = repeat_nesw(blank()),
+		activity_led_light_offsets = repeat_count(4, {x=0,y=0}),
+		circuit_wire_connection_points = repeat_count(4, {wire={}, shadow={}}),
 		
 		flags = {"not-on-map"},
 		minable = nil,
@@ -403,37 +407,69 @@ data:extend({
 	},
 	{
 		type = "constant-combinator",
-		name = "factory-overlay-display-2",
-		icon = "__base__/graphics/icons/iron-chest.png",
+		name = "blueprint-factory-overlay-display-1",
+		icon = "__core__/graphics/entity-info-dark-background.png",
 		item_slot_count = Constants.overlay_slot_count,
 		
-		sprites = {
-			north = blank(),
-			east = blank(),
-			south = blank(),
-			west = blank(),
+		sprites = repeat_nesw(sprite_entity_info()),
+		activity_led_sprites = repeat_nesw(blank()),
+		activity_led_light_offsets = repeat_count(4, {x=0,y=0}),
+		circuit_wire_connection_points = repeat_count(4, {wire={}, shadow={}}),
+		
+		flags = {"not-on-map", "player-creation"},
+		minable = {
+			mining_time = 1,
+			result = "factory-overlay-display-1-item"
 		},
-		activity_led_sprites = {
-			north = blank(),
-			east = blank(),
-			south = blank(),
-			west = blank(),
-		},
-		activity_led_light_offsets = {
-			{x=0,y=0},
-			{x=0,y=0},
-			{x=0,y=0},
-			{x=0,y=0},
-		},
-		circuit_wire_connection_points = {
-			{ wire = { }, shadow = { } },
-			{ wire = { }, shadow = { } },
-			{ wire = { }, shadow = { } },
-			{ wire = { }, shadow = { } },
-		},
+		max_health = 100,
+		corpse = "small-remnants",
+		resistances = {},
+		collision_box = centered_square(1),
+		collision_mask = {},
+		selection_box = centered_square(1),
+		selectable_in_game = false,
+		scale_info_icons = true,
+		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
+	},
+	{
+		type = "constant-combinator",
+		name = "factory-overlay-display-2",
+		icon = F.."/graphics/icon/blank-icon.png",
+		item_slot_count = Constants.overlay_slot_count,
+		
+		sprites = repeat_nesw(blank()),
+		activity_led_sprites = repeat_nesw(blank()),
+		activity_led_light_offsets = repeat_count(4, {x=0,y=0}),
+		circuit_wire_connection_points = repeat_count(4, {wire={}, shadow={}}),
 		
 		flags = {"not-on-map"},
 		minable = nil,
+		max_health = 100,
+		corpse = "small-remnants",
+		resistances = {},
+		collision_box = centered_square(3.7),
+		collision_mask = {},
+		selection_box = centered_square(4),
+		selectable_in_game = false,
+		scale_info_icons = true,
+		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
+	},
+	{
+		type = "constant-combinator",
+		name = "blueprint-factory-overlay-display-2",
+		icon = "__core__/graphics/entity-info-dark-background.png",
+		item_slot_count = Constants.overlay_slot_count,
+		
+		sprites = repeat_nesw(sprite_entity_info()),
+		activity_led_sprites = repeat_nesw(blank()),
+		activity_led_light_offsets = repeat_count(4, {x=0,y=0}),
+		circuit_wire_connection_points = repeat_count(4, {wire={}, shadow={}}),
+		
+		flags = {"not-on-map", "player-creation"},
+		minable = {
+			mining_time = 1,
+			result = "factory-overlay-display-1-item"
+		},
 		max_health = 100,
 		corpse = "small-remnants",
 		resistances = {},
