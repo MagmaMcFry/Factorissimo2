@@ -10,6 +10,17 @@ local function cc0()
 	return get_circuit_connector_sprites({0,0},nil,1)
 end
 
+local function transfer_rate_string(transfer_rate, suffix)
+	local power_string
+	if transfer_rate >= 1000 then
+	    power_string = (transfer_rate / 1000) .. "G" .. suffix
+	else
+	    power_string = transfer_rate .. "M" .. suffix
+	end
+	return power_string
+end
+
+
 local function blank()
 	return {
 		filename = F.."/graphics/nothing.png",
@@ -100,15 +111,17 @@ end
 
 -- Factory power I/O
 
-function make_energy_interfaces(size,passive_input,passive_output,icon)
+function make_energy_interfaces(size,passive_input,passive_output,icon, mwlimit)
 	local j = size/2-0.3;
 	local input_priority = (passive_input and "terciary") or "secondary-input"
 	local output_priority = (passive_output and "terciary") or "secondary-output"
 	-- I wish I could make only the input entity passive, so accumulators inside could charge, but there's a bug that prevents this from 
+	local mwstr = transfer_rate_string(mwlimit, "W")
+	local bufferstr = transfer_rate_string(mwlimit, "J")
 	data:extend({
 		{
 			type = "electric-energy-interface",
-			name = "factory-power-input-" .. size,
+			name = "factory-power-input-" .. size .. "-" .. mwstr,
 			icon = icon,
 			flags = {"not-on-map"},
 			minable = nil,
@@ -117,9 +130,9 @@ function make_energy_interfaces(size,passive_input,passive_output,icon)
 			energy_source = {
 				type = "electric",
 				usage_priority = input_priority,
-				input_flow_limit = "60MW",
+				input_flow_limit = mwstr,
 				output_flow_limit = "0MW",
-				buffer_capacity = "1MJ",
+				buffer_capacity = bufferstr,
 				render_no_power_icon = false,
 			},
 			energy_usage = "0MW",
@@ -130,7 +143,7 @@ function make_energy_interfaces(size,passive_input,passive_output,icon)
 		},
 		{
 			type = "electric-energy-interface",
-			name = "factory-power-output-" .. size,
+			name = "factory-power-output-" .. size .. "-" .. mwstr,
 			icon = icon,
 			flags = {"not-on-map"},
 			minable = nil,
@@ -140,8 +153,8 @@ function make_energy_interfaces(size,passive_input,passive_output,icon)
 				type = "electric",
 				usage_priority = output_priority,
 				input_flow_limit = "0MW",
-				output_flow_limit = "60MW",
-				buffer_capacity = "1MJ",
+				output_flow_limit = mwstr,
+				buffer_capacity = bufferstr,
 				render_no_power_icon = false,
 			},
 			energy_usage = "0MW",
@@ -152,13 +165,18 @@ function make_energy_interfaces(size,passive_input,passive_output,icon)
 		},
 	})
 end
-make_energy_interfaces(2,true,true,"__base__/graphics/icons/substation.png")
+
+local VALID_POWER_TRANSFER_RATES = {1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000} -- MW
+
+for _, mwrates in pairs(VALID_POWER_TRANSFER_RATES) do
+  make_energy_interfaces(2,true,true,"__base__/graphics/icons/substation.png", mwrates)
 -- true,false would be optimal, but due to a bug it doesn't work. Maybe it'll be fixed.
 -- In the meantime we'll have to settle for true,true because that's how Factorissimo1 worked.
 
-make_energy_interfaces(8,false,false,F.."/graphics/icon/factory-1.png")
-make_energy_interfaces(12,false,false,F.."/graphics/icon/factory-2.png")
-make_energy_interfaces(16,false,false,F.."/graphics/icon/factory-3.png")
+  make_energy_interfaces(8,false,false,F.."/graphics/icon/factory-1.png", mwrates)
+  make_energy_interfaces(12,false,false,F.."/graphics/icon/factory-2.png", mwrates)
+  make_energy_interfaces(16,false,false,F.."/graphics/icon/factory-3.png", mwrates)
+end
 
 -- Connection indicators
 
