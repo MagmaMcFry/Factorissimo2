@@ -449,6 +449,7 @@ data:extend({
 		selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
 		inventory_size = 48,
 		logistic_mode = "requester",
+		logistic_slots_count = 1,
 		open_sound = { filename = "__base__/sound/metallic-chest-open.ogg", volume=0.65 },
 		close_sound = { filename = "__base__/sound/metallic-chest-close.ogg", volume = 0.7 },
 		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
