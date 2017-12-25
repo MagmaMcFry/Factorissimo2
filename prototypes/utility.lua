@@ -338,28 +338,28 @@ data:extend({
 
 		activity_led_sprites = {
 			north = {
-				filename = "__base__/graphics/entity/combinator/activity-leds/combinator-led-constant-north.png",
+				filename = "__base__/graphics/entity/combinator/activity-leds/constant-combinator-led-n.png",
 				width = 11,
 				height = 10,
 				frame_count = 1,
 				shift = {0.296875, -0.40625},
 			},
 			east = {
-				filename = "__base__/graphics/entity/combinator/activity-leds/combinator-led-constant-east.png",
+				filename = "__base__/graphics/entity/combinator/activity-leds/constant-combinator-led-e.png",
 				width = 14,
 				height = 12,
 				frame_count = 1,
 				shift = {0.25, -0.03125},
 			},
 			south = {
-				filename = "__base__/graphics/entity/combinator/activity-leds/combinator-led-constant-south.png",
+				filename = "__base__/graphics/entity/combinator/activity-leds/constant-combinator-led-s.png",
 				width = 11,
 				height = 11,
 				frame_count = 1,
 				shift = {-0.296875, -0.078125},
 			},
 			west = {
-				filename = "__base__/graphics/entity/combinator/activity-leds/combinator-led-constant-west.png",
+				filename = "__base__/graphics/entity/combinator/activity-leds/constant-combinator-led-w.png",
 				width = 12,
 				height = 12,
 				frame_count = 1,
