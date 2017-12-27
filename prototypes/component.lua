@@ -108,6 +108,7 @@ function make_energy_interfaces(size,passive_input,passive_output,icon)
 			{
 				type = "electric-energy-interface",
 				name = "factory-power-input-" .. size .. "-" .. transfer_rate,
+				translated_name = {"factory-power-input-" .. size},
 				icon = icon,
 				icon_size = 32,
 				flags = {"not-on-map"},
@@ -118,7 +119,7 @@ function make_energy_interfaces(size,passive_input,passive_output,icon)
 					type = "electric",
 					usage_priority = input_priority,
 					input_flow_limit = transfer_rate .. "MW",
-					output_flow_limit = "0MW",
+					--output_flow_limit = "0MW",
 					buffer_capacity = buffer_size .. "J",
 					render_no_power_icon = false,
 				},
@@ -131,6 +132,7 @@ function make_energy_interfaces(size,passive_input,passive_output,icon)
 			{
 				type = "electric-energy-interface",
 				name = "factory-power-output-" .. size .. "-" .. transfer_rate,
+				translated_name = {"factory-power-input-" .. size},
 				icon = icon,
 				icon_size = 32,
 				flags = {"not-on-map"},
@@ -140,7 +142,7 @@ function make_energy_interfaces(size,passive_input,passive_output,icon)
 				energy_source = {
 					type = "electric",
 					usage_priority = output_priority,
-					input_flow_limit = "0MW",
+					--input_flow_limit = "0MW",
 					output_flow_limit = transfer_rate .. "MW",
 					buffer_capacity = buffer_size .. "J",
 					render_no_power_icon = false,

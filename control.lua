@@ -222,14 +222,14 @@ local function update_power_settings(factory)
 
 		local e = factory.transfer_rate*16667 -- conversion factor of MW to J/U
 		if factory.transfers_outside then
-			factory.inside_energy_sender.energy = e
+			factory.inside_energy_sender.energy = 0--e
 			factory.inside_energy_receiver.energy = 0
 			factory.outside_energy_sender.energy = 0
-			factory.outside_energy_receiver.energy = e
+			factory.outside_energy_receiver.energy = 0--e
 		else
 			factory.inside_energy_sender.energy = 0
-			factory.inside_energy_receiver.energy = e
-			factory.outside_energy_sender.energy = e
+			factory.inside_energy_receiver.energy = 0--e
+			factory.outside_energy_sender.energy = 0--e
 			factory.outside_energy_receiver.energy = 0
 		end
 	end
@@ -246,7 +246,12 @@ local function update_power_settings(factory)
 	energy_indicator.destructible = false
 	factory.energy_indicator = energy_indicator
 end
-
+-- For update 8
+function update_all_power_settings()
+	for _, factory in pairs(global.factories) do
+		update_power_settings(factory)
+	end
+end
 local function adjust_power_transfer_rate(factory, positive)
 	local transfer_rate = factory.transfer_rate
 	if positive then
@@ -900,7 +905,7 @@ local function set_camera(player, factory, inside)
 		camera.zoom = zoom
 	else
 		gui.style.visible = true
-		local camera_frame = gui.add{type = "frame", name = "factory_camera_frame", style = "captionless_frame_style"}
+		local camera_frame = gui.add{type = "frame", name = "factory_camera_frame", style = "captionless_frame"}
 		local camera = camera_frame.add{type = "camera", name = "factory_camera", position = position, surface_index = surface_index, zoom = zoom}
 		camera.style.minimal_width = preview_size
 		camera.style.minimal_height = preview_size

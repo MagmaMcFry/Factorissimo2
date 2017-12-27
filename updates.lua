@@ -1,7 +1,7 @@
 Updates = {}
 
 Updates.init = function()
-	global.update_version = 7
+	global.update_version = 8
 end
 
 Updates.run = function()
@@ -96,5 +96,8 @@ Updates.run = function()
 			end
 		end
 	end
-	global.update_version = 7
+	if global.update_version <= 7 then
+		update_all_power_settings()
+	end
+	global.update_version = 8
 end

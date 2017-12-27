@@ -23,14 +23,14 @@ for _,name in pairs(blacklist) do blacklisted[name] = true end
 
 local function is_inside_connected(factory, cid, entity)
 	if blacklisted[entity.name] then return false end
-	for _, e2 in pairs(factory.inside_fluid_dummy_connectors[cid].neighbours) do
+	for _, e2 in pairs(factory.inside_fluid_dummy_connectors[cid].neighbours[1]) do
 		if e2.unit_number == entity.unit_number then return true end
 	end
 end
 
 local function is_outside_connected(factory, cid, entity)
 	if blacklisted[entity.name] then return false end
-	for _, e2 in pairs(factory.outside_fluid_dummy_connectors[cid].neighbours) do
+	for _, e2 in pairs(factory.outside_fluid_dummy_connectors[cid].neighbours[1]) do
 		if e2.unit_number == entity.unit_number then return true end
 	end
 end
@@ -132,7 +132,7 @@ local function transfer(from, to, from_cap, to_cap)
 				from_box.amount = to_cap
 				to_boxes[1] = from_box
 			end
-		elseif to_box.type == from_box.type then
+		elseif to_box.name == from_box.name then
 			local total = from_box.amount + to_box.amount
 			if total < to_cap then
 				from_boxes[1] = nil
@@ -156,7 +156,7 @@ local function balance(from, to, from_cap, to_cap)
 	local to_boxes = to.fluidbox
 	local to_box = to_boxes[1]
 	if from_box ~= nil and to_box ~= nil then
-		if from_box.type == to_box.type then
+		if from_box.name == to_box.name then
 			local from_amount = from_box.amount
 			local to_amount = to_box.amount
 			local both_fill = (from_amount+to_amount)/(from_cap+to_cap)
