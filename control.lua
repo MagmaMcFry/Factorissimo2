@@ -1022,6 +1022,7 @@ end
 -- POWER MANAGEMENT --
 
 local function transfer_power(from, to)
+	if not (from.valid and to.valid) then return end
 	local energy = from.energy+to.energy
 	local ebs = to.electric_buffer_size
 	if energy > ebs then
