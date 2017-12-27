@@ -44,6 +44,7 @@ end
 local function wall_mask()
 	return {
 		"ground-tile",
+		"water-tile",
 		"resource-layer",
 		"floor-layer",
 		"item-layer",
@@ -56,6 +57,7 @@ end
 local function edge_mask()
 	return {
 		"ground-tile",
+		"water-tile",
 		"resource-layer",
 		"floor-layer",
 		"item-layer",
