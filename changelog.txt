@@ -1,3 +1,11 @@
+### 2.2.0:
+
+- Updated to Factorio 0.16
+- Fixed crash after deleting factory buildings using scripts
+- Updated factory preview to use mod_gui
+- Fixed being able to build floor in the void outside factory buildings
+- Simplified localisation
+
 ### 2.1.9:
 
 - Overlay controllers no longer disappear when removing landfill built under them
