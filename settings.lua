@@ -28,13 +28,13 @@ data:extend({
 
 	-- Per user
 
-	{
-		type = "bool-setting",
-		name = "Factorissimo2-preview-enabled",
-		setting_type = "runtime-per-user",
-		default_value = true,
-		order = "a-a",
-	},
+	-- {
+		-- type = "bool-setting",
+		-- name = "Factorissimo2-preview-enabled",
+		-- setting_type = "runtime-per-user",
+		-- default_value = true,
+		-- order = "a-a",
+	-- },
 	{
 		type = "int-setting",
 		name = "Factorissimo2-preview-size",

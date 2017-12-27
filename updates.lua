@@ -61,16 +61,16 @@ Updates.run = function()
 		end
 	end
 	if global.update_version <= 4 then
-		for _,player in pairs(game.players) do
-			local gui = player.gui.top.factory_camera_placeholder
-			if gui then
-				local camera_frame = gui.factory_camera_frame
-				if camera_frame then
-					camera_frame.destroy()
-					gui.style.visible = false
-				end
-			end
-		end
+		-- for _,player in pairs(game.players) do
+			-- local gui = player.gui.top.factory_camera_placeholder
+			-- if gui then
+				-- local camera_frame = gui.factory_camera_frame
+				-- if camera_frame then
+					-- camera_frame.destroy()
+					-- gui.style.visible = false
+				-- end
+			-- end
+		-- end
 	end
 	if global.update_version <= 5 then
 		-- Refresh all connection markers because they may have been turned around by 0.15.10
@@ -98,6 +98,10 @@ Updates.run = function()
 	end
 	if global.update_version <= 7 then
 		update_all_power_settings()
+		for _, player in pairs(game.players) do
+			local gui = player.gui.top.factory_camera_placeholder
+			if gui then gui.destroy() end
+		end
 	end
 	global.update_version = 8
 end

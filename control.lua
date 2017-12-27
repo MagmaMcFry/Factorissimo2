@@ -10,6 +10,7 @@ local Connections = Connections
 require("updates")
 local Updates = Updates
 
+require("mod-gui")
 -- DATA STRUCTURE --
 
 -- Factory buildings are entities of type "storage-tank" internally, because reasons
@@ -78,6 +79,8 @@ local function init_globals()
 	global.next_factory_surface = global.next_factory_surface or 0
 	-- Map: Player index -> Last teleport time
 	global.last_player_teleport = global.last_player_teleport or {}
+	-- Map: Player index -> Whether preview is activated
+	global.player_preview_active = global.player_preview_active or {}
 end
 
 local prepare_gui = 0  -- Will be set to a function lower in the file
@@ -861,27 +864,33 @@ end)
 
 -- GUI --
 
-local function get_camera_parent(player)
-	local parent = player.gui.top.factory_camera_placeholder
-	if not parent then
-		parent = player.gui.top.add{type="flow", name="factory_camera_placeholder"}
-		parent.style.visible = false
+local function get_camera_toggle_button(player)
+	local buttonflow = mod_gui.get_button_flow(player)
+	local button = buttonflow.factory_camera_toggle_button or buttonflow.add{type="sprite-button", name="factory_camera_toggle_button", sprite="technology/factory-architecture-t1"}
+	button.style.visible = player.force.technologies["factory-preview"].researched
+	return button
+end
+
+local function get_camera_frame(player)
+	local frameflow = mod_gui.get_frame_flow(player)
+	local camera_frame = frameflow.factory_camera_frame
+	if not camera_frame then
+		camera_frame = frameflow.add{type = "frame", name = "factory_camera_frame", style = "captionless_frame"}
+		camera_frame.style.visible = false
 	end
-	return parent
+	return camera_frame
 end
 
 -- prepare_gui was declared waaay above
 prepare_gui = function(player)
-	get_camera_parent(player)
+	get_camera_toggle_button(player)
+	get_camera_frame(player)
 end
 
 local function set_camera(player, factory, inside)
 	if not player.force.technologies["factory-preview"].researched then return end
 
 	local ps = settings.get_player_settings(player)
-	local ps_preview_enabled = ps["Factorissimo2-preview-enabled"]
-	if ps_preview_enabled and not ps_preview_enabled.value then return end
-
 	local ps_preview_size = ps["Factorissimo2-preview-size"]
 	local preview_size = ps_preview_size and ps_preview_size.value or 300
 	local ps_preview_zoom = ps["Factorissimo2-preview-zoom"]
@@ -896,32 +905,27 @@ local function set_camera(player, factory, inside)
 		surface_index = factory.inside_surface.index
 		zoom = (preview_size/(32/preview_zoom))/(5+factory.layout.inside_size)
 	end
-	local gui = get_camera_parent(player)
-	local camera_frame = gui.factory_camera_frame
-	if camera_frame then
-		local camera = camera_frame.factory_camera
+	local camera_frame = get_camera_frame(player)
+	local camera = camera_frame.factory_camera
+	if camera then
 		camera.position = position
 		camera.surface_index = surface_index
 		camera.zoom = zoom
 	else
-		gui.style.visible = true
-		local camera_frame = gui.add{type = "frame", name = "factory_camera_frame", style = "captionless_frame"}
 		local camera = camera_frame.add{type = "camera", name = "factory_camera", position = position, surface_index = surface_index, zoom = zoom}
 		camera.style.minimal_width = preview_size
 		camera.style.minimal_height = preview_size
 	end
+	camera_frame.style.visible = true
 end
 
 local function unset_camera(player)
-	local gui = get_camera_parent(player)
-	local camera_frame = gui.factory_camera_frame
-	if camera_frame then
-		camera_frame.destroy()
-		gui.style.visible = false
-	end
+	get_camera_frame(player).style.visible = false
 end
 
 local function update_camera(player)
+	if not global.player_preview_active[player.index] then return end
+	if not player.force.technologies["factory-preview"].researched then return end
 	local cursor_stack = player.cursor_stack
 	if cursor_stack and cursor_stack.valid_for_read and global.saved_factories[cursor_stack.name] then
 		set_camera(player, global.saved_factories[cursor_stack.name], true)
@@ -954,6 +958,19 @@ end)
 
 script.on_event(defines.events.on_player_created, function(event)
 	prepare_gui(game.players[event.player_index])
+end)
+
+script.on_event(defines.events.on_gui_click, function(event)
+	local player = game.players[event.player_index]
+	if event.element.name == "factory_camera_toggle_button" then
+		if global.player_preview_active[player.index] then
+			get_camera_toggle_button(player).sprite = "technology/factory-architecture-t1"
+			global.player_preview_active[player.index] = false
+		else
+			get_camera_toggle_button(player).sprite = "technology/factory-preview"
+			global.player_preview_active[player.index] = true
+		end
+	end
 end)
 
 -- TRAVEL --
@@ -1207,5 +1224,7 @@ script.on_event(defines.events.on_research_finished, function(event)
 	-- elseif name == "factory-recursion-t1" or name == "factory-recursion-t2" then
 		-- Nothing happens, because implementing stuff here would be horrible.
 		-- You just gotta pick up and replace your invalid factories manually for them to work with the newly researched recursion.
+	elseif name == "factory-preview" then
+		for _, player in pairs(game.players) do get_camera_toggle_button(player) end
 	end
 end) 
