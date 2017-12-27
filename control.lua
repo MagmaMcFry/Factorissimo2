@@ -93,6 +93,12 @@ script.on_init(function()
 	Connections.init_data_structure()
 	Updates.init()
 	init_gui()
+	if settings.global["Factorissimo2-hide-recursion"] and settings.global["Factorissimo2-hide-recursion"].value then
+		for _, force in pairs(game.forces) do
+			force.technologies["factory-recursion-t1"].enabled = false
+			force.technologies["factory-recursion-t2"].enabled = false
+		end
+	end
 end)
 
 script.on_configuration_changed(function(config_changed_data)
@@ -1145,6 +1151,14 @@ script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
 				force.technologies["factory-recursion-t2"].enabled = true
 			end
 		end
+	end
+end)
+
+script.on_event(defines.events.on_force_created, function(event)
+	local force = event.force
+	if settings.global["Factorissimo2-hide-recursion"] and settings.global["Factorissimo2-hide-recursion"].value then
+		force.technologies["factory-recursion-t1"].enabled = false
+		force.technologies["factory-recursion-t2"].enabled = false
 	end
 end)
 
