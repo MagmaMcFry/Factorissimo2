@@ -1,3 +1,9 @@
+### 2.1.9:
+
+- Overlay controllers no longer disappear when removing landfill built under them
+- Fixed losing factory buildings when picking them up with a full inventory
+- Fixed Hide Recursion setting not applying properly to new saves and forces
+
 ### 2.1.8:
 
 - Improved belt connection performance by another 2-3x
