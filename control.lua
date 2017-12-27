@@ -150,7 +150,7 @@ end
 
 -- POWER MANAGEMENT --
 
--- Don't mess with this unless you mess with prototypes/entity/component.lua too (in the place marked <E>).
+-- Don't mess with this unless you mess with prototypes/entity/component.lua too.
 -- Every number needs to correspond to a valid indicator entity name
 local VALID_POWER_TRANSFER_RATES = {1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000} -- MW
 
@@ -163,53 +163,74 @@ end
 
 local function update_power_settings(factory)
 	if factory.built then
+		local layout = factory.layout
+		-- Inside sender
+		local new_ies = factory.inside_surface.create_entity{
+			name = "factory-power-output-2-" .. factory.transfer_rate,
+			position = {factory.inside_x + layout.inside_energy_x, factory.inside_y + layout.inside_energy_y},
+			force = force
+		}
+		new_ies.destructible = false
+		new_ies.operable = false
+		new_ies.rotatable = false
+		if factory.inside_energy_sender.valid then
+			factory.inside_energy_sender.destroy()
+		end
+		factory.inside_energy_sender = new_ies
+
+		-- Inside receiver
+		local new_ier = factory.inside_surface.create_entity{
+			name = "factory-power-input-2-" .. factory.transfer_rate,
+			position = {factory.inside_x + layout.inside_energy_x, factory.inside_y + layout.inside_energy_y},
+			force = force
+		}
+		new_ier.destructible = false
+		new_ier.operable = false
+		new_ier.rotatable = false
+		if factory.inside_energy_receiver.valid then
+			factory.inside_energy_receiver.destroy()
+		end
+		factory.inside_energy_receiver = new_ier
+
+		-- Outside sender
+		local new_oes = factory.outside_surface.create_entity{
+			name = layout.outside_energy_sender_type .. "-" .. factory.transfer_rate,
+			position = {factory.outside_x, factory.outside_y},
+			force = factory.force
+		}
+		new_oes.destructible = false
+		new_oes.operable = false
+		new_oes.rotatable = false
+		if factory.outside_energy_sender.valid then
+			factory.outside_energy_sender.destroy()
+		end
+		factory.outside_energy_sender = new_oes
+
+		-- Outside receiver
+		local new_oer = factory.outside_surface.create_entity{
+			name = layout.outside_energy_receiver_type .. "-" .. factory.transfer_rate,
+			position = {factory.outside_x, factory.outside_y},
+			force = factory.force
+		}
+		new_oer.destructible = false
+		new_oer.operable = false
+		new_oer.rotatable = false
+		if factory.outside_energy_receiver.valid then
+			factory.outside_energy_receiver.destroy()
+		end
+		factory.outside_energy_receiver = new_oer
+
 		local e = factory.transfer_rate*16667 -- conversion factor of MW to J/U
 		if factory.transfers_outside then
-			if factory.inside_energy_receiver then
-				factory.inside_energy_receiver.electric_buffer_size = e
-				factory.inside_energy_receiver.electric_input_flow_limit = e
-				factory.inside_energy_receiver.electric_output_flow_limit = 0 -- Should fix bugs
-				factory.inside_energy_receiver.energy = 0
-			end
-			if factory.inside_energy_sender then
-				factory.inside_energy_sender.electric_buffer_size = e
-				factory.inside_energy_sender.electric_input_flow_limit = 0 -- Should fix bugs
-				factory.inside_energy_sender.electric_output_flow_limit = 0
-				factory.inside_energy_sender.energy = e
-			end
-			if factory.outside_energy_receiver then
-				factory.outside_energy_receiver.electric_buffer_size = e
-				factory.outside_energy_receiver.electric_input_flow_limit = 0
-				factory.outside_energy_receiver.energy = e
-			end
-			if factory.outside_energy_sender then
-				factory.outside_energy_sender.electric_buffer_size = e
-				factory.outside_energy_sender.electric_output_flow_limit = e
-				factory.outside_energy_sender.energy = 0
-			end
+			factory.inside_energy_sender.energy = e
+			factory.inside_energy_receiver.energy = 0
+			factory.outside_energy_sender.energy = 0
+			factory.outside_energy_receiver.energy = e
 		else
-			if factory.inside_energy_receiver then
-				factory.inside_energy_receiver.electric_buffer_size = e
-				factory.inside_energy_receiver.electric_input_flow_limit = 0
-				factory.inside_energy_receiver.electric_output_flow_limit = 0 -- Should fix bugs
-				factory.inside_energy_receiver.energy = e
-			end
-			if factory.inside_energy_sender then
-				factory.inside_energy_sender.electric_buffer_size = e
-				factory.inside_energy_sender.electric_input_flow_limit = 0 -- Should fix bugs
-				factory.inside_energy_sender.electric_output_flow_limit = e
-				factory.inside_energy_sender.energy = 0
-			end
-			if factory.outside_energy_receiver then
-				factory.outside_energy_receiver.electric_buffer_size = e
-				factory.outside_energy_receiver.electric_input_flow_limit = e
-				factory.outside_energy_receiver.energy = 0
-			end
-			if factory.outside_energy_sender then
-				factory.outside_energy_sender.electric_buffer_size = e
-				factory.outside_energy_sender.electric_output_flow_limit = 0
-				factory.outside_energy_sender.energy = e
-			end
+			factory.inside_energy_sender.energy = 0
+			factory.inside_energy_receiver.energy = e
+			factory.outside_energy_sender.energy = e
+			factory.outside_energy_receiver.energy = 0
 		end
 	end
 	if factory.energy_indicator and factory.energy_indicator.valid then
@@ -429,13 +450,13 @@ local function create_factory_interior(layout, force)
 	end
 	factory.inside_surface.set_tiles(tiles)
 
-	local ier = factory.inside_surface.create_entity{name = "factory-power-input-2", position = {factory.inside_x + layout.inside_energy_x, factory.inside_y + layout.inside_energy_y}, force = force}
+	local ier = factory.inside_surface.create_entity{name = "factory-power-input-2-10", position = {factory.inside_x + layout.inside_energy_x, factory.inside_y + layout.inside_energy_y}, force = force}
 	ier.destructible = false
 	ier.operable = false
 	ier.rotatable = false
 	factory.inside_energy_receiver = ier
 	
-	local ies = factory.inside_surface.create_entity{name = "factory-power-output-2", position = {factory.inside_x + layout.inside_energy_x, factory.inside_y + layout.inside_energy_y}, force = force}
+	local ies = factory.inside_surface.create_entity{name = "factory-power-output-2-10", position = {factory.inside_x + layout.inside_energy_x, factory.inside_y + layout.inside_energy_y}, force = force}
 	ies.destructible = false
 	ies.operable = false
 	ies.rotatable = false
@@ -489,13 +510,13 @@ local function create_factory_exterior(factory, building)
 	factory.outside_door_y = factory.outside_y + layout.outside_door_y
 	factory.outside_surface = building.surface
 	
-	local oer = factory.outside_surface.create_entity{name = layout.outside_energy_receiver_type, position = {factory.outside_x, factory.outside_y}, force = force}
+	local oer = factory.outside_surface.create_entity{name = layout.outside_energy_receiver_type .. "-10", position = {factory.outside_x, factory.outside_y}, force = force}
 	oer.destructible = false
 	oer.operable = false
 	oer.rotatable = false
 	factory.outside_energy_receiver = oer
 	
-	local oes = factory.outside_surface.create_entity{name = layout.outside_energy_sender_type, position = {factory.outside_x, factory.outside_y}, force = force}
+	local oes = factory.outside_surface.create_entity{name = layout.outside_energy_sender_type .. "-10", position = {factory.outside_x, factory.outside_y}, force = force}
 	oes.destructible = false
 	oes.operable = false
 	oes.rotatable = false
@@ -736,7 +757,7 @@ end)
 
 -- How players pick up factories
 -- Working factory buildings don't return items, so we have to manually give the player an item
-script.on_event(defines.events.on_preplayer_mined_item, function(event)
+script.on_event(defines.events.on_pre_player_mined_item, function(event)
 	local entity = event.entity
 	if HasLayout(entity.name) then
 		local factory = get_factory_by_building(entity)

@@ -1,5 +1,7 @@
 local F = "__Factorissimo2__";
 
+require("circuit-connector-sprites")
+
 local function cwc0()
 	return {shadow = {red = {0,0},green = {0,0}}, wire = {red = {0,0},green = {0,0}}}
 end
@@ -37,6 +39,7 @@ local factory_1 = function(suffix, result_suffix, visible, count, sprite)
 			type = "storage-tank",
 			name = name,
 			icon = F.."/graphics/icon/factory-1.png",
+			icon_size = 32,
 			flags = {"player-creation"},
 			minable = {mining_time = 5, result = result_name, count = count},
 			max_health = 2000,
@@ -66,8 +69,8 @@ local factory_1 = function(suffix, result_suffix, visible, count, sprite)
 				pipe_connections = {},
 			},
 			flow_length_in_ticks = 1,
-			circuit_wire_connection_points = {cwc0(), cwc0(), cwc0(), cwc0()},
-			circuit_connector_sprites = {cc0(), cc0(), cc0(), cc0()},
+			circuit_wire_connection_points = circuit_connector_definitions["storage-tank"].points,
+			circuit_connector_sprites = circuit_connector_definitions["storage-tank"].sprites,
 			circuit_wire_max_distance = 0,
 			map_color = {r = 0.8, g = 0.7, b = 0.55},
 		},
@@ -75,6 +78,7 @@ local factory_1 = function(suffix, result_suffix, visible, count, sprite)
 			type = "item",
 			name = name,
 			icon = F.."/graphics/icon/factory-1.png",
+			icon_size = 32,
 			flags = item_flags,
 			subgroup = "factorissimo2",
 			order = "a-a",
@@ -94,6 +98,7 @@ local factory_2 = function(suffix, result_suffix, visible, count, sprite)
 			type = "storage-tank",
 			name = name,
 			icon = F.."/graphics/icon/factory-2.png",
+			icon_size = 32,
 			flags = {"player-creation"},
 			minable = {mining_time = 5, result = result_name, count = count},
 			max_health = 3500,
@@ -123,8 +128,8 @@ local factory_2 = function(suffix, result_suffix, visible, count, sprite)
 				pipe_connections = {},
 			},
 			flow_length_in_ticks = 1,
-			circuit_wire_connection_points = {cwc0(), cwc0(), cwc0(), cwc0()},
-			circuit_connector_sprites = {cc0(), cc0(), cc0(), cc0()},
+			circuit_wire_connection_points = circuit_connector_definitions["storage-tank"].points,
+			circuit_connector_sprites = circuit_connector_definitions["storage-tank"].sprites,
 			circuit_wire_max_distance = 0,
 			map_color = {r = 0.8, g = 0.7, b = 0.55},
 		},
@@ -132,6 +137,7 @@ local factory_2 = function(suffix, result_suffix, visible, count, sprite)
 			type = "item",
 			name = name,
 			icon = F.."/graphics/icon/factory-2.png",
+			icon_size = 32,
 			flags = item_flags,
 			subgroup = "factorissimo2",
 			order = "a-b",
@@ -151,6 +157,7 @@ local factory_3 = function(suffix, result_suffix, visible, count, sprite)
 			type = "storage-tank",
 			name = name,
 			icon = F.."/graphics/icon/factory-3.png",
+			icon_size = 32,
 			flags = {"player-creation"},
 			minable = {mining_time = 5, result = result_name, count = count},
 			max_health = 5000,
@@ -180,8 +187,8 @@ local factory_3 = function(suffix, result_suffix, visible, count, sprite)
 				pipe_connections = {},
 			},
 			flow_length_in_ticks = 1,
-			circuit_wire_connection_points = {cwc0(), cwc0(), cwc0(), cwc0()},
-			circuit_connector_sprites = {cc0(), cc0(), cc0(), cc0()},
+			circuit_wire_connection_points = circuit_connector_definitions["storage-tank"].points,
+			circuit_connector_sprites = circuit_connector_definitions["storage-tank"].sprites,
 			circuit_wire_max_distance = 0,
 			map_color = {r = 0.8, g = 0.7, b = 0.55},
 		},
@@ -189,6 +196,7 @@ local factory_3 = function(suffix, result_suffix, visible, count, sprite)
 			type = "item",
 			name = name,
 			icon = F.."/graphics/icon/factory-3.png",
+			icon_size = 32,
 			flags = item_flags,
 			subgroup = "factorissimo2",
 			order = "a-c",
