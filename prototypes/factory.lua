@@ -29,8 +29,9 @@ end
 
 
 
-local factory_1 = function(suffix, result_suffix, visible, count, sprite)
+local factory_1 = function(suffix, localised_suffix, result_suffix, visible, count, sprite)
 	local name = "factory-1" .. suffix
+	local localised_name = {"entity-name.factory-1" .. localised_suffix}
 	local result_name = "factory-1" .. result_suffix
 	local item_flags
 	if visible then item_flags = {"goes-to-quickbar"} else item_flags = {"hidden"} end
@@ -38,6 +39,7 @@ local factory_1 = function(suffix, result_suffix, visible, count, sprite)
 		{
 			type = "storage-tank",
 			name = name,
+			localised_name = localised_name,
 			icon = F.."/graphics/icon/factory-1.png",
 			icon_size = 32,
 			flags = {"player-creation"},
@@ -77,6 +79,7 @@ local factory_1 = function(suffix, result_suffix, visible, count, sprite)
 		{
 			type = "item",
 			name = name,
+			localised_name = localised_name,
 			icon = F.."/graphics/icon/factory-1.png",
 			icon_size = 32,
 			flags = item_flags,
@@ -88,8 +91,9 @@ local factory_1 = function(suffix, result_suffix, visible, count, sprite)
 	};
 end
 
-local factory_2 = function(suffix, result_suffix, visible, count, sprite)
+local factory_2 = function(suffix, localised_suffix, result_suffix, visible, count, sprite)
 	local name = "factory-2" .. suffix
+	local localised_name = {"entity-name.factory-2" .. localised_suffix}
 	local result_name = "factory-2" .. result_suffix
 	local item_flags
 	if visible then item_flags = {"goes-to-quickbar"} else item_flags = {"hidden"} end
@@ -97,6 +101,7 @@ local factory_2 = function(suffix, result_suffix, visible, count, sprite)
 		{
 			type = "storage-tank",
 			name = name,
+			localised_name = localised_name,
 			icon = F.."/graphics/icon/factory-2.png",
 			icon_size = 32,
 			flags = {"player-creation"},
@@ -136,6 +141,7 @@ local factory_2 = function(suffix, result_suffix, visible, count, sprite)
 		{
 			type = "item",
 			name = name,
+			localised_name = localised_name,
 			icon = F.."/graphics/icon/factory-2.png",
 			icon_size = 32,
 			flags = item_flags,
@@ -147,8 +153,9 @@ local factory_2 = function(suffix, result_suffix, visible, count, sprite)
 	};
 end
 
-local factory_3 = function(suffix, result_suffix, visible, count, sprite)
+local factory_3 = function(suffix, localised_suffix, result_suffix, visible, count, sprite)
 	local name = "factory-3" .. suffix
+	local localised_name = {"entity-name.factory-3" .. localised_suffix}
 	local result_name = "factory-3" .. result_suffix
 	local item_flags
 	if visible then item_flags = {"goes-to-quickbar"} else item_flags = {"hidden"} end
@@ -156,6 +163,7 @@ local factory_3 = function(suffix, result_suffix, visible, count, sprite)
 		{
 			type = "storage-tank",
 			name = name,
+			localised_name = localised_name,
 			icon = F.."/graphics/icon/factory-3.png",
 			icon_size = 32,
 			flags = {"player-creation"},
@@ -195,6 +203,7 @@ local factory_3 = function(suffix, result_suffix, visible, count, sprite)
 		{
 			type = "item",
 			name = name,
+			localised_name = localised_name,
 			icon = F.."/graphics/icon/factory-3.png",
 			icon_size = 32,
 			flags = item_flags,
@@ -207,11 +216,11 @@ local factory_3 = function(suffix, result_suffix, visible, count, sprite)
 end
 
 
-data:extend(factory_1("", "", true, 0, F.."/graphics/factory/factory-1.png"))
+data:extend(factory_1("", "", "", true, 0, F.."/graphics/factory/factory-1.png"))
 for i=10,99 do
-	data:extend(factory_1("-s" .. i, "-s" .. i, false, 1, F.."/graphics/factory/factory-1-combined.png"))
+	data:extend(factory_1("-s" .. i, "-s", "-s" .. i, false, 1, F.."/graphics/factory/factory-1-combined.png"))
 end
-data:extend(factory_1("-i", "", false, 1, F.."/graphics/factory/factory-1-combined.png"))
+data:extend(factory_1("-i", "-i", "", false, 1, F.."/graphics/factory/factory-1-combined.png"))
 	
 data:extend({
 	{
@@ -236,11 +245,11 @@ data:extend({
 })
 
 
-data:extend(factory_2("", "", true, 0, F.."/graphics/factory/factory-2.png"))
+data:extend(factory_2("", "", "", true, 0, F.."/graphics/factory/factory-2.png"))
 for i=10,99 do
-	data:extend(factory_2("-s" .. i, "-s" .. i, false, 1, F.."/graphics/factory/factory-2-combined.png"))
+	data:extend(factory_2("-s" .. i, "-s", "-s" .. i, false, 1, F.."/graphics/factory/factory-2-combined.png"))
 end
-data:extend(factory_2("-i", "", false, 1, F.."/graphics/factory/factory-2-combined.png"))
+data:extend(factory_2("-i", "-i", "", false, 1, F.."/graphics/factory/factory-2-combined.png"))
 
 data:extend({
 	{
@@ -264,11 +273,11 @@ data:extend({
 	}
 })
 
-data:extend(factory_3("", "", true, 0, F.."/graphics/factory/factory-3.png"))
+data:extend(factory_3("", "", "", true, 0, F.."/graphics/factory/factory-3.png"))
 for i=10,99 do
-	data:extend(factory_3("-s" .. i, "-s" .. i, false, 1, F.."/graphics/factory/factory-3-combined.png"))
+	data:extend(factory_3("-s" .. i, "-s", "-s" .. i, false, 1, F.."/graphics/factory/factory-3-combined.png"))
 end
-data:extend(factory_3("-i", "", false, 1, F.."/graphics/factory/factory-3-combined.png"))
+data:extend(factory_3("-i", "-i", "", false, 1, F.."/graphics/factory/factory-3-combined.png"))
 
 data:extend({
 	{

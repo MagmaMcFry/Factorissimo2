@@ -108,7 +108,7 @@ function make_energy_interfaces(size,passive_input,passive_output,icon)
 			{
 				type = "electric-energy-interface",
 				name = "factory-power-input-" .. size .. "-" .. transfer_rate,
-				translated_name = {"factory-power-input-" .. size},
+				localised_name = {"entity-name.factory-power-input-" .. size},
 				icon = icon,
 				icon_size = 32,
 				flags = {"not-on-map"},
@@ -132,7 +132,7 @@ function make_energy_interfaces(size,passive_input,passive_output,icon)
 			{
 				type = "electric-energy-interface",
 				name = "factory-power-output-" .. size .. "-" .. transfer_rate,
-				translated_name = {"factory-power-input-" .. size},
+				localised_name = {"entity-name.factory-power-output-" .. size},
 				icon = icon,
 				icon_size = 32,
 				flags = {"not-on-map"},
@@ -171,6 +171,7 @@ local function create_indicator(ctype, suffix, image)
 		{
 			type = "storage-tank",
 			name = "factory-connection-indicator-" .. ctype .. "-" .. suffix,
+			localised_name = {"entity-name.factory-connection-indicator-" .. ctype},
 			flags = {"not-on-map"},
 			minable = nil,
 			max_health = 500,
