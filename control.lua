@@ -739,11 +739,9 @@ script.on_event(defines.events.on_preplayer_mined_item, function(event)
 			if save then
 				cleanup_factory_exterior(factory, entity)
 				local player = game.players[event.player_index]
-				if player.can_insert{name = save, count = 1} then
-					player.insert{name = save, count = 1}
-				else
+				if player.insert{name = save, count = 1} < 1 then
 					player.print{"inventory-restriction.player-inventory-full", {"entity-name."..save}}
-					player.surface.spill_item_stack({x=factory.outside_x, y=factory.outside_y}, {name = save, count = 1})
+					player.surface.spill_item_stack(player.position, {name = save, count = 1})
 				end
 			else
 				local newbuilding = entity.surface.create_entity{name=entity.name, position=entity.position, force=factory.force}
