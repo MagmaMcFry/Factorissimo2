@@ -1066,14 +1066,18 @@ end
 script.on_event(defines.events.on_tick, function(event)
 	local factories = global.factories
 	-- Transfer power
-	for _, factory in pairs(factories) do
-		if factory.built then
+	local power_batch_size = settings.startup["Factorissimo2-power-batching"].value or 1
+	local i = event.tick%power_batch_size + 1
+	while i <= #factories do
+		local factory = factories[i];
+		if factory and factory.built then
 			if factory.transfers_outside then
 				transfer_power(factory.inside_energy_receiver, factory.outside_energy_sender)
 			else
 				transfer_power(factory.outside_energy_receiver, factory.inside_energy_sender)
 			end
 		end
+		i=i+power_batch_size
 	end
 	
 	-- Transfer pollution

@@ -6,7 +6,16 @@ data:extend({
 		name = "Factorissimo2-easy-research",
 		setting_type = "startup",
 		default_value = false,
-		order = "a"
+		order = "a-a"
+	},
+	{
+		type = "int-setting",
+		name = "Factorissimo2-power-batching",
+		setting_type = "startup",
+		minimum_value = 1,
+		default_value = 1,
+		maximum_value = 60,
+		order = "a-b"
 	},
 
 	-- Global

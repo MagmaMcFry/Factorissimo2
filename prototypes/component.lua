@@ -2,6 +2,8 @@ local F = "__Factorissimo2__";
 
 require("circuit-connector-sprites")
 
+local power_batch_size = settings.startup["Factorissimo2-power-batching"].value or 1
+
 local function cwc0c()
 	return {shadow = {red = {0,0},green = {0,0},copper = {0,0}}, wire = {red = {0,0},green = {0,0},copper = {0,0}}}
 end
@@ -99,11 +101,11 @@ end
 local VALID_POWER_TRANSFER_RATES = {1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000} -- MW
 
 function make_energy_interfaces(size,passive_input,passive_output,icon)
-	local j = size/2-0.3;
+	local j = size/2-0.3
 	local input_priority = (passive_input and "terciary") or "secondary-input"
 	local output_priority = (passive_output and "terciary") or "secondary-output"
 	for _, transfer_rate in pairs(VALID_POWER_TRANSFER_RATES) do
-		local buffer_size = transfer_rate*16667;
+		local buffer_size = transfer_rate*16667*power_batch_size
 		data:extend({
 			{
 				type = "electric-energy-interface",
@@ -268,7 +270,7 @@ create_indicator("energy", "d100000", "yellow-dir")
 
 -- Other auxiliary entities
 
-local j = 0.99;
+local j = 0.99
 data:extend({
 	{
 		type = "electric-pole",
