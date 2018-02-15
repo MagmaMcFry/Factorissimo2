@@ -1,3 +1,7 @@
+### 2.2.2:
+
+- Fixed startup error in 0.16.24 (zero size fluidboxes)
+
 ### 2.2.1:
 
 - Added power transfer update rate setting
