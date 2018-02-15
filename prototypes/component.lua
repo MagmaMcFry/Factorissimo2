@@ -396,7 +396,7 @@ data:extend({
 		collision_box = {{-0.4,-0.4},{0.4,0.4}},
 		collision_mask = {},
 		fluid_box = {
-			base_area = 0, -- Important, because fluid displacement on deconstruction ignores connection type
+			base_area = 1, -- Heresy
 			pipe_connections = {
 				{position = {0, -1}, type = "output"},
 				{position = {1, 0}, type = "output"},
@@ -420,7 +420,7 @@ data:extend({
 		collision_box = {{-0.4,-0.4},{0.4,0.4}},
 		collision_mask = {},
 		fluid_box = {
-			base_area = 0, -- Important, because fluid displacement on deconstruction ignores connection type
+			base_area = 1, -- Heresy
 			pipe_connections = {
 				{position = {0, -1}, type = "output"},
 				{position = {1, 0}, type = "output"},
