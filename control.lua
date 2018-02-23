@@ -911,6 +911,8 @@ local function set_camera(player, factory, inside)
 		camera.position = position
 		camera.surface_index = surface_index
 		camera.zoom = zoom
+		camera.style.minimal_width = preview_size
+		camera.style.minimal_height = preview_size
 	else
 		local camera = camera_frame.add{type = "camera", name = "factory_camera", position = position, surface_index = surface_index, zoom = zoom}
 		camera.style.minimal_width = preview_size
