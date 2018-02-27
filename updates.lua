@@ -103,5 +103,10 @@ Updates.run = function()
 			if gui then gui.destroy() end
 		end
 	end
+
+	--Check that all connections are still correct given any changes other mods may have made.
+	for _, factory in pairs(global.factories) do
+		Connections.recheck_factory(factory, nil, nil)
+	end
 	global.update_version = 8
 end

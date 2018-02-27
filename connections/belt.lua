@@ -93,7 +93,7 @@ Belt.connect = function (factory, cid, cpos, outside_entity, inside_entity)
 end
 
 Belt.recheck = function (conn)
-	return (conn.from.valid and conn.to.valid and conn.facing == get_conn_facing(conn.from, conn.to, opposite[conn.facing], conn.facing))
+	return (conn.from.valid and conn.to.valid and conn.facing == get_conn_facing(conn.from, conn.to, opposite[conn.facing], conn.facing) and delays == calc_delays(conn.from.prototype.belt_speed, conn.to.prototype.belt_speed))
 end
 
 Belt.direction = function (conn)
