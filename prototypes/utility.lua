@@ -2,6 +2,25 @@ local F = "__Factorissimo2__"
 
 require("circuit-connector-sprites")
 
+local function blank()
+	return {
+		filename = F.."/graphics/nothing.png",
+		priority = "high",
+		width = 1,
+		height = 1,
+	}
+end
+
+local function ablank()
+	return {
+		filename = F.."/graphics/nothing.png",
+		priority = "high",
+		width = 1,
+		height = 1,
+		frame_count = 1,
+	}
+end
+
 -- Pipe connectors
 
 local function factory_pipe(name, height, order) 
@@ -11,7 +30,7 @@ local function factory_pipe(name, height, order)
 			name = name,
 			icon = F.."/graphics/icon/"..name..".png",
 			icon_size = 32,
-			flags = {"goes-to-quickbar"},
+			flags = {},
 			subgroup = "factorissimo2",
 			order = order,
 			place_result = name,
@@ -50,31 +69,10 @@ local function factory_pipe(name, height, order)
 						shift = {0.15625, -0.0625}
 					}
 				},
-				fluid_background = {
-					filename = "__base__/graphics/entity/storage-tank/fluid-background.png",
-					priority = "extra-high",
-					width = 0,
-					height = 0
-				},
-				window_background = {
-					filename = "__base__/graphics/entity/storage-tank/window-background.png",
-					priority = "extra-high",
-					width = 0,
-					height = 0
-				},
-				flow_sprite = {
-					filename = "__base__/graphics/entity/pipe/fluid-flow-low-temperature.png",
-					priority = "extra-high",
-					width = 0,
-					height = 0
-				},
-				gas_flow = {
-					filename = "__base__/graphics/entity/pipe/fluid-flow-low-temperature.png",
-					priority = "extra-high",
-					width = 0,
-					height = 0,
-					frame_count = 1,
-				}
+				fluid_background = blank(),
+				window_background = blank(),
+				flow_sprite = blank(),
+				gas_flow = ablank()
 			},
 			flow_length_in_ticks = 1,
 			vehicle_impact_sound = { filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
@@ -104,7 +102,7 @@ data:extend({
 		name = "factory-circuit-input",
 		icon = F.."/graphics/icon/factory-circuit-input.png",
 		icon_size = 32,
-		flags = {"goes-to-quickbar"},
+		flags = {},
 		subgroup = "factorissimo2",
 		order = "c-a",
 		place_result = "factory-circuit-input",
@@ -232,7 +230,7 @@ data:extend({
 		name = "factory-circuit-output",
 		icon = F.."/graphics/icon/factory-circuit-output.png",
 		icon_size = 32,
-		flags = {"goes-to-quickbar"},
+		flags = {},
 		subgroup = "factorissimo2",
 		order = "c-b",
 		place_result = "factory-circuit-output",
@@ -389,7 +387,7 @@ data:extend({
 		name = "factory-requester-chest",
 		icon = F.."/graphics/icon/factory-requester-chest.png",
 		icon_size = 32,
-		flags = {"goes-to-quickbar"},
+		flags = {},
 		subgroup = "factorissimo2",
 		order = "d-a",
 		place_result = "factory-requester-chest",

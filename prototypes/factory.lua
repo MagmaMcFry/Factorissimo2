@@ -34,7 +34,7 @@ local factory_1 = function(suffix, localised_suffix, result_suffix, visible, cou
 	local localised_name = {"entity-name.factory-1" .. localised_suffix}
 	local result_name = "factory-1" .. result_suffix
 	local item_flags
-	if visible then item_flags = {"goes-to-quickbar"} else item_flags = {"hidden"} end
+	if visible then item_flags = {} else item_flags = {"hidden"} end
 	return {
 		{
 			type = "storage-tank",
@@ -96,7 +96,7 @@ local factory_2 = function(suffix, localised_suffix, result_suffix, visible, cou
 	local localised_name = {"entity-name.factory-2" .. localised_suffix}
 	local result_name = "factory-2" .. result_suffix
 	local item_flags
-	if visible then item_flags = {"goes-to-quickbar"} else item_flags = {"hidden"} end
+	if visible then item_flags = {} else item_flags = {"hidden"} end
 	return {
 		{
 			type = "storage-tank",
@@ -158,7 +158,7 @@ local factory_3 = function(suffix, localised_suffix, result_suffix, visible, cou
 	local localised_name = {"entity-name.factory-3" .. localised_suffix}
 	local result_name = "factory-3" .. result_suffix
 	local item_flags
-	if visible then item_flags = {"goes-to-quickbar"} else item_flags = {"hidden"} end
+	if visible then item_flags = {} else item_flags = {"hidden"} end
 	return {
 		{
 			type = "storage-tank",

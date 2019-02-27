@@ -16,7 +16,7 @@ data:extend({
 		},
 		unit = {
 			count = easy_research and 30 or 200,
-			ingredients = {{"science-pack-1", 1}},
+			ingredients = {{"automation-science-pack", 1}},
 			time = 30
 		},
 		order = pf.."a-a",
@@ -35,7 +35,7 @@ data:extend({
 		},
 		unit = {
 			count = easy_research and 100 or 600,
-			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1}},
+			ingredients = {{"automation-science-pack", 1},{"logistic-science-pack", 1}},
 			time = 45
 		},
 		order = pf.."a-b",
@@ -54,7 +54,7 @@ data:extend({
 		},
 		unit = {
 			count = easy_research and 300 or 2000,
-			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1},{"science-pack-3", 1}},
+			ingredients = {{"automation-science-pack", 1},{"logistic-science-pack", 1},{"chemical-science-pack", 1}},
 			time = 60
 		},
 		order = pf.."a-c",
@@ -73,7 +73,7 @@ data:extend({
 		},
 		unit = {
 			count = easy_research and 10 or 100,
-			ingredients = {{"science-pack-1", 1}},
+			ingredients = {{"automation-science-pack", 1}},
 			time = 30
 		},
 		order = pf.."b-a",
@@ -87,7 +87,7 @@ data:extend({
 		effects = {},
 		unit = {
 			count = easy_research and 20 or 200,
-			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1}},
+			ingredients = {{"automation-science-pack", 1},{"logistic-science-pack", 1}},
 			time = 30
 		},
 		order = pf.."b-b",
@@ -104,7 +104,7 @@ data:extend({
 		},
 		unit = {
 			count = easy_research and 30 or 300,
-			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1},{"science-pack-3", 1}},
+			ingredients = {{"automation-science-pack", 1},{"logistic-science-pack", 1},{"chemical-science-pack", 1}},
 			time = 30
 		},
 		order = pf.."b-c",
@@ -121,7 +121,7 @@ data:extend({
 		effects = {},
 		unit = {
 			count = easy_research and 5 or 50,
-			ingredients = {{"science-pack-1", 1}},
+			ingredients = {{"automation-science-pack", 1}},
 			time = 30
 		},
 		order = pf.."c-a",
@@ -135,7 +135,7 @@ data:extend({
 		effects = {},
 		unit = {
 			count = easy_research and 10 or 100,
-			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1}},
+			ingredients = {{"automation-science-pack", 1},{"logistic-science-pack", 1}},
 			time = 30
 		},
 		order = pf.."c-b",
@@ -151,7 +151,7 @@ data:extend({
 		effects = {},
 		unit = {
 			count = easy_research and 20 or 200,
-			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1}},
+			ingredients = {{"automation-science-pack", 1},{"logistic-science-pack", 1}},
 			time = 30
 		},
 		order = pf.."d-a",
@@ -167,7 +167,7 @@ data:extend({
 		},
 		unit = {
 			count = easy_research and 20 or 100,
-			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1},{"science-pack-3", 1}},
+			ingredients = {{"automation-science-pack", 1},{"logistic-science-pack", 1},{"chemical-science-pack", 1}},
 			time = 30
 		},
 		order = pf.."d-b",
@@ -184,7 +184,7 @@ data:extend({
 		effects = {},
 		unit = {
 			count = easy_research and 200 or 2000,
-			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1}},
+			ingredients = {{"automation-science-pack", 1},{"logistic-science-pack", 1}},
 			time = 60
 		},
 		order = pf.."e-a",
@@ -198,7 +198,7 @@ data:extend({
 		effects = {},
 		unit = {
 			count = easy_research and 500 or 5000,
-			ingredients = {{"science-pack-1", 1},{"science-pack-2", 1},{"science-pack-3", 1}},
+			ingredients = {{"automation-science-pack", 1},{"logistic-science-pack", 1},{"chemical-science-pack", 1}},
 			time = 60
 		},
 		order = pf.."e-b",

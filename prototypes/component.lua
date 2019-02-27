@@ -102,8 +102,8 @@ local VALID_POWER_TRANSFER_RATES = {1,2,5,10,20,50,100,200,500,1000,2000,5000,10
 
 function make_energy_interfaces(size,passive_input,passive_output,icon)
 	local j = size/2-0.3
-	local input_priority = (passive_input and "terciary") or "secondary-input"
-	local output_priority = (passive_output and "terciary") or "secondary-output"
+	local input_priority = (passive_input and "tertiary") or "secondary-input"
+	local output_priority = (passive_output and "tertiary") or "secondary-output"
 	for _, transfer_rate in pairs(VALID_POWER_TRANSFER_RATES) do
 		local buffer_size = transfer_rate*16667*power_batch_size
 		data:extend({
@@ -282,14 +282,7 @@ data:extend({
 		collision_mask = {},
 		maximum_wire_distance = 0,
 		supply_area_distance = 63,
-		pictures = {
-			filename = "__base__/graphics/entity/substation/substation.png",
-			priority = "high",
-			width = 132,
-			height = 144,
-			direction_count = 4,
-			shift = {0.9, -1}
-		},
+		pictures = table.deepcopy(data.raw["electric-pole"]["substation"].pictures),
 		radius_visualisation_picture = {
 			filename = "__base__/graphics/entity/small-electric-pole/electric-pole-radius-visualization.png",
 			width = 12,
@@ -349,13 +342,7 @@ data:extend({
 		selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
 		inventory_size = 4,
 		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
-		picture = {
-			filename = "__base__/graphics/entity/iron-chest/iron-chest.png",
-			priority = "extra-high",
-			width = 48,
-			height = 34,
-			shift = {0.1875, 0}
-		},
+		picture = table.deepcopy(data.raw["container"]["iron-chest"].picture),
 		circuit_wire_connection_point = circuit_connector_definitions["chest"].points,
 		circuit_connector_sprites = circuit_connector_definitions["chest"].sprites,
 		circuit_wire_max_distance = 0

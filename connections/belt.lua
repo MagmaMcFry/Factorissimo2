@@ -7,22 +7,24 @@ Belt.unlocked = function(force) return true end
 Belt.indicator_settings = {"d0"}
 
 local function calc_delay(speed1, speed2)
-	return math.max(2, math.floor(math.max(0.28125/speed1, 0.28125/speed2)))
+	return math.max(2, math.floor(math.max(0.25/speed1, 0.25/speed2)))
 end
 
 local function calc_delays(speed1, speed2)
+	game.print("Calculating delay (" .. speed1 .. "," .. speed2 .. ")")
 	local speed = math.min(speed1, speed2)
 	local arraysize = math.ceil(32*speed)
 	local delays = {}
 	for i=1,arraysize do
-		delays[i] = math.ceil(i*0.28125/speed) - math.ceil((i-1)*0.28125/speed)
+		delays[i] = math.ceil(i*0.25/speed) - math.ceil((i-1)*0.25/speed)
 	end
+	game.print(serpent.dump(delays))
 	return delays
 end
 
 local INSERT_POS = {
-	["transport-belt"] = 0.71875, -- 1 - 9/32
-	["underground-belt"] = 0.21875, -- 0.5 - 9/32
+	["transport-belt"] = 0.75, -- 1 - 8/32
+	["underground-belt"] = 0.25, -- 0.5 - 8/32
 }
 
 
