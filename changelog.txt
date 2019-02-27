@@ -1,3 +1,7 @@
+### 2.3.0:
+
+- Updated to Factorio 0.17
+
 ### 2.2.3:
 
 - Fixed preview window not updating to match preview size setting
