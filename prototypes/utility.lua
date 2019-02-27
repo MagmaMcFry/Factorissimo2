@@ -4,14 +4,14 @@ require("circuit-connector-sprites")
 
 -- Pipe connectors
 
-local function factory_pipe(name, height, order) 
+local function factory_pipe(name, height, order)
 	data:extend({
 		{
 			type = "item",
 			name = name,
 			icon = F.."/graphics/icon/"..name..".png",
 			icon_size = 32,
-			flags = {"goes-to-quickbar"},
+			flags = {},
 			subgroup = "factorissimo2",
 			order = order,
 			place_result = name,
@@ -53,26 +53,26 @@ local function factory_pipe(name, height, order)
 				fluid_background = {
 					filename = "__base__/graphics/entity/storage-tank/fluid-background.png",
 					priority = "extra-high",
-					width = 0,
-					height = 0
+					width = 1,
+					height = 1
 				},
 				window_background = {
 					filename = "__base__/graphics/entity/storage-tank/window-background.png",
 					priority = "extra-high",
-					width = 0,
-					height = 0
+					width = 1,
+					height = 1
 				},
 				flow_sprite = {
 					filename = "__base__/graphics/entity/pipe/fluid-flow-low-temperature.png",
 					priority = "extra-high",
-					width = 0,
-					height = 0
+					width = 1,
+					height = 1
 				},
 				gas_flow = {
 					filename = "__base__/graphics/entity/pipe/fluid-flow-low-temperature.png",
 					priority = "extra-high",
-					width = 0,
-					height = 0,
+					width = 1,
+					height = 1,
 					frame_count = 1,
 				}
 			},
@@ -104,7 +104,7 @@ data:extend({
 		name = "factory-circuit-input",
 		icon = F.."/graphics/icon/factory-circuit-input.png",
 		icon_size = 32,
-		flags = {"goes-to-quickbar"},
+		flags = {},
 		subgroup = "factorissimo2",
 		order = "c-a",
 		place_result = "factory-circuit-input",
@@ -119,16 +119,16 @@ data:extend({
 		minable = {mining_time = 1, result = "factory-circuit-input"},
 		max_health = 80,
 		corpse = "small-remnants",
-		
+
 		collision_box = {{-0.29, -0.29}, {0.29, 0.29}},
 		selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
-		
+
 		fluid_box = {
 			base_area = 1,
 			pipe_covers = pipecoverspictures(),
 			pipe_connections = {},
 		},
-		
+
 		energy_source = {
 			type = "electric",
 			usage_priority = "secondary-input",
@@ -226,13 +226,13 @@ data:extend({
 		},
 		circuit_wire_max_distance = 7.5
 	},
-	
+
 	{
 		type = "item",
 		name = "factory-circuit-output",
 		icon = F.."/graphics/icon/factory-circuit-output.png",
 		icon_size = 32,
-		flags = {"goes-to-quickbar"},
+		flags = {},
 		subgroup = "factorissimo2",
 		order = "c-b",
 		place_result = "factory-circuit-output",
@@ -298,7 +298,7 @@ data:extend({
 				height = 6,
 				frame_count = 1,
 				shift = util.by_pixel(9, -12),
-				
+
 			},
 			east = {
 				filename = "__base__/graphics/entity/combinator/activity-leds/constant-combinator-LED-E.png",
@@ -306,7 +306,7 @@ data:extend({
 				height = 8,
 				frame_count = 1,
 				shift = util.by_pixel(8, 0),
-				
+
 			},
 			south = {
 				filename = "__base__/graphics/entity/combinator/activity-leds/constant-combinator-LED-S.png",
@@ -314,7 +314,7 @@ data:extend({
 				height = 8,
 				frame_count = 1,
 				shift = util.by_pixel(-9, 2),
-				
+
 			},
 			west = {
 				filename = "__base__/graphics/entity/combinator/activity-leds/constant-combinator-LED-W.png",
@@ -322,7 +322,7 @@ data:extend({
 				height = 8,
 				frame_count = 1,
 				shift = util.by_pixel(-7, -15),
-				
+
 			},
 		},
 
@@ -389,7 +389,7 @@ data:extend({
 		name = "factory-requester-chest",
 		icon = F.."/graphics/icon/factory-requester-chest.png",
 		icon_size = 32,
-		flags = {"goes-to-quickbar"},
+		flags = {},
 		subgroup = "factorissimo2",
 		order = "d-a",
 		place_result = "factory-requester-chest",

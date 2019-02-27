@@ -821,7 +821,7 @@ script.on_event(defines.events.on_marked_for_deconstruction, function(event)
 end)
 
 -- Factories also need to start working again once they are unmarked
-script.on_event(defines.events.on_canceled_deconstruction, function(event)
+script.on_event(defines.events.on_cancelled_deconstruction, function(event)
 	local entity = event.entity
 	if global.saved_factories[entity.name] then
 		-- Rebuild factory from save
@@ -867,7 +867,7 @@ end)
 local function get_camera_toggle_button(player)
 	local buttonflow = mod_gui.get_button_flow(player)
 	local button = buttonflow.factory_camera_toggle_button or buttonflow.add{type="sprite-button", name="factory_camera_toggle_button", sprite="technology/factory-architecture-t1"}
-	button.style.visible = player.force.technologies["factory-preview"].researched
+	button.visible = player.force.technologies["factory-preview"].researched
 	return button
 end
 
@@ -876,7 +876,7 @@ local function get_camera_frame(player)
 	local camera_frame = frameflow.factory_camera_frame
 	if not camera_frame then
 		camera_frame = frameflow.add{type = "frame", name = "factory_camera_frame", style = "captionless_frame"}
-		camera_frame.style.visible = false
+		camera_frame.visible = false
 	end
 	return camera_frame
 end
@@ -918,11 +918,11 @@ local function set_camera(player, factory, inside)
 		camera.style.minimal_width = preview_size
 		camera.style.minimal_height = preview_size
 	end
-	camera_frame.style.visible = true
+	camera_frame.visible = true
 end
 
 local function unset_camera(player)
-	get_camera_frame(player).style.visible = false
+	get_camera_frame(player).visible = false
 end
 
 local function update_camera(player)

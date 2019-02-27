@@ -102,8 +102,10 @@ local VALID_POWER_TRANSFER_RATES = {1,2,5,10,20,50,100,200,500,1000,2000,5000,10
 
 function make_energy_interfaces(size,passive_input,passive_output,icon)
 	local j = size/2-0.3
-	local input_priority = (passive_input and "terciary") or "secondary-input"
-	local output_priority = (passive_output and "terciary") or "secondary-output"
+	-- local input_priority = (passive_input and "terciary") or "secondary-input"
+	-- local output_priority = (passive_output and "terciary") or "secondary-output"
+	local input_priority  = "secondary-input"
+	local output_priority = "secondary-output"
 	for _, transfer_rate in pairs(VALID_POWER_TRANSFER_RATES) do
 		local buffer_size = transfer_rate*16667*power_batch_size
 		data:extend({
@@ -285,10 +287,10 @@ data:extend({
 		pictures = {
 			filename = "__base__/graphics/entity/substation/substation.png",
 			priority = "high",
-			width = 132,
-			height = 144,
+			width = 70,
+			height = 136,
 			direction_count = 4,
-			shift = {0.9, -1}
+			shift = util.by_pixel(0, 1-32)
 		},
 		radius_visualisation_picture = {
 			filename = "__base__/graphics/entity/small-electric-pole/electric-pole-radius-visualization.png",
@@ -331,7 +333,7 @@ data:extend({
 		circuit_connector_sprites = circuit_connector_definitions["lamp"].sprites,
 		circuit_wire_max_distance = 0,
 	},
-	
+
 	{
 		type = "container",
 		name = "factory-overlay-controller",
@@ -352,8 +354,8 @@ data:extend({
 		picture = {
 			filename = "__base__/graphics/entity/iron-chest/iron-chest.png",
 			priority = "extra-high",
-			width = 48,
-			height = 34,
+			width = 34,
+			height = 38,
 			shift = {0.1875, 0}
 		},
 		circuit_wire_connection_point = circuit_connector_definitions["chest"].points,

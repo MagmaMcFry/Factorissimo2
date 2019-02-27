@@ -34,7 +34,7 @@ local factory_1 = function(suffix, localised_suffix, result_suffix, visible, cou
 	local localised_name = {"entity-name.factory-1" .. localised_suffix}
 	local result_name = "factory-1" .. result_suffix
 	local item_flags
-	if visible then item_flags = {"goes-to-quickbar"} else item_flags = {"hidden"} end
+	if visible then item_flags = {} else item_flags = {"hidden"} end
 	return {
 		{
 			type = "storage-tank",
@@ -96,7 +96,7 @@ local factory_2 = function(suffix, localised_suffix, result_suffix, visible, cou
 	local localised_name = {"entity-name.factory-2" .. localised_suffix}
 	local result_name = "factory-2" .. result_suffix
 	local item_flags
-	if visible then item_flags = {"goes-to-quickbar"} else item_flags = {"hidden"} end
+	if visible then item_flags = {} else item_flags = {"hidden"} end
 	return {
 		{
 			type = "storage-tank",
@@ -158,7 +158,7 @@ local factory_3 = function(suffix, localised_suffix, result_suffix, visible, cou
 	local localised_name = {"entity-name.factory-3" .. localised_suffix}
 	local result_name = "factory-3" .. result_suffix
 	local item_flags
-	if visible then item_flags = {"goes-to-quickbar"} else item_flags = {"hidden"} end
+	if visible then item_flags = {} else item_flags = {"hidden"} end
 	return {
 		{
 			type = "storage-tank",
@@ -221,7 +221,7 @@ for i=10,99 do
 	data:extend(factory_1("-s" .. i, "-s", "-s" .. i, false, 1, F.."/graphics/factory/factory-1-combined.png"))
 end
 data:extend(factory_1("-i", "-i", "", false, 1, F.."/graphics/factory/factory-1-combined.png"))
-	
+
 data:extend({
 	{
 		type = "simple-entity",
