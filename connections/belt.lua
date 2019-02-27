@@ -11,14 +11,12 @@ local function calc_delay(speed1, speed2)
 end
 
 local function calc_delays(speed1, speed2)
-	game.print("Calculating delay (" .. speed1 .. "," .. speed2 .. ")")
 	local speed = math.min(speed1, speed2)
 	local arraysize = math.ceil(32*speed)
 	local delays = {}
 	for i=1,arraysize do
 		delays[i] = math.ceil(i*0.25/speed) - math.ceil((i-1)*0.25/speed)
 	end
-	game.print(serpent.dump(delays))
 	return delays
 end
 
