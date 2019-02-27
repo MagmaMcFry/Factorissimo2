@@ -123,7 +123,7 @@ local function transfer(from, to, from_cap, to_cap)
 	local to_box = to_boxes[1]
 	if from_box ~= nil then
 		if to_box == nil then 
-			if from_box.amount < to_cap then
+			if from_box.amount <= to_cap then
 				from_boxes[1] = nil
 				to_boxes[1] = from_box
 			else
