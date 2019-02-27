@@ -100,7 +100,7 @@ end
 
 local VALID_POWER_TRANSFER_RATES = {1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000} -- MW
 
-function make_energy_interfaces(size,passive_input,passive_output,icon)
+local function create_energy_interfaces(size, passive_input, passive_output, icon)
 	local j = size/2-0.3
 	local input_priority = (passive_input and "tertiary") or "secondary-input"
 	local output_priority = (passive_output and "tertiary") or "secondary-output"
@@ -158,13 +158,13 @@ function make_energy_interfaces(size,passive_input,passive_output,icon)
 		})
 	end
 end
-make_energy_interfaces(2,true,true,"__base__/graphics/icons/substation.png")
+create_energy_interfaces(2,true,true,"__base__/graphics/icons/substation.png")
 -- true,false would be optimal, but due to a bug it doesn't work. Maybe it'll be fixed.
 -- In the meantime we'll have to settle for true,true because that's how Factorissimo1 worked.
 
-make_energy_interfaces(8,false,false,F.."/graphics/icon/factory-1.png")
-make_energy_interfaces(12,false,false,F.."/graphics/icon/factory-2.png")
-make_energy_interfaces(16,false,false,F.."/graphics/icon/factory-3.png")
+create_energy_interfaces(8,false,false,F.."/graphics/icon/factory-1.png")
+create_energy_interfaces(12,false,false,F.."/graphics/icon/factory-2.png")
+create_energy_interfaces(16,false,false,F.."/graphics/icon/factory-3.png")
 
 -- Connection indicators
 
@@ -373,54 +373,6 @@ data:extend({
 		circuit_wire_max_distance = 0
 	},
 	{
-		type = "pipe",
-		name = "factory-fluid-dummy-connector",
-		flags = {"not-on-map"},
-		minable = nil,
-		max_health = 500,
-		selection_box = {{-0.4,-0.4},{0.4,0.4}},
-		selectable_in_game = false,
-		collision_box = {{-0.4,-0.4},{0.4,0.4}},
-		collision_mask = {},
-		fluid_box = {
-			base_area = 1, -- Heresy
-			pipe_connections = {
-				{position = {0, -1}, type = "output"},
-				{position = {1, 0}, type = "output"},
-				{position = {0, 1}, type = "output"},
-				{position = {-1, 0}, type = "output"},
-			},
-		},
-		horizontal_window_bounding_box = {{0,0},{0,0}},
-		vertical_window_bounding_box = {{0,0},{0,0}},
-		pictures = blankpipepictures(),
-		vehicle_impact_sound = {filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65},
-	},
-	{
-		type = "pipe",
-		name = "factory-fluid-dummy-connector-south",
-		flags = {"not-on-map"},
-		minable = nil,
-		max_health = 500,
-		selection_box = {{-0.4,-0.4},{0.4,0.4}},
-		selectable_in_game = false,
-		collision_box = {{-0.4,-0.4},{0.4,0.4}},
-		collision_mask = {},
-		fluid_box = {
-			base_area = 1, -- Heresy
-			pipe_connections = {
-				{position = {0, -1}, type = "output"},
-				{position = {1, 0}, type = "output"},
-				{position = {0, 1}, type = "output"},
-				{position = {-1, 0}, type = "output"},
-			},
-		},
-		horizontal_window_bounding_box = {{0,0},{0,0}},
-		vertical_window_bounding_box = {{0,0},{0,0}},
-		pictures = southpipepictures(),
-		vehicle_impact_sound = {filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65},
-	},
-	{
 		type = "mining-drill",
 		name = "factory-port-marker",
 		icon = "__base__/graphics/icons/electric-mining-drill.png",
@@ -453,3 +405,36 @@ data:extend({
 		vector_to_place_result = {0,-0.8},
 	},
 })
+
+local function create_dummy_connector(dir, dx, dy, pictures)
+	data:extend({
+		{
+			type = "pipe",
+			name = "factory-fluid-dummy-connector-" .. dir,
+			flags = {"not-on-map", "hide-alt-info"},
+			minable = nil,
+			max_health = 500,
+			selection_box = {{-0.4,-0.4},{0.4,0.4}},
+			selectable_in_game = false,
+			collision_box = {{-0.4,-0.4},{0.4,0.4}},
+			collision_mask = {},
+			fluid_box = {
+				base_area = 1, -- Heresy
+				pipe_connections = {
+					{position = {dx, dy}, type = "output"},
+				},
+			},
+			horizontal_window_bounding_box = {{0,0},{0,0}},
+			vertical_window_bounding_box = {{0,0},{0,0}},
+			pictures = pictures,
+			vehicle_impact_sound = {filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65},
+		},
+	})
+end
+
+-- Connectors are named by the direction they are facing,
+-- so that their names can be generated using cpos.direction_in or cpos.direction_out
+create_dummy_connector(defines.direction.south, 0, 1, southpipepictures())
+create_dummy_connector(defines.direction.north, 0, -1, blankpipepictures())
+create_dummy_connector(defines.direction.east, 1, 0, blankpipepictures())
+create_dummy_connector(defines.direction.west, -1, 0, blankpipepictures())

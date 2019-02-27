@@ -29,6 +29,27 @@ Updates.run = function()
 				end
 			end
 		end
+		-- We have new dummy connectors, so we should rebuild them in each factory building
+		for _, factory in pairs(global.factories) do
+			for id, cpos in pairs(factory.layout.connections) do
+				local name = "factory-fluid-dummy-connector-" .. cpos.direction_in
+				local connector = factory.inside_surface.create_entity{name = name, position = {factory.inside_x + cpos.inside_x + cpos.indicator_dx, factory.inside_y + cpos.inside_y + cpos.indicator_dy}, force = force}
+				connector.destructible = false
+				connector.operable = false
+				connector.rotatable = false
+				factory.inside_fluid_dummy_connectors[id] = connector
+			end
+			if factory.built then
+				for id, cpos in pairs(factory.layout.connections) do
+					local name = "factory-fluid-dummy-connector-" .. cpos.direction_out
+					local connector = factory.outside_surface.create_entity{name = name, position = {factory.outside_x + cpos.outside_x - cpos.indicator_dx, factory.outside_y + cpos.outside_y - cpos.indicator_dy}, force = force}
+					connector.destructible = false
+					connector.operable = false
+					connector.rotatable = false
+					factory.outside_fluid_dummy_connectors[id] = connector
+				end
+			end
+		end
 	end
 	global.update_version = 9
 end

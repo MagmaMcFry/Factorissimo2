@@ -492,7 +492,8 @@ local function create_factory_interior(layout, force)
 	factory.inside_fluid_dummy_connectors = {}
 	
 	for id, cpos in pairs(layout.connections) do
-		local connector = factory.inside_surface.create_entity{name = "factory-fluid-dummy-connector", position = {factory.inside_x + cpos.inside_x + cpos.indicator_dx, factory.inside_y + cpos.inside_y + cpos.indicator_dy}, force = force, direction = cpos.direction_in}
+		local name = "factory-fluid-dummy-connector-" .. cpos.direction_in
+		local connector = factory.inside_surface.create_entity{name = name, position = {factory.inside_x + cpos.inside_x + cpos.indicator_dx, factory.inside_y + cpos.inside_y + cpos.indicator_dy}, force = force}
 		connector.destructible = false
 		connector.operable = false
 		connector.rotatable = false
@@ -543,8 +544,8 @@ local function create_factory_exterior(factory, building)
 	factory.outside_fluid_dummy_connectors = {}
 	
 	for id, cpos in pairs(layout.connections) do
-		local name = ((cpos.direction_out == defines.direction.south and "factory-fluid-dummy-connector-south") or "factory-fluid-dummy-connector")
-		local connector = factory.outside_surface.create_entity{name = name, position = {factory.outside_x + cpos.outside_x - cpos.indicator_dx, factory.outside_y + cpos.outside_y - cpos.indicator_dy}, force = force, direction = cpos.direction_out}
+		local name = "factory-fluid-dummy-connector-" .. cpos.direction_out
+		local connector = factory.outside_surface.create_entity{name = name, position = {factory.outside_x + cpos.outside_x - cpos.indicator_dx, factory.outside_y + cpos.outside_y - cpos.indicator_dy}, force = force}
 		connector.destructible = false
 		connector.operable = false
 		connector.rotatable = false
