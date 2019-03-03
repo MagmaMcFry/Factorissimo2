@@ -17,7 +17,9 @@ local DY = {
 	[defines.direction.west] = 0,
 }
 
-local blacklist = {"factory-fluid-dummy-connector", "factory-fluid-dummy-connector-south"}
+local blacklist = {
+	"factory-fluid-dummy-connector-" .. defines.direction.north,	"factory-fluid-dummy-connector-" .. defines.direction.east,	"factory-fluid-dummy-connector-" .. defines.direction.south,	"factory-fluid-dummy-connector-" .. defines.direction.west,
+}
 local blacklisted = {}
 for _,name in pairs(blacklist) do blacklisted[name] = true end
 
@@ -134,10 +136,10 @@ local function transfer(from, to, from_cap, to_cap)
 			end
 		elseif to_box.name == from_box.name then
 			local total = from_box.amount + to_box.amount
-			if total < to_cap then
+			if total <= to_cap then
 				from_boxes[1] = nil
 				to_box.temperature = (from_box.amount*from_box.temperature + to_box.amount*to_box.temperature)/total
-				to_box.amount = to_box.amount + from_box.amount
+				to_box.amount = total
 				to_boxes[1] = to_box
 			else
 				to_box.temperature = (to_box.amount*to_box.temperature + (to_cap-to_box.amount)*from_box.temperature)/to_cap
