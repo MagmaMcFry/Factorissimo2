@@ -401,6 +401,7 @@ local function create_factory_position()
 	surface.set_chunk_generated_status({cx-1, cy+1}, defines.chunk_generated_status.entities)
 	surface.set_chunk_generated_status({cx+0, cy+1}, defines.chunk_generated_status.entities)
 	surface.set_chunk_generated_status({cx+1, cy+1}, defines.chunk_generated_status.entities)
+	surface.destroy_decoratives{area={{32*(cx-2),32*(cy-2)},{32*(cx+2),32*(cy+2)}}}
 	
 	local factory = {}
 	factory.inside_surface = surface

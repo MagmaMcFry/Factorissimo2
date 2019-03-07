@@ -1,7 +1,7 @@
 Updates = {}
 
 Updates.init = function()
-	global.update_version = 9
+	global.update_version = 10
 end
 
 Updates.run = function()
@@ -51,5 +51,16 @@ Updates.run = function()
 			end
 		end
 	end
-	global.update_version = 9
+	if global.update_version <= 9 then
+		for _, factory in pairs(global.factories) do
+			factory.inside_surface.destroy_decoratives{
+				area = {
+					{factory.inside_x - 64, factory.inside_y - 64},
+					{factory.inside_x + 64, factory.inside_y + 64}
+				},
+				force = "neutral"
+			}
+		end
+	end
+	global.update_version = 10
 end
