@@ -6,12 +6,9 @@ Belt.unlocked = function(force) return true end
 
 Belt.indicator_settings = {"d0"}
 
-local function calc_delay(speed1, speed2)
-	return math.max(2, math.floor(math.max(0.25/speed1, 0.25/speed2)))
-end
-
 local function calc_delays(speed1, speed2)
-	local speed = math.min(speed1, speed2)
+	-- Belt connections will transfer a maximum of 1 item per tick per lane
+	local speed = math.min(8, math.min(speed1, speed2))
 	local arraysize = math.ceil(32*speed)
 	local delays = {}
 	for i=1,arraysize do
