@@ -1,3 +1,9 @@
+### 2.3.2:
+
+- Fixed decoratives appearing in factory buildings
+- Improved throughput of fast modded belts (still won't transport faster than 1 item per tick per lane aka 120 items/second)
+- Made Alien Biomes less likely to delete factory interior tiles (causing "Unknown tile name" crash when placing factory buildings)
+
 ### 2.3.1:
 
 - Fixed crash bug with fluid connections
