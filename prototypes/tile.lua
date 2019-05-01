@@ -1,6 +1,9 @@
 local F = "__Factorissimo2__"
 
+alien_biomes_priority_tiles = alien_biomes_priority_tiles or {}
+
 local function make_tile(tinfo)
+	table.insert(alien_biomes_priority_tiles, tinfo.name)
 	data:extend({
 		{
 			type = "tile",
