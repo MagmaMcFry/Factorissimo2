@@ -670,10 +670,11 @@ commands.add_command("give-lost-factory-buildings", {"command-help-message.give-
 			end
 		end
 	end
-	local main_inventory = player.get_inventory(defines.inventory.player_main)
-	local quickbar = player.get_inventory(defines.inventory.player_quickbar)
+	local main_inventory = 
+		player.get_inventory(defines.inventory.player_main or defines.inventory.character_main)
+		or player.get_inventory(defines.inventory.god_main)
 	for save_name,_ in pairs(global.saved_factories) do
-		if main_inventory.get_item_count(save_name) + quickbar.get_item_count(save_name) == 0 and not (player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.name == save_name) then
+		if main_inventory.get_item_count(save_name) == 0 and not (player.cursor_stack and player.cursor_stack.valid_for_read and player.cursor_stack.name == save_name) then
 			player.insert{name = save_name, count = 1}
 		end
 	end
