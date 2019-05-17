@@ -39,7 +39,7 @@ local function make_tile(tinfo)
 				}
 			},
 			map_color = tinfo.map_color or {r = 1},
-			ageing = 0.0006,
+			pollution_absorption_per_second = 0.0006,
 		},
 	})
 end

@@ -130,7 +130,7 @@ data:extend({
 		energy_source = {
 			type = "electric",
 			usage_priority = "secondary-input",
-			emissions = 0,
+			emissions_per_second_per_watt = 0,
 			render_no_power_icon = false,
 			render_no_network_icon = false,
 		},
