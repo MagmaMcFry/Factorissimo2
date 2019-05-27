@@ -817,7 +817,7 @@ script.on_event(defines.events.on_marked_for_deconstruction, function(event)
 				entity.destroy()
 				set_entity_to_factory(newbuilding, factory)
 				factory.building = newbuilding
-				entity.surface.print("Could not pick up factory, too many factories picked up at once")			
+				newbuilding.surface.print("Could not pick up factory, too many factories picked up at once. Place some down before you pick up more.")
 			end
 		end
 	end
