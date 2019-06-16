@@ -980,17 +980,29 @@ end)
 
 -- TRAVEL --
 
-local function enter_factory(player, factory)
-	player.teleport({factory.inside_door_x, factory.inside_door_y},factory.inside_surface)
+local function teleport_player_safely(player, surface, position)
+	if player and player.character then
+		position = surface.find_non_colliding_position(
+			player.character.name, position, 5, 0.5, false
+		) or position
+	end
+	player.teleport(position, surface)
 	global.last_player_teleport[player.index] = game.tick
 	update_camera(player)
 end
 
+local function enter_factory(player, factory)
+	teleport_player_safely(
+		player, factory.inside_surface,
+		{factory.inside_door_x, factory.inside_door_y}
+	)
+end
+
 local function leave_factory(player, factory)
-	player.teleport({factory.outside_door_x, factory.outside_door_y},factory.outside_surface)
-	global.last_player_teleport[player.index] = game.tick
-	update_camera(player)
-	update_overlay(factory)
+	teleport_player_safely(
+		player, factory.outside_surface,
+		{factory.outside_door_x, factory.outside_door_y}
+	)
 end
 
 local function teleport_players()
