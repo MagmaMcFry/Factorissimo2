@@ -96,6 +96,15 @@ local function southpipepictures()
 	}
 end
 
+
+local factoriomaps_exists = false
+for modname, _ in pairs(mods) do
+	if modname == "L0laapk3_FactorioMaps" then
+		factoriomaps_exists = true
+		break
+	end
+end
+
 -- Factory power I/O
 
 local VALID_POWER_TRANSFER_RATES = {1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000} -- MW
@@ -271,6 +280,7 @@ create_indicator("energy", "d100000", "yellow-dir")
 -- Other auxiliary entities
 
 local j = 0.99
+
 data:extend({
 	{
 		type = "electric-pole",
@@ -282,7 +292,13 @@ data:extend({
 		collision_mask = {},
 		maximum_wire_distance = 0,
 		supply_area_distance = 63,
-		pictures = table.deepcopy(data.raw["electric-pole"]["substation"].pictures),
+		pictures = factoriomaps_exists and {
+				filename = F.."/graphics/nothing.png",
+				priority = "high",
+				width = 1,
+				height = 1,
+				direction_count = 4,
+			} or table.deepcopy(data.raw["electric-pole"]["substation"].pictures),
 		radius_visualisation_picture = {
 			filename = "__base__/graphics/entity/small-electric-pole/electric-pole-radius-visualization.png",
 			width = 12,
@@ -342,7 +358,7 @@ data:extend({
 		selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
 		inventory_size = 4,
 		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
-		picture = table.deepcopy(data.raw["container"]["iron-chest"].picture),
+		picture = factoriomaps_exists and blank() or table.deepcopy(data.raw["container"]["iron-chest"].picture),
 		circuit_wire_connection_point = circuit_connector_definitions["chest"].points,
 		circuit_connector_sprites = circuit_connector_definitions["chest"].sprites,
 		circuit_wire_max_distance = 0

@@ -11,6 +11,14 @@ require("updates")
 local Updates = Updates
 
 require("mod-gui")
+
+
+
+-- integration with other mods
+require("factoriomaps")
+
+
+
 -- DATA STRUCTURE --
 
 -- Factory buildings are entities of type "storage-tank" internally, because reasons
