@@ -7,7 +7,7 @@ local function cleanup_entities_for_factoriomaps()
 
 		remote.call("factoriomaps", "surface_set_hidden", surface, true)
 
-		for _, entity in pairs(surface.find_entities_filtered{name = "factory-power-pole"}) do
+		for _, entity in pairs(game.surfaces[surface].find_entities_filtered{name = "factory-power-pole"}) do
 			entity.destroy()
 		end
 		for _, factory in pairs(factoryList) do
