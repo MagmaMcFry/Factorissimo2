@@ -10,6 +10,8 @@ local Connections = Connections
 require("updates")
 local Updates = Updates
 
+require("compat.factoriomaps")
+
 require("mod-gui")
 -- DATA STRUCTURE --
 
@@ -102,6 +104,11 @@ script.on_init(function()
 			force.technologies["factory-recursion-t2"].enabled = false
 		end
 	end
+	Compat.handle_factoriomaps()
+end)
+
+script.on_load(function()
+	Compat.handle_factoriomaps()
 end)
 
 script.on_configuration_changed(function(config_changed_data)
