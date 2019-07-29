@@ -281,7 +281,7 @@ data:extend({
 		collision_box = {{-j,-j},{j,j}},
 		collision_mask = {},
 		maximum_wire_distance = 0,
-		supply_area_distance = 63,
+		supply_area_distance = 65,
 		pictures = table.deepcopy(data.raw["electric-pole"]["substation"].pictures),
 		radius_visualisation_picture = {
 			filename = "__base__/graphics/entity/small-electric-pole/electric-pole-radius-visualization.png",
