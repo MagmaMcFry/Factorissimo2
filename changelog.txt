@@ -1,3 +1,8 @@
+### 2.3.5:
+
+- Fixed players becoming stuck inside one another when entering or leaving buildings
+- Added FactorioMaps integration (allowing you to zoom into factory buildings)
+
 ### 2.3.4:
 
 - Fixed crash when picking up too many factory buildings at once
