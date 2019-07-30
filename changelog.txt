@@ -1,3 +1,7 @@
+### 2.3.6:
+
+- Fixed overlay not working
+
 ### 2.3.5:
 
 - Fixed players becoming stuck inside one another when entering or leaving buildings
