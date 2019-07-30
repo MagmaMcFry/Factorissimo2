@@ -1010,6 +1010,8 @@ local function leave_factory(player, factory)
 		player, factory.outside_surface,
 		{factory.outside_door_x, factory.outside_door_y}
 	)
+	update_camera(player)
+	update_overlay(factory)
 end
 
 local function teleport_players()
