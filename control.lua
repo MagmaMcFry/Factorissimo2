@@ -872,6 +872,45 @@ script.on_event(defines.events.on_entity_died, function(event)
 	end
 end)
 
+-- How to clone your factory
+-- This implementation will not actually clone factory buildings, but move them to where they were cloned.
+local clone_forbidden_prefixes = {
+	"factory-1-",
+	"factory-2-",
+	"factory-3-",
+	"factory-power-input-",
+	"factory-power-output-",
+	"factory-connection-indicator-",
+	"factory-power-pole",
+	"factory-ceiling-light",
+	"factory-overlay-controller",
+	"factory-overlay-display",
+	"factory-port-marker",
+	"factory-fluid-dummy-connector"
+}
+
+local function is_entity_clone_forbidden(name)
+	for _, prefix in pairs(clone_forbidden_prefixes) do
+		if name:sub(1, #prefix) == prefix then
+			return true
+		end
+	end
+	return false
+end
+
+script.on_event(defines.events.on_entity_cloned, function(event)
+	local src_entity = event.source
+	local dst_entity = event.destination
+	if is_entity_clone_forbidden(dst_entity.name) then
+		dst_entity.destroy()
+	elseif HasLayout(src_entity.name) then
+		local factory = get_factory_by_building(src_entity)
+		cleanup_factory_exterior(factory, src_entity)
+		if src_entity.valid then src_entity.destroy() end
+		create_factory_exterior(factory, dst_entity)
+	end
+end)
+
 -- GUI --
 
 local function get_camera_toggle_button(player)
