@@ -1,149 +1,218 @@
-### 2.3.7:
+---------------------------------------------------------------------------------------------------
+Version: 2.3.7
+Date: 2019.08.13
+  Bugfixes:
+    - Fixed interaction with Warptorio2
 
-- Fixed interaction with Warptorio2
+---------------------------------------------------------------------------------------------------
+Version: 2.3.6
+Date: 2019.07.31
+  Bugfixes:
+    - Fixed overlay not working
 
-### 2.3.6:
+---------------------------------------------------------------------------------------------------
+Version: 2.3.5
+Date: 2019.07.30
+  Changes:
+    - Added FactorioMaps integration (allowing you to zoom into factory buildings)
+  Bugfixes:
+    - Fixed players becoming stuck inside one another when entering or leaving buildings
 
-- Fixed overlay not working
+---------------------------------------------------------------------------------------------------
+Version: 2.3.4
+Date: 2019.05.30
+  Bugfixes:
+    - Fixed crash when picking up too many factory buildings at once
+    - Replaced some deprecated prototype tokens
 
-### 2.3.5:
+---------------------------------------------------------------------------------------------------
+Version: 2.3.3
+Date: 2019.05.05
+  Bugfixes:
+    - Fixed crash during /give-lost-factory-buildings
 
-- Fixed players becoming stuck inside one another when entering or leaving buildings
-- Added FactorioMaps integration (allowing you to zoom into factory buildings)
+---------------------------------------------------------------------------------------------------
+Version: 2.3.2
+Date: 2019.05.01
+  Changes:
+    - Improved throughput of fast modded belts (still won't transport faster than 1 item per tick per lane aka 120 items/second)
+    - Made Alien Biomes less likely to delete factory interior tiles (causing "Unknown tile name" crash when placing factory buildings)
+  Bugfixes:
+    - Fixed decoratives appearing in factory buildings
 
-### 2.3.4:
+---------------------------------------------------------------------------------------------------
+Version: 2.3.1
+Date: 2019.03.05
+  Bugfixes:
+    - Fixed crash bug with fluid connections
 
-- Fixed crash when picking up too many factory buildings at once
-- Replaced some deprecated prototype tokens
+---------------------------------------------------------------------------------------------------
+Version: 2.3.0
+Date: 2019.02.28
+  Changes:
+    - Updated to Factorio 0.17
 
-### 2.3.3:
+---------------------------------------------------------------------------------------------------
+Version: 2.2.3
+Date: 2018.02.23
+  Bugfixes:
+    - Fixed preview window not updating to match preview size setting
 
-- Fixed crash during /give-lost-factory-buildings
+---------------------------------------------------------------------------------------------------
+Version: 2.2.2
+Date: 2018.02.15
+  Bugfixes:
+    - Fixed startup error in 0.16.24 (zero size fluidboxes)
 
-### 2.3.2:
+---------------------------------------------------------------------------------------------------
+Version: 2.2.1
+Date: 2017.12.28
+  Changes:
+    - Added power transfer update rate setting
 
-- Fixed decoratives appearing in factory buildings
-- Improved throughput of fast modded belts (still won't transport faster than 1 item per tick per lane aka 120 items/second)
-- Made Alien Biomes less likely to delete factory interior tiles (causing "Unknown tile name" crash when placing factory buildings)
+---------------------------------------------------------------------------------------------------
+Version: 2.2.0
+Date: 2017.12.27
+  Changes:
+    - Updated to Factorio 0.16
+    - Updated factory preview to use mod_gui
+  Bugfixes:
+    - Fixed crash after deleting factory buildings using scripts
+    - Fixed being able to build floor in the void outside factory buildings
+  Locale:
+    - Simplified localisation
 
-### 2.3.1:
+---------------------------------------------------------------------------------------------------
+Version: 2.1.9
+Date: 2017.12.27
+  Bugfixes:
+    - Overlay controllers no longer disappear when removing landfill built under them
+    - Fixed losing factory buildings when picking them up with a full inventory
+    - Fixed Hide Recursion setting not applying properly to new saves and forces
 
-- Fixed crash bug with fluid connections
+---------------------------------------------------------------------------------------------------
+Version: 2.1.8
+Date: 2017.06.25
+  Changes:
+    - Improved belt connection performance by another 2-3x
+    - Improved RSO compatibility
+  Locale:
+    - Added Korean translation (Thanks Ikamusme)
 
-### 2.3.0:
+---------------------------------------------------------------------------------------------------
+Version: 2.1.7
+Date: 2017.05.23
+  Bugfixes:
+    - Fixed another crash due to API changes (LuaEntity.neighbours)
 
-- Updated to Factorio 0.17
+---------------------------------------------------------------------------------------------------
+Version: 2.1.6
+Date: 2017.05.23
+  Changes:
+    - Updated to Factorio 0.15.13 (Won't load in older Factorio versions, so UPDATE FACTORIO)
+    - Reduced collision box of bulk transfer pipes so you can walk through
+  Bugfixes:
+    - Fixed crash due to API changes (LuaSurface.freeze_daytime)
 
-### 2.2.3:
+---------------------------------------------------------------------------------------------------
+Version: 2.1.5
+Date: 2017.05.11
+  Changes:
+    - Updated to Factorio 0.15.10 (Won't load in older Factorio versions, so UPDATE FACTORIO)
+    - Made factory buildings blueprintable again (hoping that the mysterious crash is gone for good this time)
+  Bugfixes:
+    - Fixed connection arrows pointing the wrong way (due to a bug in 0.15.10)
+    - Fixed factory requester chests not connecting to factory buildings
+  Locale:
+    - Updated Russian translation
 
-- Fixed preview window not updating to match preview size setting
+---------------------------------------------------------------------------------------------------
+Version: 2.1.4
+Date: 2017.05.05
+  Changes:
+    - Updated to Factorio 0.15.7 (Won't load in older Factorio versions, so UPDATE FACTORIO)
+    - Reenabled previews! Additionally, you can now preview the item in your hand!
+    - Added mod setting to hide the recursion technologies
 
-### 2.2.2:
+---------------------------------------------------------------------------------------------------
+Version: 2.1.3
+Date: 2017.04.30
+  Changes:
+    - Disabled the preview feature temporarily, it was causing instant desyncs in multiplayer.
 
-- Fixed startup error in 0.16.24 (zero size fluidboxes)
+---------------------------------------------------------------------------------------------------
+Version: 2.1.2
+Date: 2017.04.29
+  Features:
+    - Added preview feature! Hover over a factory building to see what's inside, hover over a factory power monitor to see what's outside. Of course you need to research the new technology first.
+  Changes:
+    - Updated to Factorio 0.15.4 (Won't load in older Factorio versions, so UPDATE FACTORIO)
+  Bugfixes:
+    - Fixed energy output mode not leaving enough power for the machines inside!
+    - Fixed tiny external overlay icons
+    - Fixed issue loading wave defense scenario
 
-### 2.2.1:
+---------------------------------------------------------------------------------------------------
+Version: 2.1.1
+Date: 2017.04.27
+  Changes:
+    - Changed tech requirements for Recursion 1
+  Bugfixes:
+    - Fixed crash on loading in 0.15.3
+  Locale:
+    - Added Russian translation (thanks Apriori!)
 
-- Added power transfer update rate setting
+---------------------------------------------------------------------------------------------------
+Version: 2.1.0
+Date: 2017.04.26
+  Changes:
+    - Updated to Factorio 0.15.2 (Won't load in Factorio 0.15.0 and 0.15.1!)
+    - Added /give-lost-factory-buildings custom command to get back your factory buildings
+    - Added some mod settings you can change in the Options->Mods menu:
+    - Added Easy Research setting: Makes this mod's research a lot cheaper
+    - Added Free Recursion setting: Allows recursion even without the Recursion technologies
+    - Modded pipes/pipes-to-ground/storage-tanks can now connect to factory buildings
 
-### 2.2.0:
+---------------------------------------------------------------------------------------------------
+Version: 2.0.4
+Date: 2017.04.26
+  Changes:
+    - Changed the default power transfer rate for higher-tier factory buildings
+  Locale:
+    - Added Polish translation (thanks Tomirad!)
 
-- Updated to Factorio 0.16
-- Fixed crash after deleting factory buildings using scripts
-- Updated factory preview to use mod_gui
-- Fixed being able to build floor in the void outside factory buildings
-- Simplified localisation
+---------------------------------------------------------------------------------------------------
+Version: 2.0.3
+Date: 2017.04.12
+  Changes:
+    - **Factory buildings are no longer blueprintable and ghost-placeable!** (Factorio will occasionally crash *to desktop* when you roboplace a new factory building, so blueprinting them has been disabled until this crash has been resolved, maybe in 0.15)
+    - Updated minimal version requirements (thanks, jsmirnov!)
+    - Renamed factory input/output pipes to factory bulk transfer pipes
+  Bugfixes:
+    - Prevented crash when running out of surfaces
+    - Prevented crash with missing overlay controllers
+  Locale:
+    - Added German translation (sorry, Erdbeerbaer!)
 
-### 2.1.9:
+---------------------------------------------------------------------------------------------------
+Version: 2.0.2
+Date: 2017.04.02
+  Bugfixes:
+    - Fixed crash bug with 2.0.1 update script
+    - Fixed bug with chest connections and overlay displays
 
-- Overlay controllers no longer disappear when removing landfill built under them
-- Fixed losing factory buildings when picking them up with a full inventory
-- Fixed Hide Recursion setting not applying properly to new saves and forces
+---------------------------------------------------------------------------------------------------
+Version: 2.0.1
+Date: 2017.04.02
+  Bugfixes:
+    - Fixed picking up factory buildings Mk3 being broken (Player 1 will be given back all the factory buildings Mk3 you've lost because of this bug. The broken items will be removed on placement, with an "Invalid factory data" message.)
+    - Fixed improper belt compression
+    - Fixed missing walking speed and walking sound inside factory buildings
+    - Fixed issue where factory port markers would sometimes block inserters from using chest connections
 
-### 2.1.8:
-
-- Improved belt connection performance by another 2-3x
-- Added Korean translation (Thanks Ikamusme)
-- Improved RSO compatibility
-
-### 2.1.7:
-
-- Fixed another crash due to API changes (LuaEntity.neighbours)
-
-### 2.1.6:
-
-- Updated to Factorio 0.15.13 (Won't load in older Factorio versions, so UPDATE FACTORIO)
-- Fixed crash due to API changes (LuaSurface.freeze_daytime)
-- Reduced collision box of bulk transfer pipes so you can walk through
-
-### 2.1.5:
-
-- Updated to Factorio 0.15.10 (Won't load in older Factorio versions, so UPDATE FACTORIO)
-- Fixed connection arrows pointing the wrong way (due to a bug in 0.15.10)
-- Made factory buildings blueprintable again (hoping that the mysterious crash is gone for good this time)
-- Fixed factory requester chests not connecting to factory buildings
-- Updated Russian translation
-
-### 2.1.4:
-
-- Updated to Factorio 0.15.7 (Won't load in older Factorio versions, so UPDATE FACTORIO)
-- Reenabled previews! Additionally, you can now preview the item in your hand!
-- Added mod setting to hide the recursion technologies
-
-### 2.1.3:
-
-- DISABLED THE PREVIEW FEATURE, it was causing instant desyncs in multiplayer.
-
-### 2.1.2:
-
-- Updated to Factorio 0.15.4 (Won't load in older Factorio versions, so UPDATE FACTORIO)
-- Added preview feature! Hover over a factory building to see what's inside, hover over a factory power monitor to see what's outside. Of course you need to research the new technology first.
-- Fixed energy output mode not leaving enough power for the machines inside!
-- Fixed tiny external overlay icons
-- Fixed issue loading wave defense scenario
-
-### 2.1.1:
-
-- Fixed crash on loading in 0.15.3
-- Added Russian translation (thanks Apriori!)
-- Changed tech requirements for Recursion 1
-
-### 2.1.0:
-
-- Updated to Factorio 0.15.2 (Won't load in Factorio 0.15.0 and 0.15.1!)
-- Added /give-lost-factory-buildings custom command to get back your factory buildings
-- Added some mod settings you can change in the Options->Mods menu:
--- Easy Research: Makes this mod's research a lot cheaper
--- Free Recursion: Allows recursion even without the Recursion technologies
-- Modded pipes/pipes-to-ground/storage-tanks can now connect to factory buildings
-
-### 2.0.4:
-
-- Changed the default power transfer rate for higher-tier factory buildings
-- Added Polish translation (thanks Tomirad!)
-
-### 2.0.3:
-
-- **Factory buildings are no longer blueprintable and ghost-placeable!** (Factorio will occasionally crash *to desktop* when you roboplace a new factory building, so blueprinting them has been disabled until this crash has been resolved, maybe in 0.15)
-- Prevented crash when running out of surfaces
-- Prevented crash with missing overlay controllers
-- Updated minimal version requirements (thanks, jsmirnov!)
-- Renamed factory input/output pipes to factory bulk transfer pipes
-- Added German translation (sorry, Erdbeerbaer!)
-
-### 2.0.2:
-
-- Fixed crash bug with 2.0.1 update script
-- Fixed bug with chest connections and overlay displays
-
-### 2.0.1:
-
-- Fixed picking up factory buildings Mk3 being broken (Player 1 will be given back all the factory buildings Mk3 you've lost because of this bug. The broken items will be removed on placement, with an "Invalid factory data" message.)
-- Fixed improper belt compression
-- Fixed missing walking speed and walking sound inside factory buildings
-- Fixed issue where factory port markers would sometimes block inserters from using chest connections
-
-### 2.0.0:
-
-- First release
+---------------------------------------------------------------------------------------------------
+Version: 2.0.0
+Date: 2017.03.31
+  Info:
+    - First release
 
