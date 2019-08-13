@@ -46,6 +46,6 @@ end
 
 function Compat.handle_factoriomaps()
 	if remote.interfaces.factoriomaps then
-		script.on_event(remote.call("factoriomaps", "get_start_capture_event_id"), cleanup_entities_for_factoriomaps)
+		script.on_event(remote.call("factoriomaps", "get_start_capture_event"), cleanup_entities_for_factoriomaps)
 	end
 end
