@@ -1,3 +1,7 @@
+### 2.3.7:
+
+- Fixed interaction with Warptorio2
+
 ### 2.3.6:
 
 - Fixed overlay not working
