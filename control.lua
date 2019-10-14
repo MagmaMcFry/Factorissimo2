@@ -256,12 +256,13 @@ local function update_power_settings(factory)
 	energy_indicator.destructible = false
 	factory.energy_indicator = energy_indicator
 end
--- For update 8
+-- For update 11
 function update_all_power_settings()
 	for _, factory in pairs(global.factories) do
 		update_power_settings(factory)
 	end
 end
+
 local function adjust_power_transfer_rate(factory, positive)
 	local transfer_rate = factory.transfer_rate
 	if positive then

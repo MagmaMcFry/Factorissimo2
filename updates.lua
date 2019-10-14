@@ -1,14 +1,14 @@
 Updates = {}
 
 Updates.init = function()
-	global.update_version = 10
+	global.update_version = 11
 end
 
 Updates.run = function()
-	if global.update_version <= 7 then
+	if global.update_version < 8 then
 		error("This save is too old to be reloaded in Factorissimo2 version 2.3.0+. To run this save in 0.17, you need to load and save this map once, using Factorissimo2 version 2.2.3 in Factorio 0.16")
 	end
-	if global.update_version <= 8 then
+	if global.update_version < 9 then
 		-- Since belt item distance has changed in 0.17, we need to reset belt update rates
 		local recalc_delays = function(speed1, speed2)
 			local speed = math.min(speed1, speed2)
@@ -51,7 +51,7 @@ Updates.run = function()
 			end
 		end
 	end
-	if global.update_version <= 9 then
+	if global.update_version < 10 then
 		for _, factory in pairs(global.factories) do
 			factory.inside_surface.destroy_decoratives{
 				area = {
@@ -62,5 +62,8 @@ Updates.run = function()
 			}
 		end
 	end
-	global.update_version = 10
+	if global.update_version < 11 then
+		update_all_power_settings()
+	end
+	global.update_version = 11
 end
