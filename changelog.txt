@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.3.8
+Date: 2019.10.14
+  Bugfixes:
+    - Fixed factories randomly losing power (Toggle power input arrow twice to fix pre-broken factories)
+
+---------------------------------------------------------------------------------------------------
 Version: 2.3.7
 Date: 2019.08.13
   Bugfixes:
