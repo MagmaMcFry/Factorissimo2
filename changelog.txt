@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.3.9
+Date: 2019.10.14
+  Bugfixes:
+    - Rebuild all power entities on update so factories don't have to be reset manually after the bug in 2.3.8
+
+---------------------------------------------------------------------------------------------------
 Version: 2.3.8
 Date: 2019.10.14
   Bugfixes:
