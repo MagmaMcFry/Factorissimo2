@@ -178,7 +178,7 @@ local function update_power_settings(factory)
 		local new_ies = factory.inside_surface.create_entity{
 			name = "factory-power-output-2-" .. factory.transfer_rate,
 			position = {factory.inside_x + layout.inside_energy_x, factory.inside_y + layout.inside_energy_y},
-			force = force
+			force = factory.force
 		}
 		new_ies.destructible = false
 		new_ies.operable = false
@@ -192,7 +192,7 @@ local function update_power_settings(factory)
 		local new_ier = factory.inside_surface.create_entity{
 			name = "factory-power-input-2-" .. factory.transfer_rate,
 			position = {factory.inside_x + layout.inside_energy_x, factory.inside_y + layout.inside_energy_y},
-			force = force
+			force = factory.force
 		}
 		new_ier.destructible = false
 		new_ier.operable = false
@@ -300,7 +300,8 @@ local function adjust_power_transfer_rate(factory, positive)
 	factory.inside_surface.create_entity{
 		name = "flying-text",
 		position = {x = factory.inside_x + factory.layout.energy_indicator_x, y = factory.inside_y + factory.layout.energy_indicator_y}, color = {r = 228/255, g = 236/255, b = 0},
-		text = {transfer_text, power_string}
+		text = {transfer_text, power_string},
+		force = factory.force
 	}
 	update_power_settings(factory)
 end
@@ -695,11 +696,11 @@ local function can_place_factory_here(tier, surface, position)
 	if outer_tier > tier and (factory.force.technologies["factory-recursion-t1"].researched or settings.global["Factorissimo2-free-recursion"].value) then return true end
 	if outer_tier >= tier and (factory.force.technologies["factory-recursion-t2"].researched or settings.global["Factorissimo2-free-recursion"].value) then return true end
 	if outer_tier > tier then
-		surface.create_entity{name="flying-text", position=position, text={"factory-connection-text.invalid-placement-recursion-1"}}
+		surface.create_entity{name="flying-text", position=position, text={"factory-connection-text.invalid-placement-recursion-1"}, force = factory.force}
 	elseif outer_tier >= tier then
-		surface.create_entity{name="flying-text", position=position, text={"factory-connection-text.invalid-placement-recursion-2"}}
+		surface.create_entity{name="flying-text", position=position, text={"factory-connection-text.invalid-placement-recursion-2"}, force = factory.force}
 	else
-		surface.create_entity{name="flying-text", position=position, text={"factory-connection-text.invalid-placement"}}
+		surface.create_entity{name="flying-text", position=position, text={"factory-connection-text.invalid-placement"}, force = factory.force}
 	end
 	return false
 end
@@ -760,7 +761,7 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
 			entity.destroy()
 		end
 	elseif is_invalid_save_slot(entity.name) then
-		entity.surface.create_entity{name="flying-text", position=entity.position, text={"factory-connection-text.invalid-factory-data"}}
+		entity.surface.create_entity{name="flying-text", position=entity.position, text={"factory-connection-text.invalid-factory-data"}, force = factory.force}
 		entity.destroy()
 	else
 		if Connections.is_connectable(entity) then
@@ -1206,7 +1207,8 @@ script.on_event("factory-rotate", function(event)
 					name = "flying-text",
 					position = entity.position,
 					color = {r = 228/255, g = 236/255, b = 0},
-					text = (factory.transfers_outside and {"factory-connection-text.output-mode"}) or {"factory-connection-text.input-mode"}
+					text = (factory.transfers_outside and {"factory-connection-text.output-mode"}) or {"factory-connection-text.input-mode"},
+					force = factory.force
 				}
 				update_power_settings(factory)
 			else
