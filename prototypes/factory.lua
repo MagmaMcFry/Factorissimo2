@@ -29,7 +29,7 @@ end
 
 
 
-local factory_1 = function(suffix, localised_suffix, result_suffix, visible, count, sprite)
+local factory_1 = function(suffix, localised_suffix, result_suffix, visible, count)
 	local name = "factory-1" .. suffix
 	local localised_name = {"entity-name.factory-1" .. localised_suffix}
 	local result_name = "factory-1" .. result_suffix
@@ -51,13 +51,21 @@ local factory_1 = function(suffix, localised_suffix, result_suffix, visible, cou
 			vehicle_impact_sound = { filename = "__base__/sound/car-stone-impact.ogg", volume = 1.0 },
 			pictures = {
 				picture = {
-					sheet = {
-						filename = sprite,
-						frames = 1,
-						width = 416,
-						height = 320,
-						shift = {1.5, 0},
-					},
+					layers = {
+						{
+							filename = F.."/graphics/factory/factory-1-shadow.png",
+							width = 416,
+							height = 320,
+							shift = {1.5, 0},
+							draw_as_shadow = true
+						},
+						{
+							filename = F.."/graphics/factory/factory-1.png",
+							width = 416,
+							height = 320,
+							shift = {1.5, 0},
+						}
+					}
 				},
 				fluid_background = blank(),
 				window_background = blank(),
@@ -91,7 +99,7 @@ local factory_1 = function(suffix, localised_suffix, result_suffix, visible, cou
 	};
 end
 
-local factory_2 = function(suffix, localised_suffix, result_suffix, visible, count, sprite)
+local factory_2 = function(suffix, localised_suffix, result_suffix, visible, count)
 	local name = "factory-2" .. suffix
 	local localised_name = {"entity-name.factory-2" .. localised_suffix}
 	local result_name = "factory-2" .. result_suffix
@@ -113,13 +121,21 @@ local factory_2 = function(suffix, localised_suffix, result_suffix, visible, cou
 			vehicle_impact_sound = { filename = "__base__/sound/car-stone-impact.ogg", volume = 1.0 },
 			pictures = {
 				picture = {
-					sheet = {
-						filename = sprite,
-						frames = 1,
-						width = 544,
-						height = 448,
-						shift = {1.5, 0},
-					},
+					layers = {
+						{
+							filename = F.."/graphics/factory/factory-2-shadow.png",
+							width = 544,
+							height = 448,
+							shift = {1.5, 0},
+							draw_as_shadow = true
+						},
+						{
+							filename = F.."/graphics/factory/factory-2.png",
+							width = 544,
+							height = 448,
+							shift = {1.5, 0},
+						}
+					}
 				},
 				fluid_background = blank(),
 				window_background = blank(),
@@ -153,7 +169,7 @@ local factory_2 = function(suffix, localised_suffix, result_suffix, visible, cou
 	};
 end
 
-local factory_3 = function(suffix, localised_suffix, result_suffix, visible, count, sprite)
+local factory_3 = function(suffix, localised_suffix, result_suffix, visible, count)
 	local name = "factory-3" .. suffix
 	local localised_name = {"entity-name.factory-3" .. localised_suffix}
 	local result_name = "factory-3" .. result_suffix
@@ -175,13 +191,21 @@ local factory_3 = function(suffix, localised_suffix, result_suffix, visible, cou
 			vehicle_impact_sound = { filename = "__base__/sound/car-stone-impact.ogg", volume = 1.0 },
 			pictures = {
 				picture = {
-					sheet = {
-						filename = sprite,
-						frames = 1,
-						width = 704,
-						height = 608,
-						shift = {2, -0.09375},
-					},
+					layers = {
+						{
+							filename = F.."/graphics/factory/factory-3-shadow.png",
+							width = 704,
+							height = 608,
+							shift = {2, -0.09375},
+							draw_as_shadow = true
+						},
+						{
+							filename = F.."/graphics/factory/factory-3.png",
+							width = 704,
+							height = 608,
+							shift = {2, -0.09375},
+						}
+					}
 				},
 				fluid_background = blank(),
 				window_background = blank(),
@@ -216,11 +240,11 @@ local factory_3 = function(suffix, localised_suffix, result_suffix, visible, cou
 end
 
 
-data:extend(factory_1("", "", "", true, 0, F.."/graphics/factory/factory-1.png"))
+data:extend(factory_1("", "", "", true, 0))
 for i=10,99 do
-	data:extend(factory_1("-s" .. i, "-s", "-s" .. i, false, 1, F.."/graphics/factory/factory-1-combined.png"))
+	data:extend(factory_1("-s" .. i, "-s", "-s" .. i, false, 1))
 end
-data:extend(factory_1("-i", "-i", "", false, 1, F.."/graphics/factory/factory-1-combined.png"))
+data:extend(factory_1("-i", "-i", "", false, 1))
 	
 data:extend({
 	{
@@ -235,21 +259,32 @@ data:extend({
 		selection_box = {{-3.8, -6.8}, {3.8, 0.8}},
 		selectable_in_game = false,
 		picture = {
-			filename = F.."/graphics/factory/factory-1-combined.png",
-			width = 416,
-			height = 320,
-			shift = {1.5, -3}
+			layers = {
+				{
+					filename = F.."/graphics/factory/factory-1-shadow.png",
+					width = 416,
+					height = 320,
+					shift = {1.5, -3},
+					draw_as_shadow = true
+				},
+				{
+					filename = F.."/graphics/factory/factory-1.png",
+					width = 416,
+					height = 320,
+					shift = {1.5, -3},
+				}
+			}
 		},
 		render_layer = "object",
 	}
 })
 
 
-data:extend(factory_2("", "", "", true, 0, F.."/graphics/factory/factory-2.png"))
+data:extend(factory_2("", "", "", true, 0))
 for i=10,99 do
-	data:extend(factory_2("-s" .. i, "-s", "-s" .. i, false, 1, F.."/graphics/factory/factory-2-combined.png"))
+	data:extend(factory_2("-s" .. i, "-s", "-s" .. i, false, 1))
 end
-data:extend(factory_2("-i", "-i", "", false, 1, F.."/graphics/factory/factory-2-combined.png"))
+data:extend(factory_2("-i", "-i", "", false, 1))
 
 data:extend({
 	{
@@ -264,20 +299,31 @@ data:extend({
 		selection_box = {{-5.8, -10.8}, {5.8, 0.8}},
 		selectable_in_game = false,
 		picture = {
-			filename = F.."/graphics/factory/factory-2-combined.png",
-			width = 544,
-			height = 448,
-			shift = {1.5, -5},
+			layers = {
+				{
+					filename = F.."/graphics/factory/factory-2-shadow.png",
+					width = 544,
+					height = 448,
+					shift = {1.5, -5},
+					draw_as_shadow = true
+				},
+				{
+					filename = F.."/graphics/factory/factory-2.png",
+					width = 544,
+					height = 448,
+					shift = {1.5, -5},
+				}
+			}
 		},
 		render_layer = "object",
 	}
 })
 
-data:extend(factory_3("", "", "", true, 0, F.."/graphics/factory/factory-3.png"))
+data:extend(factory_3("", "", "", true, 0))
 for i=10,99 do
-	data:extend(factory_3("-s" .. i, "-s", "-s" .. i, false, 1, F.."/graphics/factory/factory-3-combined.png"))
+	data:extend(factory_3("-s" .. i, "-s", "-s" .. i, false, 1))
 end
-data:extend(factory_3("-i", "-i", "", false, 1, F.."/graphics/factory/factory-3-combined.png"))
+data:extend(factory_3("-i", "-i", "", false, 1))
 
 data:extend({
 	{
@@ -292,10 +338,21 @@ data:extend({
 		selection_box = {{-7.8, -14.8}, {7.8, 0.8}},
 		selectable_in_game = false,
 		picture = {
-			filename = F.."/graphics/factory/factory-3-combined.png",
-			width = 704,
-			height = 608,
-			shift = {2, -7.09375},
+			layers = {
+				{
+					filename = F.."/graphics/factory/factory-3-shadow.png",
+					width = 704,
+					height = 608,
+					shift = {2, -7.09375},
+					draw_as_shadow = true
+				},
+				{
+					filename = F.."/graphics/factory/factory-3.png",
+					width = 704,
+					height = 608,
+					shift = {2, -7.09375},
+				}
+			}
 		},
 		render_layer = "object",
 	}
