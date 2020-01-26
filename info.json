@@ -1,9 +1,9 @@
 {
   "name": "Factorissimo2",
-  "version": "2.3.10",
+  "version": "2.4.0",
   "title": "Factorissimo2",
   "author": "MagmaMcFry",
-  "description": "Factorissimo adds factory buildings to Factorio. Place them down, walk in, build your factories inside!",
-  "factorio_version": "0.17",
-  "dependencies": ["base >= 0.17.0"]
+  "description": "Factorissimo 2 adds factory buildings to Factorio. Place them down, walk in, build your factories inside!",
+  "factorio_version": "0.18",
+  "dependencies": ["base >= 0.18.0"]
 }

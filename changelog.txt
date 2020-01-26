@@ -1,10 +1,17 @@
+Version: 2.4.0
+Date: 2020.01.26
+  Changes:
+    - Updated to Factorio 0.18
+
+---------------------------------------------------------------------------------------------------
 Version: 2.3.10
 Date: 2020.01.26
   Changes:
     - Added setting to allow one to nest larger factory buildings in smaller ones with Recursion 2
     - Added setting to change the factory building limit
-    - Added a lot of pending localizations (thanks to Xagros, Houdem1327, k98a, Sraw and Linver!)
     - Changed shadow rendering (thanks joelpt!)
+  Locale:
+    - Added a lot of pending localizations (thanks to Xagros, Houdem1327, k98a, Sraw and Linver!)
   Bugfixes:
     - Fixed crash upon placing invalid factory building
     - Fixed handling of script raised events
