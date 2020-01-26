@@ -737,7 +737,7 @@ local function recheck_nearby_connections(entity, delayed)
 end
 
 script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_entity, defines.events.script_raised_built, defines.events.script_raised_revive}, function(event)
-	local entity = event.created_entity
+	local entity = event.created_entity or event.entity
 	--if BUILDING_TYPE ~= entity.type then return nil end
 	if HasLayout(entity.name) then
 		-- This is a fresh factory, we need to create it
