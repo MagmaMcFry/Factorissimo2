@@ -1,6 +1,3 @@
-require("config")
-local Config = GetConfigs()
-
 require("layout")
 local HasLayout = HasLayout
 
@@ -366,7 +363,8 @@ end
 
 local function create_factory_position()
 	global.next_factory_surface = global.next_factory_surface + 1
-	if (global.next_factory_surface > Config.max_surfaces) then
+	local max_surface_id = settings.global["Factorissimo2-max-surfaces"].value
+	if (max_surface_id > 0 and global.next_factory_surface > max_surface_id) then
 		global.next_factory_surface = 1
 	end
 	local surface_name = "Factory floor " .. global.next_factory_surface

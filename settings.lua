@@ -34,6 +34,14 @@ data:extend({
 		default_value = false,
 		order = "a-b",
 	},
+	{
+		type = "int-setting",
+		name = "Factorissimo2-max-surfaces",
+		setting_type = "runtime-global",
+		minimum_value = 0,
+		default_value = 100,
+		order = "a-c",
+	},
 
 	-- Per user
 
