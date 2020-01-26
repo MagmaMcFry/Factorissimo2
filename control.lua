@@ -738,7 +738,7 @@ local function recheck_nearby_connections(entity, delayed)
 	end
 end
 
-script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_entity}, function(event)
+script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_entity, defines.events.script_raised_built, defines.events.script_raised_revive}, function(event)
 	local entity = event.created_entity
 	--if BUILDING_TYPE ~= entity.type then return nil end
 	if HasLayout(entity.name) then
@@ -860,7 +860,7 @@ script.on_event(defines.events.on_robot_mined, function(event)
 end)
 -- How biters pick up factories
 -- Too bad they don't have hands
-script.on_event(defines.events.on_entity_died, function(event)
+script.on_event({defines.events.on_entity_died, defines.events.script_raised_destroy}, function(event)
 	local entity = event.entity
 	if HasLayout(entity.name) then
 		local factory = get_factory_by_building(entity)
