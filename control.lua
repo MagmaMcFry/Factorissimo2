@@ -693,10 +693,11 @@ local function can_place_factory_here(tier, surface, position)
 	if not factory then return true end
 	local outer_tier = factory.layout.tier
 	if outer_tier > tier and (factory.force.technologies["factory-recursion-t1"].researched or settings.global["Factorissimo2-free-recursion"].value) then return true end
-	if outer_tier >= tier and (factory.force.technologies["factory-recursion-t2"].researched or settings.global["Factorissimo2-free-recursion"].value) then return true end
+	if (outer_tier >= tier or settings.global["Factorissimo2-better-recursion-2"].value)
+		and (factory.force.technologies["factory-recursion-t2"].researched or settings.global["Factorissimo2-free-recursion"].value) then return true end
 	if outer_tier > tier then
 		surface.create_entity{name="flying-text", position=position, text={"factory-connection-text.invalid-placement-recursion-1"}, force = factory.force}
-	elseif outer_tier >= tier then
+	elseif (outer_tier >= tier or settings.global["Factorissimo2-better-recursion-2"].value) then
 		surface.create_entity{name="flying-text", position=position, text={"factory-connection-text.invalid-placement-recursion-2"}, force = factory.force}
 	else
 		surface.create_entity{name="flying-text", position=position, text={"factory-connection-text.invalid-placement"}, force = factory.force}

@@ -35,12 +35,19 @@ data:extend({
 		order = "a-b",
 	},
 	{
+		type = "bool-setting",
+		name = "Factorissimo2-better-recursion-2",
+		setting_type = "runtime-global",
+		default_value = false,
+		order = "a-c",
+	},
+	{
 		type = "int-setting",
 		name = "Factorissimo2-max-surfaces",
 		setting_type = "runtime-global",
 		minimum_value = 0,
 		default_value = 100,
-		order = "a-c",
+		order = "a-d",
 	},
 
 	-- Per user
