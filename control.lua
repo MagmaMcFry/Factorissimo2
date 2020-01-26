@@ -762,7 +762,7 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
 			entity.destroy()
 		end
 	elseif is_invalid_save_slot(entity.name) then
-		entity.surface.create_entity{name="flying-text", position=entity.position, text={"factory-connection-text.invalid-factory-data"}, force = factory.force}
+		entity.surface.create_entity{name="flying-text", position=entity.position, text={"factory-connection-text.invalid-factory-data"}}
 		entity.destroy()
 	else
 		if Connections.is_connectable(entity) then
