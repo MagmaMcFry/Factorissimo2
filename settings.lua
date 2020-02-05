@@ -49,6 +49,13 @@ data:extend({
 		default_value = 100,
 		order = "a-d",
 	},
+	{
+		type = "bool-setting",
+		name = "Factorissimo2-indestructible-buildings",
+		setting_type = "runtime-global",
+		default_value = false,
+		order = "a-e",
+	},
 
 	-- Per user
 

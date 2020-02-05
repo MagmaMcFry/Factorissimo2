@@ -361,6 +361,13 @@ end
 
 -- FACTORY GENERATION --
 
+local function update_destructible(factory)
+	if factory.built and factory.building.valid then
+		factory.building.destructible = not settings.global["Factorissimo2-indestructible-buildings"].value
+	end
+end
+
+
 local function create_factory_position()
 	global.next_factory_surface = global.next_factory_surface + 1
 	local max_surface_id = settings.global["Factorissimo2-max-surfaces"].value
@@ -576,6 +583,7 @@ local function create_factory_exterior(factory, building)
 	update_power_settings(factory)
 	Connections.recheck_factory(factory, nil, nil)
 	update_overlay(factory)
+	update_destructible(factory)
 	return factory
 end
 
@@ -1135,7 +1143,7 @@ script.on_event(defines.events.on_tick, function(event)
 	local power_batch_size = settings.startup["Factorissimo2-power-batching"].value or 1
 	local i = event.tick%power_batch_size + 1
 	while i <= #factories do
-		local factory = factories[i];
+		local factory = factories[i]
 		if factory and factory.built then
 			if factory.transfers_outside then
 				transfer_power(factory.inside_energy_receiver, factory.outside_energy_sender)
@@ -1265,6 +1273,10 @@ script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
 				force.technologies["factory-recursion-t1"].enabled = true
 				force.technologies["factory-recursion-t2"].enabled = true
 			end
+		end
+	elseif setting == "Factorissimo2-indestructible-buildings" then
+		for _, factory in pairs(global.factories) do
+			update_destructible(factory)
 		end
 	end
 end)
