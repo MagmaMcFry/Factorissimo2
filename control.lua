@@ -350,7 +350,8 @@ local function update_overlay(factory)
 				local controller_inv = controller.get_inventory(defines.inventory.chest)
 				local display_inv = display.get_inventory(defines.inventory.chest)
 				display_inv.clear()
-				for i =1,4 do
+				local slot_size = math.min(4, math.min(#controller_inv, #display_inv))
+				for i = 1, slot_size do
 					local slot = controller_inv[i]
 					if slot.valid_for_read then display_inv.insert(slot) end
 				end
