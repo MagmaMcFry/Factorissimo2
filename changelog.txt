@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.4.1
+Date: 2020.02.10
+  Changes:
+    - Added setting to make factory buildings indestructible (off by default)
+  Bugfixes:
+    - Fixed crash caused by other mods changing the overlay controller inventory size
+
+---------------------------------------------------------------------------------------------------
 Version: 2.4.0
 Date: 2020.01.26
   Changes:
