@@ -36,6 +36,15 @@ local function ps()
 	}
 end
 
+local function blank_sprites()
+	return {
+		north = blank(),
+		south = blank(),
+		east = blank(),
+		west = blank()
+	}
+end
+
 local function blankpipepictures()
 	return {
 		straight_vertical_single = blank(),
@@ -349,7 +358,7 @@ data:extend({
 	},
 
 	{
-		type = "container",
+		type = "constant-combinator",
 		name = "factory-overlay-display",
 		icon = "__base__/graphics/icons/iron-chest.png",
 		icon_size = 32,
@@ -357,20 +366,15 @@ data:extend({
 		minable = nil,
 		max_health = 100,
 		corpse = "small-remnants",
-		open_sound = { filename = "__base__/sound/metallic-chest-open.ogg", volume=0.65 },
-		close_sound = { filename = "__base__/sound/metallic-chest-close.ogg", volume = 0.7 },
-		resistances = {},
 		collision_box = {{-1.85, -1.85}, {1.85, 1.85}},
 		collision_mask = {},
 		selection_box = {{-2, -2}, {2, 2}},
-		selectable_in_game = false,
-		scale_info_icons = true,
-		inventory_size = 4,
-		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
-		picture = blank(),
-		circuit_wire_connection_point = circuit_connector_definitions["chest"].points,
-		circuit_connector_sprites = circuit_connector_definitions["chest"].sprites,
-		circuit_wire_max_distance = 0
+		item_slot_count = 4,
+		sprites = blank_sprites(),
+		activity_led_sprites = blank_sprites(),
+		activity_led_light_offsets = {{0, 0}, {0, 0}, {0, 0}, {0, 0}},
+		circuit_wire_connection_points = circuit_connector_definitions["storage-tank"].points,
+		circuit_wire_max_distance = 0,
 	},
 	{
 		type = "mining-drill",
