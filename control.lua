@@ -341,23 +341,10 @@ end
 
 -- OVERLAY MANAGEMENT --
 
-local function update_overlay(factory)
-	if factory.built then
-		-- Do it this way because the controllers might not exist yet
-		for id, controller in pairs(factory.inside_overlay_controllers) do
-			local display = factory.outside_overlay_displays[id]
-			if controller.valid and display and display.valid then
-				local controller_inv = controller.get_inventory(defines.inventory.chest)
-				local display_inv = display.get_inventory(defines.inventory.chest)
-				display_inv.clear()
-				local slot_size = math.min(4, math.min(#controller_inv, #display_inv))
-				for i = 1, slot_size do
-					local slot = controller_inv[i]
-					if slot.valid_for_read then display_inv.insert(slot) end
-				end
-			end
-		end
-	end
+local function update_overlay(factory, display_id, slot_no, signal)
+	local display = get_factory_by_entity(factory).outside_overlay_displays[display_id]
+	local combinator_behavior = display.get_or_create_control_behavior()
+	combinator_behavior.set_signal(slot_no, {signal = signal, count=420})
 end
 
 -- FACTORY GENERATION --
@@ -583,7 +570,8 @@ local function create_factory_exterior(factory, building)
 	
 	update_power_settings(factory)
 	Connections.recheck_factory(factory, nil, nil)
-	update_overlay(factory)
+	-- TODO update overlay from something? on factory placement
+	-- update_overlay(factory)
 	update_destructible(factory)
 	return factory
 end
@@ -1034,6 +1022,52 @@ script.on_event(defines.events.on_gui_click, function(event)
 	end
 end)
 
+function open_gui(player, entity)
+	close_gui(player)
+	local frame = player.gui.left.add({type = "frame", name = "factory-ctrl-gui", caption = "xxx"})
+	frame.add({type = "choose-elem-button", name = "factory_overlay_chooser-1-1", elem_type = "signal"})
+	frame.add({type = "entity-preview", name = "entity_holder", visible = false})
+	frame["entity_holder"].entity = entity
+	local factory = frame["entity_holder"].entity
+end
+
+function close_gui(player)
+	local frame = player.gui.left["factory-ctrl-gui"]
+	if frame ~= nil then
+		frame.destroy()
+	end
+end
+
+script.on_event(defines.events.on_gui_opened, function(event)
+	local player = game.players[event.player_index]
+	if event.entity ~= nil then
+		if event.entity.name == "factory-1" then
+			open_gui(player, event.entity)
+		end
+	end
+end
+)
+
+script.on_event(defines.events.on_gui_closed, function(event)
+	local player = game.players[event.player_index]
+	if event.entity ~= nil then
+		if event.entity.name == "factory-1" then
+			close_gui(player)
+		end
+	end
+end
+)
+
+script.on_event(defines.events.on_gui_elem_changed, function(event)
+	local gui_element = event.element
+	if string.find(gui_element.name, "factory_overlay_chooser") then
+		-- local player = game.players[event.player_index]
+		local factory = gui_element.parent["entity_holder"].entity
+		update_overlay(factory, "nw", 1, gui_element.elem_value)
+	end
+end
+)
+
 -- TRAVEL --
 
 local function teleport_player_safely(player, surface, position)
@@ -1060,7 +1094,6 @@ local function leave_factory(player, factory)
 		{factory.outside_door_x, factory.outside_door_y}
 	)
 	update_camera(player)
-	update_overlay(factory)
 end
 
 local function teleport_players()

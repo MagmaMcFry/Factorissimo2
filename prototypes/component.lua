@@ -364,6 +364,7 @@ data:extend({
 		icon_size = 32,
 		flags = {"not-on-map"},
 		minable = nil,
+		selectable_in_game = false,
 		max_health = 100,
 		corpse = "small-remnants",
 		collision_box = {{-1.85, -1.85}, {1.85, 1.85}},
