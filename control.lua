@@ -344,6 +344,7 @@ end
 local function update_overlay(factory, display_id, slot_no, signal)
 	local display = get_factory_by_entity(factory).outside_overlay_displays[display_id]
 	local combinator_behavior = display.get_or_create_control_behavior()
+	if signal==nil then signal={} end -- TODO unset signals somehow
 	combinator_behavior.set_signal(slot_no, {signal = signal, count=420})
 end
 
@@ -1022,16 +1023,25 @@ script.on_event(defines.events.on_gui_click, function(event)
 	end
 end)
 
-function open_gui(player, entity)
-	close_gui(player)
+
+local function open_factory_gui(player, entity)
+	close_factory_gui(player)
+	local display_ids = {"nw", "ne", "sw", "se"}
 	local frame = player.gui.left.add({type = "frame", name = "factory-ctrl-gui", caption = "xxx"})
-	frame.add({type = "choose-elem-button", name = "factory_overlay_chooser-1-1", elem_type = "signal"})
+	local table_top_level = frame.add({type = "table", name = "tt", column_count=2, draw_vertical_lines=true, draw_horizontal_lines=true})
+
+	for i=1,2 do
+		local table = table_top_level.add({type = "table", name = "t"..display_ids[i], column_count=2})
+		for j=1,4 do
+			table.add({type = "choose-elem-button", name = "factory_overlay_chooser-"..display_ids[i].."-"..j, elem_type = "signal"})
+		end
+	end
+
 	frame.add({type = "entity-preview", name = "entity_holder", visible = false})
 	frame["entity_holder"].entity = entity
-	local factory = frame["entity_holder"].entity
 end
 
-function close_gui(player)
+function close_factory_gui(player)
 	local frame = player.gui.left["factory-ctrl-gui"]
 	if frame ~= nil then
 		frame.destroy()
@@ -1042,7 +1052,7 @@ script.on_event(defines.events.on_gui_opened, function(event)
 	local player = game.players[event.player_index]
 	if event.entity ~= nil then
 		if event.entity.name == "factory-1" then
-			open_gui(player, event.entity)
+			open_factory_gui(player, event.entity)
 		end
 	end
 end
@@ -1052,7 +1062,7 @@ script.on_event(defines.events.on_gui_closed, function(event)
 	local player = game.players[event.player_index]
 	if event.entity ~= nil then
 		if event.entity.name == "factory-1" then
-			close_gui(player)
+			close_factory_gui(player)
 		end
 	end
 end
@@ -1061,9 +1071,11 @@ end
 script.on_event(defines.events.on_gui_elem_changed, function(event)
 	local gui_element = event.element
 	if string.find(gui_element.name, "factory_overlay_chooser") then
-		-- local player = game.players[event.player_index]
-		local factory = gui_element.parent["entity_holder"].entity
-		update_overlay(factory, "nw", 1, gui_element.elem_value)
+		local factory = gui_element.parent.parent.parent["entity_holder"].entity
+		local name_suffix = string.sub(gui_element.name, string.find(gui_element.name, "-")+1, -1)
+		local display_id = string.sub(name_suffix, 0, string.find(name_suffix, "-")-1)
+		local display_slot = string.sub(name_suffix, string.find(name_suffix, "-")+1, -1)
+		update_overlay(factory, display_id, display_slot, gui_element.elem_value)
 	end
 end
 )
