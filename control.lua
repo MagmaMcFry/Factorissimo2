@@ -344,8 +344,10 @@ end
 local function update_overlay(factory, display_id, slot_no, signal)
 	local display = get_factory_by_entity(factory).outside_overlay_displays[display_id]
 	local combinator_behavior = display.get_or_create_control_behavior()
-	if signal==nil then signal={} end -- TODO unset signals somehow
-	combinator_behavior.set_signal(slot_no, {signal = signal, count=420})
+	if signal then 
+		signal={signal=signal, count=420}
+	end
+	combinator_behavior.set_signal(slot_no, signal)
 end
 
 -- FACTORY GENERATION --
@@ -1023,22 +1025,29 @@ script.on_event(defines.events.on_gui_click, function(event)
 	end
 end)
 
-
-local function open_factory_gui(player, entity)
+local function open_factory_gui(player, factory_entity, display_count)
 	close_factory_gui(player)
 	local display_ids = {"nw", "ne", "sw", "se"}
-	local frame = player.gui.left.add({type = "frame", name = "factory-ctrl-gui", caption = "xxx"})
+	local frame = player.gui.left.add({type = "frame", name = "factory-ctrl-gui", caption = "Factory Overlay Controller"})
 	local table_top_level = frame.add({type = "table", name = "tt", column_count=2, draw_vertical_lines=true, draw_horizontal_lines=true})
-
-	for i=1,2 do
+	local factory = get_factory_by_entity(factory_entity)
+	for i=1,display_count do
+		local behavior = factory.outside_overlay_displays[display_ids[i]].get_or_create_control_behavior()
 		local table = table_top_level.add({type = "table", name = "t"..display_ids[i], column_count=2})
 		for j=1,4 do
-			table.add({type = "choose-elem-button", name = "factory_overlay_chooser-"..display_ids[i].."-"..j, elem_type = "signal"})
+			local signal = behavior.get_signal(j)
+			local button = table.add({
+				type = "choose-elem-button", name = "factory_overlay_chooser-"..display_ids[i].."-"..j,
+				elem_type = "signal"
+				}
+			)
+			button.elem_value = signal.signal
 		end
 	end
 
+	-- entity-preview is here to store factory entity for use in on_gui_elem_changed event
 	frame.add({type = "entity-preview", name = "entity_holder", visible = false})
-	frame["entity_holder"].entity = entity
+	frame["entity_holder"].entity = factory_entity
 end
 
 function close_factory_gui(player)
@@ -1052,7 +1061,10 @@ script.on_event(defines.events.on_gui_opened, function(event)
 	local player = game.players[event.player_index]
 	if event.entity ~= nil then
 		if event.entity.name == "factory-1" then
-			open_factory_gui(player, event.entity)
+			open_factory_gui(player, event.entity, 2)
+		end
+		if event.entity.name == "factory-2" or event.entity.name == "factory-3" then
+			open_factory_gui(player, event.entity, 4)
 		end
 	end
 end
@@ -1061,7 +1073,7 @@ end
 script.on_event(defines.events.on_gui_closed, function(event)
 	local player = game.players[event.player_index]
 	if event.entity ~= nil then
-		if event.entity.name == "factory-1" then
+		if string.match(event.entity.name, "factory%-[123]") then
 			close_factory_gui(player)
 		end
 	end
