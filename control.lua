@@ -39,6 +39,8 @@ factory = {
 	+outside_port_markers = {*},
 	(+)outside_other_entities = {*},
 	
+	+saved_overlay_displays = {{*}}
+
 	+inside_energy_sender = *,
 	+inside_energy_receiver = *,
 	+inside_overlay_controllers = {*},
@@ -344,10 +346,35 @@ end
 local function update_overlay(factory, display_id, slot_no, signal)
 	local display = get_factory_by_entity(factory).outside_overlay_displays[display_id]
 	local combinator_behavior = display.get_or_create_control_behavior()
-	if signal then 
+	if signal then
 		signal={signal=signal, count=420}
 	end
 	combinator_behavior.set_signal(slot_no, signal)
+end
+
+local function save_overlay_displays(factory)
+	local saved = {}
+	for display_id, display in pairs(factory.outside_overlay_displays) do
+		saved[display_id] = {}
+		local combinator_behavior = display.get_or_create_control_behavior()
+		for signal_no=1,4 do
+			local signal = combinator_behavior.get_signal(signal_no)
+			saved[display_id][signal_no] = signal.signal
+		end
+	end
+	factory.saved_overlay_displays = saved
+end
+
+local function retrieve_overlay_displays(factory)
+	for display_id, display in pairs(factory.outside_overlay_displays) do
+		local combinator_behavior = display.get_or_create_control_behavior()
+		for signal_no=1,4 do
+			local signal = factory.saved_overlay_displays[display_id][signal_no]
+			if signal then 
+				combinator_behavior.set_signal(signal_no, {signal=signal, count=420})
+			end
+		end
+	end
 end
 
 -- FACTORY GENERATION --
@@ -573,8 +600,7 @@ local function create_factory_exterior(factory, building)
 	
 	update_power_settings(factory)
 	Connections.recheck_factory(factory, nil, nil)
-	-- TODO update overlay from something? on factory placement
-	-- update_overlay(factory)
+	retrieve_overlay_displays(factory)
 	update_destructible(factory)
 	return factory
 end
@@ -629,6 +655,7 @@ local function save_factory(factory)
 	for _,sf in pairs(SAVE_ITEMS[factory.layout.name] or {}) do
 		if global.saved_factories[sf] then
 		else
+			save_overlay_displays(factory)
 			global.saved_factories[sf] = factory
 			return sf
 		end
