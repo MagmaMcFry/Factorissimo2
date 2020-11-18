@@ -1023,7 +1023,7 @@ end)
 
 script.on_event(defines.events.on_gui_click, function(event)
 	local player = game.players[event.player_index]
-	if event.element.name == "factory_camera_toggle_button" then
+	if event.element.valid and event.element.name == "factory_camera_toggle_button" then
 		if global.player_preview_active[player.index] then
 			get_camera_toggle_button(player).sprite = "technology/factory-architecture-t1"
 			global.player_preview_active[player.index] = false
