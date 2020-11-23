@@ -1062,6 +1062,11 @@ local function leave_factory(player, factory)
 	update_overlay(factory)
 end
 
+local function player_may_enter_factory(player, factory)
+	return player.force.name == factory.force.name or player.force.get_friend(factory.force)
+			or settings.global["Factorissimo2-enemy-players-may-enter"].value
+end
+
 local function teleport_players()
 	local tick = game.tick
 	for player_index, player in pairs(game.players) do
@@ -1075,7 +1080,9 @@ local function teleport_players()
 					local factory = find_factory_by_building(player.surface, {{player.position.x-0.2, player.position.y-0.3},{player.position.x+0.2, player.position.y}})
 					if factory ~= nil then
 						if math.abs(player.position.x-factory.outside_x)<0.6 then
-							enter_factory(player, factory)
+							if player_may_enter_factory(player, factory) then
+								enter_factory(player, factory)
+							end
 						end
 					end
 				elseif walking_state.direction == defines.direction.south

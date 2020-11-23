@@ -63,6 +63,13 @@ data:extend({
 		default_value = false,
 		order = "a-e",
 	},
+	{
+		type = "bool-setting",
+		name = "Factorissimo2-enemy-players-may-enter",
+		setting_type = "runtime-global",
+		default_value = true,
+		order = "a-f",
+	},
 
 	-- Per user
 
