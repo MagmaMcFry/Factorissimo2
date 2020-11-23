@@ -36,6 +36,13 @@ data:extend({
 	},
 	{
 		type = "bool-setting",
+		name = "Factorissimo2-hide-recursion-2",
+		setting_type = "runtime-global",
+		default_value = false,
+		order = "a-b-a",
+	},
+	{
+		type = "bool-setting",
 		name = "Factorissimo2-better-recursion-2",
 		setting_type = "runtime-global",
 		default_value = false,

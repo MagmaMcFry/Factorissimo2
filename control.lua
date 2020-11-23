@@ -22,13 +22,13 @@ factory = {
 	+outside_y = *,
 	+outside_door_x = *,
 	+outside_door_y = *,
-	
+
 	+inside_surface = *,
 	+inside_x = *,
 	+inside_y = *,
 	+inside_door_x = *,
 	+inside_door_y = *,
-	
+
 	+force = *,
 	+layout = *,
 	+building = *,
@@ -38,22 +38,22 @@ factory = {
 	+outside_fluid_dummy_connectors = {*},
 	+outside_port_markers = {*},
 	(+)outside_other_entities = {*},
-	
+
 	+inside_energy_sender = *,
 	+inside_energy_receiver = *,
 	+inside_overlay_controllers = {*},
 	+inside_fluid_dummy_connectors = {*},
 	(+)inside_other_entities = {*},
 	+energy_indicator = *,
-	
+
 	+transfer_rate = *,
 	+transfers_outside = *,
 	+stored_pollution = *,
-	
+
 	+connections = {*},
 	+connection_settings = {{*}*},
 	+connection_indicators = {*},
-	
+
 	+upgrades = {},
 }
 ]]--
@@ -82,7 +82,8 @@ local function init_globals()
 	global.player_preview_active = global.player_preview_active or {}
 end
 
-local prepare_gui = 0  -- Will be set to a function lower in the file
+local prepare_gui = 0  -- Function stub
+local update_hidden_techs = 0 -- Function stub
 
 local function init_gui()
 	for _, player in pairs(game.players) do
@@ -90,16 +91,14 @@ local function init_gui()
 	end
 end
 
+
 script.on_init(function()
 	init_globals()
 	Connections.init_data_structure()
 	Updates.init()
 	init_gui()
-	if settings.global["Factorissimo2-hide-recursion"] and settings.global["Factorissimo2-hide-recursion"].value then
-		for _, force in pairs(game.forces) do
-			force.technologies["factory-recursion-t1"].enabled = false
-			force.technologies["factory-recursion-t2"].enabled = false
-		end
+	for _, force in pairs(game.forces) do
+		update_hidden_techs(force)
 	end
 	Compat.handle_factoriomaps()
 end)
@@ -134,7 +133,7 @@ local function get_factory_by_building(entity)
 	local factory = global.factories_by_entity[entity.unit_number]
 	if factory == nil then
 		game.print("ERROR: Unbound factory building: " .. entity.name .. "@" .. entity.surface.name .. "(" .. entity.position.x .. ", " .. entity.position.y .. ")")
-	end	
+	end
 	return factory
 end
 
@@ -398,7 +397,7 @@ local function create_factory_position()
 	global.surface_factory_counters[surface_name] = n+1
 	local cx = 16*(n % 8)
 	local cy = 16*math.floor(n / 8)
-	
+
 	-- To make void chunks show up on the map, you need to tell them they've finished generating.
 	surface.set_chunk_generated_status({cx-2, cy-2}, defines.chunk_generated_status.entities)
 	surface.set_chunk_generated_status({cx-1, cy-2}, defines.chunk_generated_status.entities)
@@ -417,7 +416,7 @@ local function create_factory_position()
 	surface.set_chunk_generated_status({cx+0, cy+1}, defines.chunk_generated_status.entities)
 	surface.set_chunk_generated_status({cx+1, cy+1}, defines.chunk_generated_status.entities)
 	surface.destroy_decoratives{area={{32*(cx-2),32*(cy-2)},{32*(cx+2),32*(cy+2)}}}
-	
+
 	local factory = {}
 	factory.inside_surface = surface
 	factory.inside_x = 32*cx
@@ -479,34 +478,34 @@ local function create_factory_interior(layout, force)
 	ier.operable = false
 	ier.rotatable = false
 	factory.inside_energy_receiver = ier
-	
+
 	local ies = factory.inside_surface.create_entity{name = "factory-power-output-2-10", position = {factory.inside_x + layout.inside_energy_x, factory.inside_y + layout.inside_energy_y}, force = force}
 	ies.destructible = false
 	ies.operable = false
 	ies.rotatable = false
 	factory.inside_energy_sender = ies
-	
+
 	local iet = factory.inside_surface.create_entity{name = "factory-power-pole", position = {factory.inside_x + layout.inside_energy_x, factory.inside_y + layout.inside_energy_y}, force = force}
 	iet.destructible = false
-	
+
 	factory.inside_other_entities = {iet}
-	
+
 	--if force.technologies["factory-interior-upgrade-power"].researched then
 	--	build_power_upgrade(factory)
 	--end
-	
+
 	if force.technologies["factory-interior-upgrade-lights"].researched then
 		build_lights_upgrade(factory)
 	end
-	
+
 	factory.inside_overlay_controllers = {}
-	
+
 	if force.technologies["factory-interior-upgrade-display"].researched then
 		build_display_upgrade(factory)
 	end
-	
+
 	factory.inside_fluid_dummy_connectors = {}
-	
+
 	for id, cpos in pairs(layout.connections) do
 		local name = "factory-fluid-dummy-connector-" .. cpos.direction_in
 		local connector = factory.inside_surface.create_entity{name = name, position = {factory.inside_x + cpos.inside_x + cpos.indicator_dx, factory.inside_y + cpos.inside_y + cpos.indicator_dy}, force = force}
@@ -515,14 +514,14 @@ local function create_factory_interior(layout, force)
 		connector.rotatable = false
 		factory.inside_fluid_dummy_connectors[id] = connector
 	end
-	
+
 	factory.transfer_rate = factory.layout.default_power_transfer_rate or 10 -- MW
 	factory.transfers_outside = false
-	
+
 	factory.connections = {}
 	factory.connection_settings = {}
 	factory.connection_indicators = {}
-	
+
 	return factory
 end
 
@@ -534,21 +533,21 @@ local function create_factory_exterior(factory, building)
 	factory.outside_door_x = factory.outside_x + layout.outside_door_x
 	factory.outside_door_y = factory.outside_y + layout.outside_door_y
 	factory.outside_surface = building.surface
-	
+
 	local oer = factory.outside_surface.create_entity{name = layout.outside_energy_receiver_type .. "-10", position = {factory.outside_x, factory.outside_y}, force = force}
 	oer.destructible = false
 	oer.operable = false
 	oer.rotatable = false
 	factory.outside_energy_receiver = oer
-	
+
 	local oes = factory.outside_surface.create_entity{name = layout.outside_energy_sender_type .. "-10", position = {factory.outside_x, factory.outside_y}, force = force}
 	oes.destructible = false
 	oes.operable = false
 	oes.rotatable = false
 	factory.outside_energy_sender = oes
-	
+
 	factory.outside_overlay_displays = {}
-	
+
 	for id, pos in pairs(layout.overlays) do
 		local display = factory.outside_surface.create_entity{name = "factory-overlay-display", position = {factory.outside_x + pos.outside_x, factory.outside_y + pos.outside_y}, force = force}
 		display.destructible = false
@@ -556,9 +555,9 @@ local function create_factory_exterior(factory, building)
 		display.rotatable = false
 		factory.outside_overlay_displays[id] = display
 	end
-	
+
 	factory.outside_fluid_dummy_connectors = {}
-	
+
 	for id, cpos in pairs(layout.connections) do
 		local name = "factory-fluid-dummy-connector-" .. cpos.direction_out
 		local connector = factory.outside_surface.create_entity{name = name, position = {factory.outside_x + cpos.outside_x - cpos.indicator_dx, factory.outside_y + cpos.outside_y - cpos.indicator_dy}, force = force}
@@ -572,15 +571,15 @@ local function create_factory_exterior(factory, building)
 	overlay.destructible = false
 	overlay.operable = false
 	overlay.rotatable = false
-	
+
 	factory.outside_other_entities = {overlay}
 
 	factory.outside_port_markers = {}
-	
+
 	set_entity_to_factory(building, factory)
 	factory.building = building
 	factory.built = true
-	
+
 	update_power_settings(factory)
 	Connections.recheck_factory(factory, nil, nil)
 	update_overlay(factory)
@@ -661,7 +660,7 @@ local function init_factory_requester_chest(entity)
 	for sf,_ in next, saved_factories,begin_after do
 		i = i+1
 		entity.set_request_slot({name=sf,count=1},i)
-		if i >= n then return end		
+		if i >= n then return end
 	end
 	for j=i+1,n do
 		entity.clear_request_slot(j)
@@ -686,7 +685,7 @@ commands.add_command("give-lost-factory-buildings", {"command-help-message.give-
 			end
 		end
 	end
-	local main_inventory = 
+	local main_inventory =
 		player.get_inventory(defines.inventory.player_main or defines.inventory.character_main)
 		or player.get_inventory(defines.inventory.god_main)
 	for save_name,_ in pairs(global.saved_factories) do
@@ -739,7 +738,7 @@ local function recheck_nearby_connections(entity, delayed)
 	local surrounding_factory = find_surrounding_factory(surface, entity.position)
 	if surrounding_factory then
 		if delayed then
-			Connections.recheck_factory_delayed(surrounding_factory, nil, bbox2)		
+			Connections.recheck_factory_delayed(surrounding_factory, nil, bbox2)
 		else
 			Connections.recheck_factory(surrounding_factory, nil, bbox2)
 		end
@@ -1115,7 +1114,7 @@ local function update_pollution(factory)
 	local inside_surface = factory.inside_surface
 	local pollution, cp = 0, 0
 	local inside_x, inside_y = factory.inside_x, factory.inside_y
-	
+
 	cp = inside_surface.get_pollution({inside_x-16,inside_y-16})
 	inside_surface.pollute({inside_x-16,inside_y-16},-cp)
 	pollution = pollution + cp
@@ -1154,7 +1153,7 @@ script.on_event(defines.events.on_tick, function(event)
 		end
 		i=i+power_batch_size
 	end
-	
+
 	-- Transfer pollution
 	local fn = #factories
 	local offset = (23*event.tick)%60+1
@@ -1163,10 +1162,10 @@ script.on_event(defines.events.on_tick, function(event)
 		if factory ~= nil then update_pollution(factory) end
 		offset = offset + 60
 	end
-	
+
 	-- Update connections
 	Connections.update() -- Duh
-	
+
 	-- Teleport players
 	teleport_players() -- What did you expect
 end)
@@ -1261,19 +1260,24 @@ end)
 
 -- MISC --
 
+update_hidden_techs = function(force)
+	if settings.global["Factorissimo2-hide-recursion"] and settings.global["Factorissimo2-hide-recursion"].value then
+		force.technologies["factory-recursion-t1"].enabled = false
+		force.technologies["factory-recursion-t2"].enabled = false
+	elseif settings.global["Factorissimo2-hide-recursion-2"] and settings.global["Factorissimo2-hide-recursion-2"].value then
+		force.technologies["factory-recursion-t1"].enabled = true
+		force.technologies["factory-recursion-t2"].enabled = false
+	else
+		force.technologies["factory-recursion-t1"].enabled = true
+		force.technologies["factory-recursion-t2"].enabled = true
+	end
+end
+
 script.on_event(defines.events.on_runtime_mod_setting_changed, function(event)
 	local setting = event.setting
-	if setting == "Factorissimo2-hide-recursion" then
-		if settings.global["Factorissimo2-hide-recursion"] and settings.global["Factorissimo2-hide-recursion"].value then
-			for _, force in pairs(game.forces) do
-				force.technologies["factory-recursion-t1"].enabled = false
-				force.technologies["factory-recursion-t2"].enabled = false
-			end
-		else
-			for _, force in pairs(game.forces) do
-				force.technologies["factory-recursion-t1"].enabled = true
-				force.technologies["factory-recursion-t2"].enabled = true
-			end
+	if setting == "Factorissimo2-hide-recursion" or setting == "Factorissimo2-hide-recursion-2" then
+		for _, force in pairs(game.forces) do
+			update_hidden_techs(force)
 		end
 	elseif setting == "Factorissimo2-indestructible-buildings" then
 		for _, factory in pairs(global.factories) do
@@ -1284,10 +1288,7 @@ end)
 
 script.on_event(defines.events.on_force_created, function(event)
 	local force = event.force
-	if settings.global["Factorissimo2-hide-recursion"] and settings.global["Factorissimo2-hide-recursion"].value then
-		force.technologies["factory-recursion-t1"].enabled = false
-		force.technologies["factory-recursion-t2"].enabled = false
-	end
+	update_hidden_techs(force)
 end)
 
 script.on_event(defines.events.on_research_finished, function(event)
@@ -1312,4 +1313,4 @@ script.on_event(defines.events.on_research_finished, function(event)
 	elseif name == "factory-preview" then
 		for _, player in pairs(game.players) do get_camera_toggle_button(player) end
 	end
-end) 
+end)
