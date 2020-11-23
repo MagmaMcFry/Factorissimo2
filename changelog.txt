@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.4.5
+Date: 2020.11.23
+  Changes:
+    - Added new settings to control whether players of allied or enemy factions may enter your buildings (default: yes)
+
+---------------------------------------------------------------------------------------------------
 Version: 2.4.4
 Date: 2020.11.23
   Changes:
