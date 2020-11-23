@@ -1063,7 +1063,8 @@ local function leave_factory(player, factory)
 end
 
 local function player_may_enter_factory(player, factory)
-	return player.force.name == factory.force.name or player.force.get_friend(factory.force)
+	return player.force.name == factory.force.name
+			or (player.force.get_friend(factory.force) and settings.global["Factorissimo2-allied-players-may-enter"].value)
 			or settings.global["Factorissimo2-enemy-players-may-enter"].value
 end
 

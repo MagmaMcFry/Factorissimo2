@@ -65,10 +65,17 @@ data:extend({
 	},
 	{
 		type = "bool-setting",
+		name = "Factorissimo2-allied-players-may-enter",
+		setting_type = "runtime-global",
+		default_value = true,
+		order = "a-f-a",
+	},
+	{
+		type = "bool-setting",
 		name = "Factorissimo2-enemy-players-may-enter",
 		setting_type = "runtime-global",
 		default_value = true,
-		order = "a-f",
+		order = "a-f-b",
 	},
 
 	-- Per user
