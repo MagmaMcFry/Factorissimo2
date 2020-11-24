@@ -9,7 +9,7 @@ local Updates = Updates
 
 require("compat.factoriomaps")
 
-require("mod-gui")
+local mod_gui = require("mod-gui")
 -- DATA STRUCTURE --
 
 -- Factory buildings are entities of type "storage-tank" internally, because reasons

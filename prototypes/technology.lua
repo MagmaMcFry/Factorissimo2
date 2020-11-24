@@ -10,7 +10,7 @@ data:extend({
 		name = "factory-architecture-t1",
 		icon = F.."/graphics/technology/factory-architecture-1.png",
 		icon_size = 128,
-		prerequisites = {"stone-walls", "logistics"},
+		prerequisites = {"stone-wall", "logistics"},
 		effects = {
 			{type = "unlock-recipe", recipe = "factory-1"},
 		},

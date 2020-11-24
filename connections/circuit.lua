@@ -86,7 +86,7 @@ Circuit.tick = function(conn)
 			end
 			
 			-- This call is ridiculously slow, it takes up to 0.1 ms PER SIGNAL. Nothing we can do about that
-			control_behavior.parameters = {parameters = transferred_signals}
+			control_behavior.parameters = transferred_signals
 		end
 		return conn._settings.delay or DEFAULT_DELAY
 	else
