@@ -41,7 +41,7 @@ factory = {
 
 	+inside_energy_sender = *,
 	+inside_energy_receiver = *,
-	+inside_overlay_controllers = {*},
+	+inside_overlay_controller = *,
 	+inside_fluid_dummy_connectors = {*},
 	(+)inside_other_entities = {*},
 	+energy_indicator = *,
@@ -327,35 +327,57 @@ local function build_lights_upgrade(factory)
 	end
 end
 
-local function build_display_upgrade(factory)
-	if factory.upgrades.display then return end
-	factory.upgrades.display = true
-	for id, pos in pairs(factory.layout.overlays) do
-		local controller = factory.inside_surface.create_entity{name = "factory-overlay-controller", position = {factory.inside_x + pos.inside_x, factory.inside_y + pos.inside_y}, force = factory.force}
-		controller.destructible = false
-		controller.rotatable = false
-		factory.inside_overlay_controllers[id] = controller
-	end
+function build_display_upgrade(factory)
+	if not factory.force.technologies["factory-interior-upgrade-display"].researched then return end
+	if factory.inside_overlay_controller and factory.inside_overlay_controller.valid then return end
+
+	pos = factory.layout.overlays
+	local controller = factory.inside_surface.create_entity{
+		name = "factory-overlay-controller",
+		position = {
+			factory.inside_x + pos.inside_x,
+			factory.inside_y + pos.inside_y
+		},
+		force = factory.force
+	}
+	controller.destructible = false
+	controller.rotatable = false
+	factory.inside_overlay_controller = controller
 end
 
 -- OVERLAY MANAGEMENT --
 
-local function update_overlay(factory)
-	if factory.built then
-		-- Do it this way because the controllers might not exist yet
-		for id, controller in pairs(factory.inside_overlay_controllers) do
-			local display = factory.outside_overlay_displays[id]
-			if controller.valid and display and display.valid then
-				local controller_inv = controller.get_inventory(defines.inventory.chest)
-				local display_inv = display.get_inventory(defines.inventory.chest)
-				display_inv.clear()
-				local slot_size = math.min(4, math.min(#controller_inv, #display_inv))
-				for i = 1, slot_size do
-					local slot = controller_inv[i]
-					if slot.valid_for_read then display_inv.insert(slot) end
-				end
-			end
+local function draw_overlay_sprite(sprite_name, target_entity, offset, scale, id_table)
+	if target_entity.valid then
+		local sprite_data = {
+			sprite = sprite_name,
+			x_scale = scale,
+			y_scale = scale,
+			target = target_entity,
+			surface = target_entity.surface,
+			only_in_alt_mode = true,
+		}
+		local shadow_radius = 0.2
+		for _, shadow_offset in pairs({{0,shadow_radius}, {0, -shadow_radius}, {shadow_radius, 0}, {-shadow_radius, 0}}) do
+			sprite_data.tint = {0, 0, 0, 0.5} -- Transparent black
+			sprite_data.target_offset = {offset[1] + shadow_offset[1], offset[2] + shadow_offset[2]}
+			table.insert(id_table, rendering.draw_sprite(sprite_data))
 		end
+		sprite_data.tint = nil
+		sprite_data.target_offset = offset
+		table.insert(id_table, rendering.draw_sprite(sprite_data))
+	end
+end
+
+function update_overlay(factory)
+	for _, id in pairs(factory.outside_overlay_displays) do
+		rendering.destroy(id)
+	end
+	factory.outside_overlay_displays = {}
+	if factory.built then -- TODO remove test code
+		draw_overlay_sprite("item/iron-plate", factory.building,
+			{0, 0}, 2,
+		factory.outside_overlay_displays)
 	end
 end
 
@@ -548,14 +570,6 @@ local function create_factory_exterior(factory, building)
 
 	factory.outside_overlay_displays = {}
 
-	for id, pos in pairs(layout.overlays) do
-		local display = factory.outside_surface.create_entity{name = "factory-overlay-display", position = {factory.outside_x + pos.outside_x, factory.outside_y + pos.outside_y}, force = force}
-		display.destructible = false
-		display.operable = false
-		display.rotatable = false
-		factory.outside_overlay_displays[id] = display
-	end
-
 	factory.outside_fluid_dummy_connectors = {}
 
 	for id, cpos in pairs(layout.connections) do
@@ -609,7 +623,7 @@ local function cleanup_factory_exterior(factory, building)
 	Connections.disconnect_factory(factory)
 	factory.outside_energy_sender.destroy()
 	factory.outside_energy_receiver.destroy()
-	for _, entity in pairs(factory.outside_overlay_displays) do entity.destroy() end
+	for _, render_id in pairs(factory.outside_overlay_displays) do rendering.destroy(render_id) end
 	factory.outside_overlay_displays = {}
 	for _, entity in pairs(factory.outside_fluid_dummy_connectors) do entity.destroy() end
 	factory.outside_fluid_dummy_connectors = {}
