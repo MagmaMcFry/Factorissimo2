@@ -16,7 +16,7 @@ Updates.run = function()
 				e.destroy()
 			end
 		end
-		for _, factory in pairs(global.factories)  do
+		for _, factory in pairs(global.factories) do
 			for _, entity in pairs(factory.outside_overlay_displays) do
 				if entity.valid then entity.destroy() end
 			end
@@ -40,6 +40,12 @@ Updates.run = function()
 			update_overlay(factory)
 		end
 		-- End overlay display rework
+
+		-- Begin port marker rework
+		for _, factory in pairs(global.factories) do
+			factory.outside_port_markers = {}
+		end
+		-- End port marker rework
 	end
 	global.update_version = 12
 end

@@ -661,16 +661,19 @@ local function toggle_port_markers(factory)
 	if not factory.built then return end
 	if #(factory.outside_port_markers) == 0 then
 		for id, cpos in pairs(factory.layout.connections) do
-			local marker = factory.outside_surface.create_entity{name = "factory-port-marker", position = {
-			factory.outside_x + cpos.outside_x-cpos.indicator_dx, factory.outside_y + cpos.outside_y-cpos.indicator_dy}, force = factory.force, direction = cpos.direction_out}
-			marker.destructible = false
-			marker.operable = false
-			marker.rotatable = false
-			marker.active = false
-			table.insert(factory.outside_port_markers, marker)
+			local sprite_data = {
+				sprite = "utility/indication_arrow",
+				orientation = cpos.direction_out/8,
+				target = factory.building,
+				surface = factory.building.surface,
+				target_offset = {cpos.outside_x - 0.5 * cpos.indicator_dx, cpos.outside_y - 0.5 * cpos.indicator_dy},
+				only_in_alt_mode = true,
+				render_layer = "entity-info-icon",
+			}
+			table.insert(factory.outside_port_markers, rendering.draw_sprite(sprite_data))
 		end
 	else
-		for _, entity in pairs(factory.outside_port_markers) do entity.destroy() end
+		for _, sprite in pairs(factory.outside_port_markers) do rendering.destroy(sprite) end
 		factory.outside_port_markers = {}
 	end
 end
@@ -683,7 +686,7 @@ local function cleanup_factory_exterior(factory, building)
 	factory.outside_overlay_displays = {}
 	for _, entity in pairs(factory.outside_fluid_dummy_connectors) do entity.destroy() end
 	factory.outside_fluid_dummy_connectors = {}
-	for _, entity in pairs(factory.outside_port_markers) do entity.destroy() end
+	for _, render_id in pairs(factory.outside_port_markers) do rendering.destroy(render_id) end
 	factory.outside_port_markers = {}
 	for _, entity in pairs(factory.outside_other_entities) do entity.destroy() end
 	factory.outside_other_entities = {}
