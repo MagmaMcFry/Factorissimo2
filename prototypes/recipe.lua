@@ -1,3 +1,7 @@
+local easy_recipes = settings.startup["Factorissimo2-easy-recipes"].value
+
+local multiplier = easy_recipes and 1 or 10
+
 data:extend({
 
 	-- Factory buildings
@@ -6,7 +10,7 @@ data:extend({
 		name = "factory-1",
 		enabled = false,
 		energy_required = 30,
-		ingredients = {{"stone", 500}, {"iron-plate", 500}, {"copper-plate", 100}},
+		ingredients = {{"stone", 50 * multiplier}, {"iron-plate", 50 * multiplier}, {"copper-plate", 10 * multiplier}},
 		result = "factory-1"
 	},
 
@@ -15,19 +19,19 @@ data:extend({
 		name = "factory-2",
 		enabled = false,
 		energy_required = 46,
-		ingredients = {{"stone-brick", 1000}, {"steel-plate", 250}, {"big-electric-pole", 50}},
+		ingredients = {{"stone-brick", 100 * multiplier}, {"steel-plate", 25 * multiplier}, {"big-electric-pole", 5 * multiplier}},
 		result = "factory-2"
 	},
-	
+
 	{
 		type = "recipe",
 		name = "factory-3",
 		enabled = false,
 		energy_required = 60,
-		ingredients = {{"concrete", 5000}, {"steel-plate", 2000}, {"substation", 100}},
+		ingredients = {{"concrete", 500 * multiplier}, {"steel-plate", 200 * multiplier}, {"substation", 10 * multiplier}},
 		result = "factory-3"
 	},
-	
+
 	-- Utilities
 	{
 		type = "recipe",

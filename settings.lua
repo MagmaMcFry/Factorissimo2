@@ -9,13 +9,20 @@ data:extend({
 		order = "a-a"
 	},
 	{
+		type = "bool-setting",
+		name = "Factorissimo2-easy-recipes",
+		setting_type = "startup",
+		default_value = false,
+		order = "a-b"
+	},
+	{
 		type = "int-setting",
 		name = "Factorissimo2-power-batching",
 		setting_type = "startup",
 		minimum_value = 1,
 		default_value = 1,
 		maximum_value = 60,
-		order = "a-b"
+		order = "b-a"
 	},
 
 	-- Global
@@ -80,13 +87,6 @@ data:extend({
 
 	-- Per user
 
-	-- {
-		-- type = "bool-setting",
-		-- name = "Factorissimo2-preview-enabled",
-		-- setting_type = "runtime-per-user",
-		-- default_value = true,
-		-- order = "a-a",
-	-- },
 	{
 		type = "int-setting",
 		name = "Factorissimo2-preview-size",
