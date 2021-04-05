@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.5.2
+Date: 2021.04.05
+  Changes:
+    - Added startup setting for cheaper factory buildings
+  Bugfixes:
+    - Fixed loading issue when merging forces
+
+---------------------------------------------------------------------------------------------------
 Version: 2.5.1
 Date: 2020.12.04
   Bugfixes:
