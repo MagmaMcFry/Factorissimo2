@@ -1372,6 +1372,17 @@ script.on_event(defines.events.on_force_created, function(event)
 	update_hidden_techs(force)
 end)
 
+script.on_event(defines.events.on_forces_merging, function(event)
+	for _, factory in pairs(global.factories) do
+		if not factory.force.valid then
+			factory.force = game.forces["player"]
+		end
+		if factory.force.name == event.source.name then
+			factory.force = event.destination
+		end
+	end
+end)
+
 script.on_event(defines.events.on_research_finished, function(event)
 	if not global.factories then return end -- In case any mod or scenario script calls LuaForce.research_all_technologies() during its on_init
 	local research = event.research
