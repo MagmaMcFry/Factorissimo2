@@ -1,7 +1,13 @@
 Belt = {}
 
 Belt.color = {r = 0, g = 183/255, b = 0}
-Belt.entity_types = {"transport-belt", "underground-belt"}
+
+if (mods or script.active_mods)["deadlock-beltboxes-loaders"] then
+	Belt.entity_types = {"transport-belt", "underground-belt", "loader-1x1"}
+else
+	Belt.entity_types = {"transport-belt", "underground-belt"}
+end
+
 Belt.unlocked = function(force) return true end
 
 Belt.indicator_settings = {"d0"}
@@ -22,6 +28,12 @@ local INSERT_POS = {
 	["underground-belt"] = 0.25, -- 0.5 - 8/32
 }
 
+if (mods or script.active_mods)["deadlock-beltboxes-loaders"] then
+	table.insert(INSERT_POS, {["loader-1x1"] = 0.75,}) -- 1 - 8/32
+else
+
+end
+
 
 local opposite = {
 	[defines.direction.north] = defines.direction.south, [defines.direction.south] = defines.direction.north,
@@ -39,6 +51,10 @@ local function get_conn_facing(outside_entity, inside_entity, direction_out, dir
 		else
 			if direction_in ~= outside_dir then return nil end
 		end
+	elseif (mods or script.active_mods)["deadlock-beltboxes-loaders"] then
+		if ot == "loader-1x1" then
+				outside_dir = outside_entity.direction
+		end
 	end
 	if it == "transport-belt" then
 		inside_dir = inside_entity.direction
@@ -48,6 +64,10 @@ local function get_conn_facing(outside_entity, inside_entity, direction_out, dir
 			if direction_in ~= inside_dir then return nil end
 		else
 			if direction_out ~= inside_dir then return nil end
+		end
+	elseif (mods or script.active_mods)["deadlock-beltboxes-loaders"] then
+		if it == "loader-1x1" then
+			inside_dir = inside_entity.direction
 		end
 	end
 	if outside_dir ~= inside_dir then return nil end
