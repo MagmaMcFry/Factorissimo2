@@ -1,16 +1,19 @@
 Belt = {}
 
 Belt.color = {r = 0, g = 183/255, b = 0}
+Belt.entity_types = {"transport-belt", "underground-belt"}
+Belt.unlocked = function(force) return true end
+Belt.indicator_settings = {"d0"}
+
+local INSERT_POS = {
+	["transport-belt"] = 0.75, -- 1 - 8/32
+	["underground-belt"] = 0.25 -- 0.5 - 8/32
+}
 
 if (mods or script.active_mods)["deadlock-beltboxes-loaders"] then
-	Belt.entity_types = {"transport-belt", "underground-belt", "loader-1x1"}
-else
-	Belt.entity_types = {"transport-belt", "underground-belt"}
+	table.insert(Belt.entity_types, "loader-1x1")
+	table.insert(INSERT_POS, {["loader-1x1"] = 0.75}) -- 1 - 8/32
 end
-
-Belt.unlocked = function(force) return true end
-
-Belt.indicator_settings = {"d0"}
 
 local function calc_delays(speed1, speed2)
 	-- Belt connections will transfer a maximum of 1 item per tick per lane
@@ -23,18 +26,6 @@ local function calc_delays(speed1, speed2)
 	return delays
 end
 
-local INSERT_POS = {
-	["transport-belt"] = 0.75, -- 1 - 8/32
-	["underground-belt"] = 0.25, -- 0.5 - 8/32
-}
-
-if (mods or script.active_mods)["deadlock-beltboxes-loaders"] then
-	table.insert(INSERT_POS, {["loader-1x1"] = 0.75,}) -- 1 - 8/32
-else
-
-end
-
-
 local opposite = {
 	[defines.direction.north] = defines.direction.south, [defines.direction.south] = defines.direction.north,
 	[defines.direction.east] = defines.direction.west, [defines.direction.west] = defines.direction.east,
@@ -42,6 +33,7 @@ local opposite = {
 
 local function get_conn_facing(outside_entity, inside_entity, direction_out, direction_in)
 	local outside_dir, inside_dir, ot, it = 0, 0, outside_entity.type, inside_entity.type
+
 	if ot == "transport-belt" then
 		outside_dir = outside_entity.direction
 	elseif ot == "underground-belt" then
@@ -51,11 +43,8 @@ local function get_conn_facing(outside_entity, inside_entity, direction_out, dir
 		else
 			if direction_in ~= outside_dir then return nil end
 		end
-	elseif (mods or script.active_mods)["deadlock-beltboxes-loaders"] then
-		if ot == "loader-1x1" then
-				outside_dir = outside_entity.direction
-		end
 	end
+
 	if it == "transport-belt" then
 		inside_dir = inside_entity.direction
 	elseif it == "underground-belt" then
@@ -65,11 +54,18 @@ local function get_conn_facing(outside_entity, inside_entity, direction_out, dir
 		else
 			if direction_out ~= inside_dir then return nil end
 		end
-	elseif (mods or script.active_mods)["deadlock-beltboxes-loaders"] then
+	end
+
+	if (mods or script.active_mods)["deadlock-beltboxes-loaders"] then
+		if ot == "loader-1x1" then
+			outside_dir = outside_entity.direction
+		end
+
 		if it == "loader-1x1" then
 			inside_dir = inside_entity.direction
 		end
 	end
+
 	if outside_dir ~= inside_dir then return nil end
 	--game.print("Direction: " .. outside_dir)
 	return outside_dir
