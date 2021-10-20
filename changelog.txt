@@ -1,4 +1,12 @@
 ---------------------------------------------------------------------------------------------------
+Version: 2.5.4
+Date: 2021.10.20
+  Changes:
+    - Reworked electric system to use cross-surface wires
+    - Reworked lamp system to work with new electric system
+    - Acculumulators now work inside factory buildings
+
+---------------------------------------------------------------------------------------------------
 Version: 2.5.3
 Date: 2021.10.19
   Bugfixes:

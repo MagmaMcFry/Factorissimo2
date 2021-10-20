@@ -32,22 +32,20 @@ factory = {
 	+force = *,
 	+layout = *,
 	+building = *,
-	+outside_energy_sender = *,
 	+outside_energy_receiver = *,
 	+outside_overlay_displays = {*},
 	+outside_fluid_dummy_connectors = {*},
 	+outside_port_markers = {*},
 	(+)outside_other_entities = {*},
 
-	+inside_energy_sender = *,
-	+inside_energy_receiver = *,
 	+inside_overlay_controller = *,
 	+inside_fluid_dummy_connectors = {*},
-	(+)inside_other_entities = {*},
-	+energy_indicator = *,
+	+inside_power_poles = {*},
+	(+)outside_power_pole = *,
 
-	+transfer_rate = *,
-	+transfers_outside = *,
+	(+)middleman_id = *,
+	(+)direct_connection = *,
+
 	+stored_pollution = *,
 
 	+connections = {*},
@@ -57,7 +55,6 @@ factory = {
 	+upgrades = {},
 }
 ]]--
-
 
 -- INITIALIZATION --
 
@@ -80,10 +77,14 @@ local function init_globals()
 	global.last_player_teleport = global.last_player_teleport or {}
 	-- Map: Player index -> Whether preview is activated
 	global.player_preview_active = global.player_preview_active or {}
+	-- List of all factory power pole middlemen
+	global.middleman_power_poles = global.middleman_power_poles or {}
 end
 
 local prepare_gui = 0  -- Function stub
 local update_hidden_techs = 0 -- Function stub
+local power_middleman_surface = 0 -- Function stub
+local cancel_creation = 0 -- Function stub
 
 local function init_gui()
 	for _, player in pairs(game.players) do
@@ -91,12 +92,12 @@ local function init_gui()
 	end
 end
 
-
 script.on_init(function()
 	init_globals()
 	Connections.init_data_structure()
 	Updates.init()
 	init_gui()
+	power_middleman_surface()
 	for _, force in pairs(game.forces) do
 		update_hidden_techs(force)
 	end
@@ -111,6 +112,7 @@ script.on_configuration_changed(function(config_changed_data)
 	init_globals()
 	Updates.run()
 	init_gui()
+	power_middleman_surface()
 	for surface_name, _ in pairs(global.surface_factories or {}) do
 		if remote.interfaces["RSO"] then -- RSO compatibility
 			pcall(remote.call, "RSO", "ignoreSurface", surface_name)
@@ -156,151 +158,189 @@ end
 
 -- POWER MANAGEMENT --
 
--- Don't mess with this unless you mess with prototypes/entity/component.lua too.
--- Every number needs to correspond to a valid indicator entity name
-local VALID_POWER_TRANSFER_RATES = {1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000} -- MW
-
-local function make_valid_transfer_rate(rate)
-	for _,v in pairs(VALID_POWER_TRANSFER_RATES) do
-		if v == rate then return v end
+function power_middleman_surface()
+	if game.surfaces["factory-power-connection"] then
+		return game.surfaces["factory-power-connection"]
 	end
-	return 0 -- Catchall
-end
-
-local function update_power_settings(factory)
-	if factory.built then
-		local layout = factory.layout
-		-- Inside sender
-		local new_ies = factory.inside_surface.create_entity{
-			name = "factory-power-output-2-" .. factory.transfer_rate,
-			position = {factory.inside_x + layout.inside_energy_x, factory.inside_y + layout.inside_energy_y},
-			force = factory.force
-		}
-		new_ies.destructible = false
-		new_ies.operable = false
-		new_ies.rotatable = false
-		if factory.inside_energy_sender.valid then
-			factory.inside_energy_sender.destroy()
-		end
-		factory.inside_energy_sender = new_ies
-
-		-- Inside receiver
-		local new_ier = factory.inside_surface.create_entity{
-			name = "factory-power-input-2-" .. factory.transfer_rate,
-			position = {factory.inside_x + layout.inside_energy_x, factory.inside_y + layout.inside_energy_y},
-			force = factory.force
-		}
-		new_ier.destructible = false
-		new_ier.operable = false
-		new_ier.rotatable = false
-		if factory.inside_energy_receiver.valid then
-			factory.inside_energy_receiver.destroy()
-		end
-		factory.inside_energy_receiver = new_ier
-
-		-- Outside sender
-		local new_oes = factory.outside_surface.create_entity{
-			name = layout.outside_energy_sender_type .. "-" .. factory.transfer_rate,
-			position = {factory.outside_x, factory.outside_y},
-			force = factory.force
-		}
-		new_oes.destructible = false
-		new_oes.operable = false
-		new_oes.rotatable = false
-		if factory.outside_energy_sender.valid then
-			factory.outside_energy_sender.destroy()
-		end
-		factory.outside_energy_sender = new_oes
-
-		-- Outside receiver
-		local new_oer = factory.outside_surface.create_entity{
-			name = layout.outside_energy_receiver_type .. "-" .. factory.transfer_rate,
-			position = {factory.outside_x, factory.outside_y},
-			force = factory.force
-		}
-		new_oer.destructible = false
-		new_oer.operable = false
-		new_oer.rotatable = false
-		if factory.outside_energy_receiver.valid then
-			factory.outside_energy_receiver.destroy()
-		end
-		factory.outside_energy_receiver = new_oer
-
-		local e = factory.transfer_rate*16667 -- conversion factor of MW to J/U
-		if factory.transfers_outside then
-			factory.inside_energy_sender.energy = 0--e
-			factory.inside_energy_receiver.energy = 0
-			factory.outside_energy_sender.energy = 0
-			factory.outside_energy_receiver.energy = 0--e
-		else
-			factory.inside_energy_sender.energy = 0
-			factory.inside_energy_receiver.energy = 0--e
-			factory.outside_energy_sender.energy = 0--e
-			factory.outside_energy_receiver.energy = 0
-		end
+	
+	if #game.surfaces == 256 then
+		error("Unfortunately you have no available surfaces left for Factorissimo2. You cannot use Factorissimo2 on this map.")
 	end
-	if factory.energy_indicator and factory.energy_indicator.valid then
-		factory.energy_indicator.destroy()
-		factory.energy_indicator = nil
-	end
-	local direction = (factory.transfers_outside and defines.direction.south) or defines.direction.north
-	local energy_indicator = factory.inside_surface.create_entity{
-		name = "factory-connection-indicator-energy-d" .. make_valid_transfer_rate(factory.transfer_rate),
-		direction = direction, force = factory.force,
-		position = {x = factory.inside_x + factory.layout.energy_indicator_x, y = factory.inside_y + factory.layout.energy_indicator_y}
+	
+	local map_gen_settings = {height=1, width=1, property_expression_names={}}
+	map_gen_settings.autoplace_settings = {
+		["decorative"] = {treat_missing_as_default=false, settings={}},
+		["entity"] = {treat_missing_as_default=false, settings={}},
+		["tile"] = {treat_missing_as_default=false, settings={["out-of-map"]={}}},
 	}
-	energy_indicator.destructible = false
-	factory.energy_indicator = energy_indicator
+	
+	local surface = game.create_surface("factory-power-connection", map_gen_settings)
+	surface.set_chunk_generated_status({0, 0}, defines.chunk_generated_status.entities)
+	surface.set_chunk_generated_status({-1, 0}, defines.chunk_generated_status.entities)
+	surface.set_chunk_generated_status({0, -1}, defines.chunk_generated_status.entities)
+	surface.set_chunk_generated_status({-1, -1}, defines.chunk_generated_status.entities)
+	
+	return surface
 end
--- For update 11
-function update_all_power_settings()
+
+local function remove_direct_connection(factory)
+	local dc = factory.direct_connection
+	if not dc or not dc.valid then return end
+	
+	for _, pole in pairs(factory.inside_power_poles) do
+		for _, neighbour in pairs(pole.neighbours.copper) do
+			if neighbour == dc then
+				local old = {}
+				for _, neighbour in ipairs(dc.neighbours.copper) do
+					if neighbour ~= pole then old[#old+1] = neighbour end
+				end
+				dc.disconnect_neighbour()
+				for _, neighbour in ipairs(old) do
+					dc.connect_neighbour(neighbour)
+				end
+				factory.direct_connection = nil
+				return
+			end
+		end
+	end
+end
+
+local function delete_middleman(i)
+	local pole = global.middleman_power_poles[i]
+	if pole == 0 then return end
+	global.middleman_power_poles[i] = i < #global.middleman_power_poles and 0 or nil
+	pole.destroy()
+end
+
+local function cleanup_middlemen()
+	for i, pole in ipairs(global.middleman_power_poles) do
+		if pole ~= 0 and #pole.neighbours.copper<2 then delete_middleman(i) end
+	end
+end
+
+-- power poles can only connect to 5 other power poles. give priority to factory poles
+local our_poles = {["factory-power-connection"] = true, ["factory-power-pole"] = true, ["factory-overflow-pole"] = true}
+local function reduce_neighbours(pole)
+	local neighbours = pole.neighbours.copper
+	if #neighbours < 5 or #neighbours == 0 then return true end
+	
+	local n
+	for i, neighbour in ipairs(neighbours) do
+		if not our_poles[neighbour.name] and neighbour.surface == pole.surface then n = i break end
+	end
+	
+	if n == nil then
+		pole.surface.create_entity{name="flying-text", position=pole.position, text={"electric-pole-wire-limit-reached"}}
+		return false
+	end
+	
+	pole.disconnect_neighbour(neighbours[n])
+	return true
+end
+
+local function available_pole(factory)
+	local poles = factory.inside_power_poles
+	for i, pole in ipairs(poles) do
+		local next = poles[i+1]
+		if next then
+			next.connect_neighbour(pole)
+		end
+	end
+	
+	for i, pole in ipairs(poles) do
+		if #pole.neighbours.copper < (i == #poles and 4 or 5) then return pole end
+	end
+	
+	local layout = factory.layout
+	local pole = factory.inside_surface.create_entity{name="factory-overflow-pole", position=poles[1].position, force=poles[1].force}
+	pole.destructible = false
+	pole.disconnect_neighbour()
+	pole.connect_neighbour(poles[#poles])
+	table.insert(poles, pole)
+	return pole
+end
+
+local function connect_power(factory, pole)
+	if not reduce_neighbours(pole) then return end
+	factory.outside_power_pole = pole
+	
+	if factory.inside_surface.name ~= pole.surface.name then
+		available_pole(factory).connect_neighbour(pole)
+		factory.direct_connection = pole
+		return
+	end
+	
+	local n
+	for i, pole in ipairs(global.middleman_power_poles) do
+		if pole == 0 then n = i break end
+	end
+	n = n or #global.middleman_power_poles + 1
+	
+	local surface = power_middleman_surface()
+	local middleman = surface.create_entity{name = "factory-power-connection", position = {2*(n%32), 2*math.floor(n/32)}, force = "neutral"}
+	middleman.destructible = false
+	global.middleman_power_poles[n] = middleman
+	
+	middleman.connect_neighbour(available_pole(factory))
+	middleman.connect_neighbour(pole)
+	
+	factory.middleman_id = n
+end
+
+function update_power_connection(factory, pole) -- pole parameter is optional
+	local electric_network = factory.outside_energy_receiver.electric_network_id
+	if electric_network == nil then return end
+	local surface = factory.outside_surface
+	local x = factory.outside_x
+	local y = factory.outside_y
+	
+	if global.surface_factory_counters[surface.name] then
+		connect_power(factory, available_pole(find_surrounding_factory(surface, {x=x, y=y})))
+		return
+	end
+	
+	-- find the nearest connected power pole
+	local D = game.max_electric_pole_supply_area_distance + factory.layout.outside_size / 2
+	local canidates = {}
+	for _, entity in ipairs(surface.find_entities_filtered{type="electric-pole", area={{x-D, y-D}, {x+D,y+D}}}) do
+		if entity.electric_network_id == electric_network and entity ~= pole then
+			canidates[#canidates+1] = entity
+		end
+	end
+	
+	if #canidates == 0 then return end
+	connect_power(factory, surface.get_closest({x, y}, canidates))
+end
+
+local function power_pole_placed(pole)
+	local D = pole.prototype.supply_area_distance + 10
+	local position = pole.position
+	local x = position.x
+	local y = position.y
+	
+	for _, entity in ipairs(pole.surface.find_entities_filtered{type=BUILDING_TYPE, area={{x-D, y-D}, {x+D,y+D}}}) do
+		if not HasLayout(entity.name) then goto continue end
+		factory = get_factory_by_building(entity)
+		local electric_network = factory.outside_energy_receiver.electric_network_id
+		if electric_network == nil or electric_network ~= pole.electric_network_id then goto continue end
+		if electric_network == factory.inside_power_poles[1].electric_network_id then goto continue end
+		
+		connect_power(factory, pole)
+		
+		::continue::
+	end
+end
+
+local function power_pole_destroyed(pole)
+	pole.disconnect_neighbour()
+	
 	for _, factory in pairs(global.factories) do
-		update_power_settings(factory)
-	end
-end
-
-local function adjust_power_transfer_rate(factory, positive)
-	local transfer_rate = factory.transfer_rate
-	if positive then
-		for i = 1,#VALID_POWER_TRANSFER_RATES do
-			if transfer_rate < VALID_POWER_TRANSFER_RATES[i] then
-				transfer_rate = VALID_POWER_TRANSFER_RATES[i]
-				break
-			end
-		end
-		if transfer_rate > VALID_POWER_TRANSFER_RATES[#VALID_POWER_TRANSFER_RATES] then
-			transfer_rate = VALID_POWER_TRANSFER_RATES[#VALID_POWER_TRANSFER_RATES]
-		end
-	else
-		for i = #VALID_POWER_TRANSFER_RATES,1,-1 do
-			if transfer_rate > VALID_POWER_TRANSFER_RATES[i] then
-				transfer_rate = VALID_POWER_TRANSFER_RATES[i]
-				break
-			end
-		end
-		if transfer_rate < VALID_POWER_TRANSFER_RATES[1] then
-			transfer_rate = VALID_POWER_TRANSFER_RATES[1]
+		if factory.built and factory.outside_power_pole and factory.outside_power_pole.valid and factory.outside_power_pole == pole then
+			update_power_connection(factory, pole)
 		end
 	end
-	factory.transfer_rate = transfer_rate
-	local power_string, transfer_text = "",""
-	if transfer_rate >= 1000 then
-		power_string = (transfer_rate / 1000) .. "GW"
-	else
-		power_string = transfer_rate .. "MW"
-	end
-	if positive then
-		transfer_text = "factory-connection-text.power-transfer-increased"
-	else
-		transfer_text = "factory-connection-text.power-transfer-decreased"
-	end
-	factory.inside_surface.create_entity{
-		name = "flying-text",
-		position = {x = factory.inside_x + factory.layout.energy_indicator_x, y = factory.inside_y + factory.layout.energy_indicator_y}, color = {r = 228/255, g = 236/255, b = 0},
-		text = {transfer_text, power_string},
-		force = factory.force
-	}
-	update_power_settings(factory)
+	
+	cleanup_middlemen()
 end
 
 -- FACTORY UPGRADES --
@@ -308,13 +348,7 @@ end
 local function build_lights_upgrade(factory)
 	if factory.upgrades.lights then return end
 	factory.upgrades.lights = true
-	for _, pos in pairs(factory.layout.lights) do
-		local light = factory.inside_surface.create_entity{name = "factory-ceiling-light", position = {factory.inside_x + pos.x, factory.inside_y + pos.y}, force = factory.force}
-		light.destructible = false
-		light.operable = false
-		light.rotatable = false
-		table.insert(factory.inside_other_entities, light)
-	end
+	factory.inside_surface.daytime = 1
 end
 
 function build_display_upgrade(factory)
@@ -445,7 +479,6 @@ local function update_destructible(factory)
 	end
 end
 
-
 local function create_factory_position()
 	global.next_factory_surface = global.next_factory_surface + 1
 	local max_surface_id = settings.global["Factorissimo2-max-surfaces"].value
@@ -476,7 +509,7 @@ local function create_factory_position()
 	local cx = 16*(n % 8)
 	local cy = 16*math.floor(n / 8)
 
-	-- To make void chunks show up on the map, you need to tell them they've finished generating.
+	-- To make void chunks show up on the map, you need to tell them they"ve finished generating.
 	surface.set_chunk_generated_status({cx-2, cy-2}, defines.chunk_generated_status.entities)
 	surface.set_chunk_generated_status({cx-1, cy-2}, defines.chunk_generated_status.entities)
 	surface.set_chunk_generated_status({cx+0, cy-2}, defines.chunk_generated_status.entities)
@@ -551,26 +584,9 @@ local function create_factory_interior(layout, force)
 	end
 	factory.inside_surface.set_tiles(tiles)
 
-	local ier = factory.inside_surface.create_entity{name = "factory-power-input-2-10", position = {factory.inside_x + layout.inside_energy_x, factory.inside_y + layout.inside_energy_y}, force = force}
-	ier.destructible = false
-	ier.operable = false
-	ier.rotatable = false
-	factory.inside_energy_receiver = ier
-
-	local ies = factory.inside_surface.create_entity{name = "factory-power-output-2-10", position = {factory.inside_x + layout.inside_energy_x, factory.inside_y + layout.inside_energy_y}, force = force}
-	ies.destructible = false
-	ies.operable = false
-	ies.rotatable = false
-	factory.inside_energy_sender = ies
-
-	local iet = factory.inside_surface.create_entity{name = "factory-power-pole", position = {factory.inside_x + layout.inside_energy_x, factory.inside_y + layout.inside_energy_y}, force = force}
-	iet.destructible = false
-
-	factory.inside_other_entities = {iet}
-
-	--if force.technologies["factory-interior-upgrade-power"].researched then
-	--	build_power_upgrade(factory)
-	--end
+	local power_pole = factory.inside_surface.create_entity{name = "factory-power-pole", position = {factory.inside_x + layout.inside_energy_x, factory.inside_y + layout.inside_energy_y}, force = force}
+	power_pole.destructible = false
+	factory.inside_power_poles = {power_pole}
 
 	if force.technologies["factory-interior-upgrade-lights"].researched then
 		build_lights_upgrade(factory)
@@ -593,9 +609,6 @@ local function create_factory_interior(layout, force)
 		factory.inside_fluid_dummy_connectors[id] = connector
 	end
 
-	factory.transfer_rate = factory.layout.default_power_transfer_rate or 10 -- MW
-	factory.transfers_outside = false
-
 	factory.connections = {}
 	factory.connection_settings = {}
 	factory.connection_indicators = {}
@@ -612,17 +625,11 @@ local function create_factory_exterior(factory, building)
 	factory.outside_door_y = factory.outside_y + layout.outside_door_y
 	factory.outside_surface = building.surface
 
-	local oer = factory.outside_surface.create_entity{name = layout.outside_energy_receiver_type .. "-10", position = {factory.outside_x, factory.outside_y}, force = force}
+	local oer = factory.outside_surface.create_entity{name = layout.outside_energy_receiver_type, position = {factory.outside_x, factory.outside_y}, force = force}
 	oer.destructible = false
 	oer.operable = false
 	oer.rotatable = false
 	factory.outside_energy_receiver = oer
-
-	local oes = factory.outside_surface.create_entity{name = layout.outside_energy_sender_type .. "-10", position = {factory.outside_x, factory.outside_y}, force = force}
-	oes.destructible = false
-	oes.operable = false
-	oes.rotatable = false
-	factory.outside_energy_sender = oes
 
 	factory.outside_overlay_displays = {}
 
@@ -650,8 +657,8 @@ local function create_factory_exterior(factory, building)
 	factory.building = building
 	factory.built = true
 
-	update_power_settings(factory)
 	Connections.recheck_factory(factory, nil, nil)
+	update_power_connection(factory)
 	update_overlay(factory)
 	update_destructible(factory)
 	return factory
@@ -679,9 +686,11 @@ local function toggle_port_markers(factory)
 end
 
 local function cleanup_factory_exterior(factory, building)
-	Connections.disconnect_factory(factory)
-	factory.outside_energy_sender.destroy()
 	factory.outside_energy_receiver.destroy()
+	if factory.middleman_id then delete_middleman(factory.middleman_id) factory.middleman_id = nil end
+	remove_direct_connection(factory)
+	
+	Connections.disconnect_factory(factory)
 	for _, render_id in pairs(factory.outside_overlay_displays) do rendering.destroy(render_id) end
 	factory.outside_overlay_displays = {}
 	for _, entity in pairs(factory.outside_fluid_dummy_connectors) do entity.destroy() end
@@ -838,19 +847,24 @@ script.on_event({defines.events.on_built_entity, defines.events.on_robot_built_e
 	elseif is_invalid_save_slot(entity.name) then
 		entity.surface.create_entity{name="flying-text", position=entity.position, text={"factory-connection-text.invalid-factory-data"}}
 		entity.destroy()
-	else
-		if Connections.is_connectable(entity) then
-			recheck_nearby_connections(entity)
+	elseif Connections.is_connectable(entity) then
+		recheck_nearby_connections(entity)
+	elseif entity.type == "electric-pole" then
+		power_pole_placed(entity)
+	elseif entity.type == "solar-panel" then
+		if global.surface_factory_counters[entity.surface.name] then
+			cancel_creation(entity, event.player_index, {"factory-connection-text.invalid-placement"})
+		else
+			entity.force.technologies["factory-interior-upgrade-lights"].researched = true
 		end
-		if entity.name == "factory-requester-chest" then
-			init_factory_requester_chest(entity)
-		end
+	elseif entity.name == "factory-requester-chest" then
+		init_factory_requester_chest(entity)
 	end
 end)
 
 
 -- How players pick up factories
--- Working factory buildings don't return items, so we have to manually give the player an item
+-- Working factory buildings don"t return items, so we have to manually give the player an item
 script.on_event(defines.events.on_pre_player_mined_item, function(event)
 	local entity = event.entity
 	if HasLayout(entity.name) then
@@ -875,11 +889,13 @@ script.on_event(defines.events.on_pre_player_mined_item, function(event)
 		end
 	elseif Connections.is_connectable(entity) then
 		recheck_nearby_connections(entity, true) -- Delay
+	elseif entity.type == 'electric-pole' then
+		power_pole_destroyed(entity)
 	end
 end)
 
 -- How robots pick up factories
--- Since you can't insert items into construction robots, we'll have to swap out factories for fake placeholder factories
+-- Since you can"t insert items into construction robots, we"ll have to swap out factories for fake placeholder factories
 -- as soon as they are marked for deconstruction, and swap them back should they be unmarked.
 script.on_event(defines.events.on_marked_for_deconstruction, function(event)
 	local entity = event.entity
@@ -895,7 +911,7 @@ script.on_event(defines.events.on_marked_for_deconstruction, function(event)
 				entity.destroy()
 			else
 				-- Not saved, so put it back
-				-- Don't cancel deconstruction (it'd cause another event), instead simply replace with new building
+				-- Don"t cancel deconstruction (it"d cause another event), instead simply replace with new building
 				local newbuilding = entity.surface.create_entity{name=entity.name, position=entity.position, force=factory.force}
 				entity.destroy()
 				set_entity_to_factory(newbuilding, factory)
@@ -926,25 +942,26 @@ script.on_event(defines.events.on_robot_pre_mined, function(event)
 	local entity = event.entity
 	if Connections.is_connectable(entity) then
 		recheck_nearby_connections(entity, true) -- Delay
+	elseif entity.type == 'electric-pole' then
+		power_pole_destroyed(entity)
 	end
 end)
 
-script.on_event(defines.events.on_robot_mined, function(event)
-	local item = event.item
-end)
 -- How biters pick up factories
--- Too bad they don't have hands
+-- Too bad they don"t have hands
 script.on_event({defines.events.on_entity_died, defines.events.script_raised_destroy}, function(event)
 	local entity = event.entity
 	if HasLayout(entity.name) then
 		local factory = get_factory_by_building(entity)
 		if factory then
 			cleanup_factory_exterior(factory, entity)
-			-- Don't save it. It will be inaccessible from now on.
+			-- Don"t save it. It will be inaccessible from now on.
 			--save_factory(factory)
 		end
 	elseif Connections.is_connectable(entity) then
 		recheck_nearby_connections(entity, true) -- Delay
+	elseif entity.type == 'electric-pole' then
+		power_pole_destroyed(entity)
 	end
 end)
 
@@ -955,7 +972,6 @@ local clone_forbidden_prefixes = {
 	"factory-2-",
 	"factory-3-",
 	"factory-power-input-",
-	"factory-power-output-",
 	"factory-connection-indicator-",
 	"factory-power-pole",
 	"factory-ceiling-light",
@@ -1168,21 +1184,6 @@ local function teleport_players()
 	end
 end
 
--- POWER MANAGEMENT --
-
-local function transfer_power(from, to)
-	if not (from.valid and to.valid) then return end
-	local energy = from.energy+to.energy
-	local ebs = to.electric_buffer_size
-	if energy > ebs then
-		to.energy = ebs
-		from.energy = energy - ebs
-	else
-		to.energy = energy
-		from.energy = 0
-	end
-end
-
 -- POLLUTION MANAGEMENT --
 
 local function update_pollution(factory)
@@ -1214,20 +1215,6 @@ end
 
 script.on_event(defines.events.on_tick, function(event)
 	local factories = global.factories
-	-- Transfer power
-	local power_batch_size = settings.startup["Factorissimo2-power-batching"].value or 1
-	local i = event.tick%power_batch_size + 1
-	while i <= #factories do
-		local factory = factories[i]
-		if factory and factory.built then
-			if factory.transfers_outside then
-				transfer_power(factory.inside_energy_receiver, factory.outside_energy_sender)
-			else
-				transfer_power(factory.outside_energy_receiver, factory.inside_energy_sender)
-			end
-		end
-		i=i+power_batch_size
-	end
 
 	-- Transfer pollution
 	local fn = #factories
@@ -1252,13 +1239,7 @@ for _,name in pairs(Connections.indicator_names) do
 	CONNECTION_INDICATOR_NAMES["factory-connection-indicator-" .. name] = true
 end
 
-CONNECTION_INDICATOR_NAMES["factory-connection-indicator-energy-d0"] = true
-for _,rate in pairs(VALID_POWER_TRANSFER_RATES) do
-	CONNECTION_INDICATOR_NAMES["factory-connection-indicator-energy-d" .. rate] = true
-end
-
 script.on_event(defines.events.on_player_rotated_entity, function(event)
-	--game.print("Rotated!")
 	local entity = event.entity
 	if CONNECTION_INDICATOR_NAMES[entity.name] then
 		-- Skip
@@ -1284,19 +1265,7 @@ script.on_event("factory-rotate", function(event)
 	elseif CONNECTION_INDICATOR_NAMES[entity.name] then
 		local factory = find_surrounding_factory(entity.surface, entity.position)
 		if factory then
-			if factory.energy_indicator and factory.energy_indicator.valid and factory.energy_indicator.unit_number == entity.unit_number then
-				factory.transfers_outside = not factory.transfers_outside
-				factory.inside_surface.create_entity{
-					name = "flying-text",
-					position = entity.position,
-					color = {r = 228/255, g = 236/255, b = 0},
-					text = (factory.transfers_outside and {"factory-connection-text.output-mode"}) or {"factory-connection-text.input-mode"},
-					force = factory.force
-				}
-				update_power_settings(factory)
-			else
-				Connections.rotate(factory, entity)
-			end
+			Connections.rotate(factory, entity)
 		end
 	elseif entity.name == "factory-requester-chest" then
 		init_factory_requester_chest(entity)
@@ -1309,11 +1278,7 @@ script.on_event("factory-increase", function(event)
 	if CONNECTION_INDICATOR_NAMES[entity.name] then
 		local factory = find_surrounding_factory(entity.surface, entity.position)
 		if factory then
-			if factory.energy_indicator and factory.energy_indicator.valid and factory.energy_indicator.unit_number == entity.unit_number then
-				adjust_power_transfer_rate(factory, true)
-			else
-				Connections.adjust(factory, entity, true)
-			end
+			Connections.adjust(factory, entity, true)
 		end
 	end
 end)
@@ -1324,16 +1289,50 @@ script.on_event("factory-decrease", function(event)
 	if CONNECTION_INDICATOR_NAMES[entity.name] then
 		local factory = find_surrounding_factory(entity.surface, entity.position)
 		if factory then
-			if factory.energy_indicator and factory.energy_indicator.valid and factory.energy_indicator.unit_number == entity.unit_number then
-				adjust_power_transfer_rate(factory, false)
-			else
-				Connections.adjust(factory, entity, false)
-			end
+			Connections.adjust(factory, entity, false)
 		end
 	end
 end)
 
 -- MISC --
+
+function cancel_creation(entity, player_index, message)
+	local inserted = 0
+	local item_to_place = entity.prototype.items_to_place_this[1]
+	local surface = entity.surface
+	local position = entity.position
+	local force = entity.force
+	
+	if player_index then
+		local player = game.get_player(player_index)
+		if player.mine_entity(entity, false) then
+			inserted = 1
+		elseif item_to_place then
+			inserted = player.insert(item_to_place)
+		end
+	end
+	
+	entity.destroy{raise_destroy = true}
+	
+	if inserted == 0 and item_to_place then
+		surface.spill_item_stack{
+			enable_looted  = true,
+			force = force,
+			allow_belts = false,
+			position = position,
+			items = item_to_place
+		}
+	end
+	
+	if message then
+		surface.create_entity{
+			name = "flying-text",
+			position = position,
+			text = message,
+			render_player_index = player_index
+		}
+	end
+end
 
 update_hidden_techs = function(force)
 	if settings.global["Factorissimo2-hide-recursion"] and settings.global["Factorissimo2-hide-recursion"].value then

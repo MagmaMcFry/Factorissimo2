@@ -15,15 +15,6 @@ data:extend({
 		default_value = false,
 		order = "a-b"
 	},
-	{
-		type = "int-setting",
-		name = "Factorissimo2-power-batching",
-		setting_type = "startup",
-		minimum_value = 1,
-		default_value = 1,
-		maximum_value = 60,
-		order = "b-a"
-	},
 
 	-- Global
 

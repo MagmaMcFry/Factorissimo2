@@ -2,10 +2,8 @@ local F = "__Factorissimo2__";
 
 require("circuit-connector-sprites")
 
-local power_batch_size = settings.startup["Factorissimo2-power-batching"].value or 1
-
 local function cwc0c()
-	return {shadow = {red = {0,0},green = {0,0},copper = {0,0}}, wire = {red = {0,0},green = {0,0},copper = {0,0}}}
+	return {shadow = {red = {0,0}, green = {0,0}, copper = {0,0}}, wire = {red = {0,0}, green = {0,0}, copper = {0,0}}}
 end
 
 local function blank()
@@ -24,6 +22,16 @@ local function ablank()
 		width = 1,
 		height = 1,
 		frame_count = 1,
+	}
+end
+
+local function rblank()
+	return {
+		filename = F.."/graphics/nothing.png",
+		priority = "high",
+		width = 1,
+		height = 1,
+		direction_count = 1,
 	}
 end
 
@@ -98,73 +106,39 @@ end
 
 -- Factory power I/O
 
-local VALID_POWER_TRANSFER_RATES = {1,2,5,10,20,50,100,200,500,1000,2000,5000,10000,20000,50000,100000} -- MW
-
-local function create_energy_interfaces(size, passive_input, passive_output, icon)
+local function create_energy_interfaces(size, icon)
 	local j = size/2-0.3
-	local input_priority = (passive_input and "tertiary") or "secondary-input"
-	local output_priority = (passive_output and "tertiary") or "secondary-output"
-	for _, transfer_rate in pairs(VALID_POWER_TRANSFER_RATES) do
-		local buffer_size = transfer_rate*16667*power_batch_size
-		data:extend({
-			{
-				type = "electric-energy-interface",
-				name = "factory-power-input-" .. size .. "-" .. transfer_rate,
-				localised_name = {"entity-name.factory-power-input-" .. size},
-				icon = icon,
-				icon_size = 32,
-				flags = {"not-on-map"},
-				minable = nil,
-				max_health = 1,
-				selectable_in_game = false,
-				energy_source = {
-					type = "electric",
-					usage_priority = input_priority,
-					input_flow_limit = transfer_rate .. "MW",
-					--output_flow_limit = "0MW",
-					buffer_capacity = buffer_size .. "J",
-					render_no_power_icon = false,
-				},
-				energy_usage = "0MW",
-				energy_production = "0MW",
-				selection_box = {{-j,-j},{j,j}},
-				collision_box = {{-j,-j},{j,j}},
-				collision_mask = {},
+	data:extend{
+		{
+			type = "electric-energy-interface",
+			name = "factory-power-input-" .. size,
+			icon = icon,
+			icon_size = 32,
+			flags = {"not-on-map"},
+			minable = nil,
+			max_health = 1,
+			selectable_in_game = false,
+			energy_source = {
+				type = "electric",
+				usage_priority = "tertiary",
+				input_flow_limit = "0W",
+				output_flow_limit = "0W",
+				buffer_capacity = "0J",
+				render_no_power_icon = false,
 			},
-			{
-				type = "electric-energy-interface",
-				name = "factory-power-output-" .. size .. "-" .. transfer_rate,
-				localised_name = {"entity-name.factory-power-output-" .. size},
-				icon = icon,
-				icon_size = 32,
-				flags = {"not-on-map"},
-				minable = nil,
-				max_health = 1,
-				selectable_in_game = false,
-				energy_source = {
-					type = "electric",
-					usage_priority = output_priority,
-					--input_flow_limit = "0MW",
-					output_flow_limit = transfer_rate .. "MW",
-					buffer_capacity = buffer_size .. "J",
-					render_no_power_icon = false,
-				},
-				energy_usage = "0MW",
-				energy_production = "0MW",
-				selection_box = {{-j,-j},{j,j}},
-				collision_box = {{-j,-j},{j,j}},
-				collision_mask = {},
-			},
-		})
-	end
+			energy_usage = "0MW",
+			energy_production = "0MW",
+			selection_box = {{-j,-j},{j,j}},
+			collision_box = {{-j,-j},{j,j}},
+			collision_mask = {},
+			localised_name = '',
+		}
+	}
 end
-create_energy_interfaces(2,true,true,"__base__/graphics/icons/substation.png")
--- true,false would be optimal, but due to a bug it doesn't work. Maybe it'll be fixed.
--- In the meantime we'll have to settle for true,true because that's how Factorissimo1 worked.
 
-create_energy_interfaces(8,false,false,F.."/graphics/icon/factory-1.png")
-create_energy_interfaces(12,false,false,F.."/graphics/icon/factory-2.png")
-create_energy_interfaces(16,false,false,F.."/graphics/icon/factory-3.png")
+create_energy_interfaces(8,F.."/graphics/icon/factory-1.png")
+create_energy_interfaces(12,F.."/graphics/icon/factory-2.png")
+create_energy_interfaces(16,F.."/graphics/icon/factory-3.png")
 
 -- Connection indicators
 
@@ -213,7 +187,7 @@ end
 
 create_indicator("belt", "d0", "green-dir")
 
-create_indicator("chest", "d0", "brown-dir") -- 0 is catchall for "There isn't an entity for this exact value"
+create_indicator("chest", "d0", "brown-dir") -- 0 is catchall for "There isn"t an entity for this exact value"
 create_indicator("chest", "d10", "brown-dir")
 create_indicator("chest", "d20", "brown-dir")
 create_indicator("chest", "d60", "brown-dir")
@@ -248,26 +222,6 @@ create_indicator("circuit", "d60", "red-dir")
 create_indicator("circuit", "d180", "red-dir")
 create_indicator("circuit", "d600", "red-dir")
 
--- <E>
-
-create_indicator("energy", "d0", "yellow-dir")
-create_indicator("energy", "d1", "yellow-dir")
-create_indicator("energy", "d2", "yellow-dir")
-create_indicator("energy", "d5", "yellow-dir")
-create_indicator("energy", "d10", "yellow-dir")
-create_indicator("energy", "d20", "yellow-dir")
-create_indicator("energy", "d50", "yellow-dir")
-create_indicator("energy", "d100", "yellow-dir")
-create_indicator("energy", "d200", "yellow-dir")
-create_indicator("energy", "d500", "yellow-dir")
-create_indicator("energy", "d1000", "yellow-dir")
-create_indicator("energy", "d2000", "yellow-dir")
-create_indicator("energy", "d5000", "yellow-dir")
-create_indicator("energy", "d10000", "yellow-dir")
-create_indicator("energy", "d20000", "yellow-dir")
-create_indicator("energy", "d50000", "yellow-dir")
-create_indicator("energy", "d100000", "yellow-dir")
-
 -- Other auxiliary entities
 
 local j = 0.99
@@ -277,52 +231,49 @@ data:extend({
 		name = "factory-power-pole",
 		minable = nil,
 		max_health = 1,
-		selection_box = {{-j,-j},{j,j}},
-		collision_box = {{-j,-j},{j,j}},
+		selection_box = {{-j,-j}, {j,j}},
+		collision_box = {{-j,-j}, {j,j}},
 		collision_mask = {},
-		maximum_wire_distance = 0,
+		flags = {"not-on-map", "hidden"},
+		maximum_wire_distance = 1,
 		supply_area_distance = 63,
 		pictures = table.deepcopy(data.raw["electric-pole"]["substation"].pictures),
-		radius_visualisation_picture = {
-			filename = "__base__/graphics/entity/small-electric-pole/electric-pole-radius-visualization.png",
-			width = 12,
-			height = 12,
-			priority = "extra-high-no-scale"
-		},
+		drawing_box = table.deepcopy(data.raw["electric-pole"]["substation"].drawing_box),
+		radius_visualisation_picture = blank(),
 		connection_points = {cwc0c(), cwc0c(), cwc0c(), cwc0c()},
 	},
 	{
-		type = "lamp",
-		name = "factory-ceiling-light",
-		icon = "__base__/graphics/icons/small-lamp.png",
-		icon_size = 32,
-		flags = {"not-on-map"},
+		type = "electric-pole",
+		name = "factory-overflow-pole",
 		minable = nil,
-		max_health = 55,
-		corpse = "small-remnants",
-		collision_box = {{-0.15, -0.15}, {0.15, 0.15}},
+		max_health = 1,
+		selection_box = {{-j,-j}, {j,j}},
+		collision_box = {{-j,-j}, {j,j}},
 		collision_mask = {},
-		selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+		flags = {"not-on-map", "hidden"},
+		maximum_wire_distance = 1,
+		supply_area_distance = 63,
+		pictures = rblank(),
+		radius_visualisation_picture = blank(),
+		connection_points = {cwc0c()},
+		localised_name = "",
 		selectable_in_game = false,
-		vehicle_impact_sound =	{ filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65 },
-		energy_source =
-		{
-			type = "electric",
-			usage_priority = "secondary-input",
-			render_no_power_icon = false,
-		},
-		energy_usage_per_tick = "5KW",
-		light = {intensity = 1, size = 50},
-		light_when_colored = {intensity = 1, size = 6},
-		glow_size = 6,
-		glow_color_intensity = 0.135,
-		picture_off = blank(),
-		picture_on = blank(),
-		signal_to_color_mapping = {},
-
-		circuit_wire_connection_point = circuit_connector_definitions["lamp"].points,
-		circuit_connector_sprites = circuit_connector_definitions["lamp"].sprites,
-		circuit_wire_max_distance = 0,
+	},
+	{
+		type = "electric-pole",
+		name = "factory-power-connection",
+		pictures = table.deepcopy(data.raw["electric-pole"]["small-electric-pole"].pictures),
+		supply_area_distance = 0,
+		connection_points = {cwc0c(), cwc0c(), cwc0c(), cwc0c()},
+		draw_copper_wires = false,
+		maximum_wire_distance = 1,
+		collision_box = table.deepcopy(data.raw["electric-pole"]["small-electric-pole"].collision_box),
+		selection_box = table.deepcopy(data.raw["electric-pole"]["small-electric-pole"].selection_box),
+		collision_mask = {},
+		flags = {"not-on-map", "hidden"},
+		max_health = 1,
+		radius_visualisation_picture = blank(),
+		localised_name = "",
 	},
 })
 
