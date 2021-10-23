@@ -288,7 +288,7 @@ local function connect_power(factory, pole)
 end
 
 function update_power_connection(factory, pole) -- pole parameter is optional
-	local electric_network = factory.outside_energy_receiver.electric_network_id game.print(factory.middleman_id)
+	local electric_network = factory.outside_energy_receiver.electric_network_id
 	if electric_network == nil then return end
 	local surface = factory.outside_surface
 	local x = factory.outside_x
