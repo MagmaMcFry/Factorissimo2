@@ -252,12 +252,14 @@ data:extend({
 		collision_mask = {},
 		flags = {"not-on-map", "hidden"},
 		maximum_wire_distance = 1,
-		supply_area_distance = 63,
+		supply_area_distance = 0,
 		pictures = rblank(),
 		radius_visualisation_picture = blank(),
 		connection_points = {cwc0c()},
 		localised_name = "",
 		selectable_in_game = false,
+		draw_copper_wires = false,
+		draw_circuit_wires = false
 	},
 	{
 		type = "electric-pole",
