@@ -288,15 +288,18 @@ local function connect_power(factory, pole)
 end
 
 function update_power_connection(factory, pole) -- pole parameter is optional
-	local electric_network = factory.outside_energy_receiver.electric_network_id
+	local electric_network = factory.outside_energy_receiver.electric_network_id game.print(factory.middleman_id)
 	if electric_network == nil then return end
 	local surface = factory.outside_surface
 	local x = factory.outside_x
 	local y = factory.outside_y
 	
-	if global.surface_factory_counters[surface.name] then
-		connect_power(factory, available_pole(find_surrounding_factory(surface, {x=x, y=y})))
-		return
+	if not script.active_mods['factorissimo-power-pole-addon'] and global.surface_factory_counters[surface.name] then
+		local surrounding = find_surrounding_factory(surface, {x=x, y=y})
+		if surrounding then
+			connect_power(factory, available_pole(surrounding))
+			return
+		end
 	end
 	
 	-- find the nearest connected power pole
