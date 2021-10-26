@@ -210,6 +210,11 @@ local function delete_middleman(i)
 	if pole == 0 then return end
 	global.middleman_power_poles[i] = i < #global.middleman_power_poles and 0 or nil
 	pole.destroy()
+	for _, factory in pairs(global.factories) do
+		if factory.middleman_id == i then
+			factory.middleman_id = nil
+		end
+	end
 end
 
 local function cleanup_middlemen()
@@ -690,7 +695,7 @@ end
 
 local function cleanup_factory_exterior(factory, building)
 	factory.outside_energy_receiver.destroy()
-	if factory.middleman_id then delete_middleman(factory.middleman_id) factory.middleman_id = nil end
+	if factory.middleman_id then delete_middleman(factory.middleman_id) end
 	remove_direct_connection(factory)
 	
 	Connections.disconnect_factory(factory)
