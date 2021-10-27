@@ -7,7 +7,6 @@ require("prototypes.technology")
 require("prototypes.tile")
 
 data:extend({
-
 	{
 		type = "item-subgroup",
 		name = "factorissimo2",
