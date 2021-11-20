@@ -14,16 +14,10 @@ local function cleanup_entities_for_factoriomaps()
 					entity.teleport({x = factory.inside_x - 32, y = factory.inside_y + 32})
 				end
 			end
-			for _, entity in pairs(factory.inside_overlay_controllers) do
-				entity.destroy()
-			end
 
 			if factory.built then
-				for _, entity in pairs(factory.outside_port_markers) do
-					entity.destroy()
-				end
-				for _, entity in pairs(factory.outside_overlay_displays) do
-					entity.destroy()
+				for _, id in pairs(factory.outside_overlay_displays) do
+					rendering.destroy(id)
 				end
 
 				remote.call("factoriomaps", "link_renderbox_area", {

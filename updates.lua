@@ -4,7 +4,17 @@ Updates.init = function()
 	global.update_version = 12
 end
 
+local function fix_common_issues()
+	for _, factory in pairs(global.factories) do
+		-- Fix issues when forces are deleted
+		if not factory.force.valid then
+			factory.force = game.forces["player"]
+		end
+	end
+end
+
 Updates.run = function()
+	fix_common_issues()
 	if global.update_version < 11 then
 		error("This save is too old to be reloaded in this version of Factorissimo2. "
 			.. "To run this save, you will need to load and resave this map with Factorissimo2 version 2.4.5 or 2.4.6.")

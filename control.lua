@@ -723,19 +723,13 @@ local function is_invalid_save_slot(name)
 end
 
 local function init_factory_requester_chest(entity)
-	local n = entity.request_slot_count
-	if n == 0 then return end
-	local last_slot = entity.get_request_slot(n)
-	local begin_after = last_slot and last_slot.name
 	local saved_factories = global.saved_factories
-	if not(begin_after and saved_factories[begin_after] and next(saved_factories,begin_after)) then begin_after = nil end
 	local i = 0
-	for sf,_ in next, saved_factories,begin_after do
+	for sf,_ in pairs(saved_factories) do
 		i = i+1
 		entity.set_request_slot({name=sf,count=1},i)
-		if i >= n then return end
 	end
-	for j=i+1,n do
+	for j=i+1,entity.request_slot_count do
 		entity.clear_request_slot(j)
 	end
 end
@@ -1370,6 +1364,17 @@ end)
 script.on_event(defines.events.on_force_created, function(event)
 	local force = event.force
 	update_hidden_techs(force)
+end)
+
+script.on_event(defines.events.on_forces_merging, function(event)
+	for _, factory in pairs(global.factories) do
+		if not factory.force.valid then
+			factory.force = game.forces["player"]
+		end
+		if factory.force.name == event.source.name then
+			factory.force = event.destination
+		end
+	end
 end)
 
 script.on_event(defines.events.on_research_finished, function(event)
